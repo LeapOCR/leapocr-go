@@ -1,4 +1,3 @@
-// Package ocr provides the official Go SDK for the OCR API
 package ocr
 
 import (
