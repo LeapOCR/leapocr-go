@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
-	ocrsdk "github.com/your-org/ocr-go-sdk"
-	"github.com/your-org/ocr-go-sdk/ocr"
+	ocr "github.com/leapocr/go-sdk"
 )
 
 func main() {
@@ -23,14 +23,14 @@ func main() {
 		log.Printf("Custom config example failed: %v", err)
 	}
 
-	// Example: Batch processing
+	// Example: Batch processing with goroutines
 	if err := batchProcessingExample(apiKey); err != nil {
 		log.Printf("Batch processing example failed: %v", err)
 	}
 
-	// Example: Analytics
-	if err := analyticsExample(apiKey); err != nil {
-		log.Printf("Analytics example failed: %v", err)
+	// Example: Schema-based extraction
+	if err := schemaExtractionExample(apiKey); err != nil {
+		log.Printf("Schema extraction example failed: %v", err)
 	}
 }
 
@@ -38,32 +38,30 @@ func customConfigExample(apiKey string) error {
 	fmt.Println("=== Custom Configuration Example ===")
 
 	// Create custom configuration
-	config := ocrsdk.NewConfig(apiKey)
+	config := ocr.DefaultConfig(apiKey)
+	config.BaseURL = "https://api-staging.ocr.example.com" // Example staging URL
+	config.Timeout = 60 * time.Second
+	config.UserAgent = "my-app/1.0.0"
 
-	// Set custom base URL (if using a different environment)
-	if err := config.SetBaseURL("https://api.example.com"); err != nil {
-		return fmt.Errorf("failed to set base URL: %w", err)
+	// Create SDK with custom config
+	sdk, err := ocr.NewSDK(config)
+	if err != nil {
+		return fmt.Errorf("failed to create SDK with custom config: %w", err)
 	}
 
-	// Configure timeouts and retries
-	config.
-		WithTimeout(60*time.Second).
-		WithUserAgent("my-app/1.0.0").
-		WithRetries(5, time.Second, 2*time.Minute)
-
-	// Create client with custom config
-	client := ocrsdk.NewWithConfig(config)
-
+	// Test with a dummy operation (this will likely fail, which is expected)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Test health check with custom config
-	health, err := client.Health.Check(ctx)
+	// Example URL processing with custom options
+	_, err = sdk.ProcessURL(ctx, "https://example.com/test.pdf",
+		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithTier(ocr.TierIntelli),
+		ocr.WithInstructions("Extract all data with high accuracy"),
+	)
 	if err != nil {
-		// This might fail with the example URL, which is expected
-		fmt.Printf("Health check failed (expected with example URL): %v\n", err)
-	} else {
-		fmt.Printf("Health status: %+v\n", health)
+		// This is expected to fail with the example URL
+		fmt.Printf("Expected failure with example URL: %v\n", err)
 	}
 
 	fmt.Println()
@@ -71,143 +69,192 @@ func customConfigExample(apiKey string) error {
 }
 
 func batchProcessingExample(apiKey string) error {
-	fmt.Println("=== Batch Processing Example ===")
+	fmt.Println("=== Concurrent Batch Processing Example ===")
 
-	client := ocrsdk.New(apiKey)
+	sdk, err := ocr.New(apiKey)
+	if err != nil {
+		return fmt.Errorf("failed to create SDK: %w", err)
+	}
 
-	// Example files to process (replace with real files)
+	// Example files to process (replace with real files or URLs)
 	files := []string{
-		"./document1.pdf",
-		"./document2.pdf",
-		"./document3.pdf",
+		"https://example.com/document1.pdf",
+		"https://example.com/document2.pdf",
+		"https://example.com/document3.pdf",
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
-	// Start processing all files
-	jobIDs := make([]string, 0, len(files))
+	// Process files concurrently
+	var wg sync.WaitGroup
+	results := make(chan *ocr.OCRResult, len(files))
+	errors := make(chan error, len(files))
 
-	for _, filePath := range files {
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			fmt.Printf("File %s not found, skipping\n", filePath)
-			continue
-		}
+	for i, fileURL := range files {
+		wg.Add(1)
+		go func(idx int, url string) {
+			defer wg.Done()
 
-		req := &ocr.ProcessFileRequest{
-			FilePath: filePath,
-			Mode:     ocr.ModeTextAndImage,
-			Priority: ocr.PriorityNormal,
-		}
+			fmt.Printf("Starting processing for file %d: %s\n", idx+1, url)
 
-		job, err := client.OCR.ProcessFile(ctx, req)
-		if err != nil {
-			log.Printf("Failed to start processing %s: %v", filePath, err)
-			continue
-		}
+			// Start processing
+			job, err := sdk.ProcessURL(ctx, url,
+				ocr.WithFormat(ocr.FormatStructured),
+				ocr.WithTier(ocr.TierCore),
+				ocr.WithInstructions(fmt.Sprintf("Process document %d", idx+1)),
+			)
+			if err != nil {
+				errors <- fmt.Errorf("failed to start processing file %d: %w", idx+1, err)
+				return
+			}
 
-		fmt.Printf("Started processing %s (Job ID: %s)\n", filePath, job.ID)
-		jobIDs = append(jobIDs, job.ID)
+			// Wait for completion with custom options
+			waitOpts := ocr.WaitOptions{
+				InitialDelay: 2 * time.Second,
+				MaxDelay:     30 * time.Second,
+				Multiplier:   2.0,
+				MaxJitter:    5 * time.Second,
+				MaxAttempts:  50,
+			}
+
+			result, err := sdk.WaitUntilDoneWithOptions(ctx, job.ID, waitOpts)
+			if err != nil {
+				errors <- fmt.Errorf("failed to complete processing file %d: %w", idx+1, err)
+				return
+			}
+
+			fmt.Printf("Completed processing file %d (Job ID: %s)\n", idx+1, job.ID)
+			results <- result
+		}(i, fileURL)
 	}
 
-	if len(jobIDs) == 0 {
-		fmt.Println("No files to process")
+	// Close channels when all goroutines finish
+	go func() {
+		wg.Wait()
+		close(results)
+		close(errors)
+	}()
+
+	// Collect results
+	var successCount int
+	var totalCredits int
+
+	// Process results and errors
+	for results != nil || errors != nil {
+		select {
+		case result, ok := <-results:
+			if !ok {
+				results = nil
+				continue
+			}
+			successCount++
+			totalCredits += result.Credits
+			fmt.Printf("✓ Processing completed - Credits: %d, Pages: %d\n",
+				result.Credits, len(result.Pages))
+
+		case err, ok := <-errors:
+			if !ok {
+				errors = nil
+				continue
+			}
+			fmt.Printf("✗ Processing failed: %v\n", err)
+
+		case <-ctx.Done():
+			return fmt.Errorf("batch processing timed out: %w", ctx.Err())
+		}
+	}
+
+	fmt.Printf("\nBatch processing complete:\n")
+	fmt.Printf("  Successfully processed: %d/%d files\n", successCount, len(files))
+	fmt.Printf("  Total credits used: %d\n", totalCredits)
+	fmt.Println()
+
+	return nil
+}
+
+func schemaExtractionExample(apiKey string) error {
+	fmt.Println("=== Schema-Based Extraction Example ===")
+
+	sdk, err := ocr.New(apiKey)
+	if err != nil {
+		return fmt.Errorf("failed to create SDK: %w", err)
+	}
+
+	// Define custom schema for invoice extraction
+	invoiceSchema := map[string]interface{}{
+		"type": "object",
+		"properties": map[string]interface{}{
+			"invoice_number": map[string]interface{}{
+				"type":        "string",
+				"description": "The invoice number",
+			},
+			"total_amount": map[string]interface{}{
+				"type":        "number",
+				"description": "The total amount of the invoice",
+			},
+			"vendor_name": map[string]interface{}{
+				"type":        "string",
+				"description": "The name of the vendor/supplier",
+			},
+			"due_date": map[string]interface{}{
+				"type":        "string",
+				"format":      "date",
+				"description": "The due date for payment",
+			},
+			"line_items": map[string]interface{}{
+				"type": "array",
+				"items": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"description": map[string]interface{}{"type": "string"},
+						"quantity":    map[string]interface{}{"type": "number"},
+						"unit_price":  map[string]interface{}{"type": "number"},
+						"total":       map[string]interface{}{"type": "number"},
+					},
+				},
+			},
+		},
+		"required": []string{"invoice_number", "total_amount", "vendor_name"},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Example URL (replace with a real invoice URL)
+	invoiceURL := "https://example.com/sample-invoice.pdf"
+
+	fmt.Printf("Processing invoice with custom schema: %s\n", invoiceURL)
+
+	job, err := sdk.ProcessURL(ctx, invoiceURL,
+		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithTier(ocr.TierIntelli), // Use highest tier for best accuracy
+		ocr.WithSchema(invoiceSchema),
+		ocr.WithInstructions("Extract invoice data according to the provided schema. Be precise with numbers and dates."),
+	)
+	if err != nil {
+		// This will likely fail with the example URL, which is expected
+		fmt.Printf("Expected failure with example URL: %v\n", err)
+		fmt.Println("In a real scenario, this would process the invoice and extract:")
+		fmt.Println("- Invoice number")
+		fmt.Println("- Total amount")
+		fmt.Println("- Vendor name")
+		fmt.Println("- Due date")
+		fmt.Println("- Line items with quantities and prices")
+		fmt.Println()
 		return nil
 	}
 
-	// Wait for all jobs to complete
-	fmt.Printf("Waiting for %d jobs to complete...\n", len(jobIDs))
-
-	completed := make(map[string]bool)
-	ticker := time.NewTicker(3 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ticker.C:
-			allComplete := true
-
-			for _, jobID := range jobIDs {
-				if completed[jobID] {
-					continue
-				}
-
-				status, err := client.OCR.GetStatus(ctx, jobID)
-				if err != nil {
-					log.Printf("Failed to get status for job %s: %v", jobID, err)
-					continue
-				}
-
-				switch status.Status {
-				case ocr.StatusCompleted:
-					result, err := client.OCR.GetResult(ctx, jobID)
-					if err != nil {
-						log.Printf("Failed to get result for job %s: %v", jobID, err)
-					} else {
-						fmt.Printf("Job %s completed - Credits: %d, Pages: %d\n",
-							jobID, result.CreditsCost, len(result.Pages))
-					}
-					completed[jobID] = true
-				case ocr.StatusFailed:
-					errorMsg := "unknown error"
-					if status.Error != nil {
-						errorMsg = *status.Error
-					}
-					fmt.Printf("Job %s failed: %s\n", jobID, errorMsg)
-					completed[jobID] = true
-				default:
-					allComplete = false
-					fmt.Printf("Job %s: %s", jobID, status.Status)
-					if status.Progress != nil {
-						fmt.Printf(" (%.1f%%)", status.Progress.Percentage)
-					}
-					fmt.Println()
-				}
-			}
-
-			if allComplete {
-				fmt.Println("All jobs completed!")
-				fmt.Println()
-				return nil
-			}
-		}
-	}
-}
-
-func analyticsExample(apiKey string) error {
-	fmt.Println("=== Analytics Example ===")
-
-	client := ocrsdk.New(apiKey)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	// Get credits analytics
-	fmt.Println("Fetching credits analytics...")
-	creditsAnalytics, err := client.Analytics.GetCreditsAnalytics(ctx)
+	// If it somehow succeeded, wait for completion
+	result, err := sdk.WaitUntilDone(ctx, job.ID)
 	if err != nil {
-		return fmt.Errorf("failed to get credits analytics: %w", err)
+		return fmt.Errorf("processing failed: %w", err)
 	}
-	fmt.Printf("Credits analytics: %+v\n", creditsAnalytics)
 
-	// Get jobs analytics
-	fmt.Println("Fetching jobs analytics...")
-	jobsAnalytics, err := client.Analytics.GetJobsAnalytics(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get jobs analytics: %w", err)
-	}
-	fmt.Printf("Jobs analytics: %+v\n", jobsAnalytics)
-
-	// Get job list
-	fmt.Println("Fetching job list...")
-	jobs, err := client.Jobs.List(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get job list: %w", err)
-	}
-	fmt.Printf("Recent jobs: %+v\n", jobs)
-
+	fmt.Printf("Schema-based extraction completed!\n")
+	fmt.Printf("Credits used: %d\n", result.Credits)
+	fmt.Printf("Extracted data: %+v\n", result.Data)
 	fmt.Println()
+
 	return nil
 }

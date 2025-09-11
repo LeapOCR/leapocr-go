@@ -1,4 +1,4 @@
-package ocr
+package gen
 
 import (
 	"context"

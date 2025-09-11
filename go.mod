@@ -1,4 +1,4 @@
-module github.com/your-org/ocr-go-sdk
+module github.com/leapocr/go-sdk
 
 go 1.25.1
 

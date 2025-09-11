@@ -3,7 +3,7 @@
 # Variables
 OPENAPI_URL := http://localhost:8080/api/v1/swagger.json
 GENERATOR_VERSION := 7.9.0
-PACKAGE_NAME := github.com/your-org/ocr-go-sdk
+PACKAGE_NAME := github.com/leapocr/go-sdk
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -31,23 +31,21 @@ generate-sdk-endpoints: ## Generate Go SDK only for SDK-tagged endpoints (recomm
 		--additional-properties=packageName=ocr,generateInterfaces=true,structPrefix=false,enumClassPrefix=false \
 		--global-property=models,apis,supportingFiles
 	@echo "📋 Step 4: Organizing generated code"
-	@mkdir -p ocr/
+	@mkdir -p gen/
 	@# Clean up old generated files first
-	@rm -f ocr/model_*.go ocr/api_*.go ocr/client.go ocr/configuration.go ocr/response.go ocr/utils.go 2>/dev/null || true
+	@rm -f gen/model_*.go gen/api_*.go gen/client.go gen/configuration.go gen/response.go gen/utils.go 2>/dev/null || true
 	@# Copy models and core files
-	@cp generated-sdk/model_*.go ocr/ 2>/dev/null || echo "No model files found"
-	@cp generated-sdk/client.go ocr/ 2>/dev/null || echo "No client file found"
-	@cp generated-sdk/configuration.go ocr/ 2>/dev/null || echo "No configuration file found"
-	@cp generated-sdk/response.go ocr/ 2>/dev/null || echo "No response file found"
-	@cp generated-sdk/utils.go ocr/ 2>/dev/null || echo "No utils file found"
+	@cp generated-sdk/model_*.go gen/ 2>/dev/null || echo "No model files found"
+	@cp generated-sdk/client.go gen/ 2>/dev/null || echo "No client file found"
+	@cp generated-sdk/configuration.go gen/ 2>/dev/null || echo "No configuration file found"
+	@cp generated-sdk/response.go gen/ 2>/dev/null || echo "No response file found"
+	@cp generated-sdk/utils.go gen/ 2>/dev/null || echo "No utils file found"
 	@# Copy only one API file to avoid conflicts (prefer SDK API)
-	@cp generated-sdk/api_sdk.go ocr/ 2>/dev/null || cp generated-sdk/api_ocr.go ocr/ 2>/dev/null || echo "No API files found"
-	@echo "📋 Step 5: Creating SDK wrapper"
-	@./scripts/create-sdk-wrapper.sh
-	@echo "📋 Step 6: Cleaning up temporary files"
+	@cp generated-sdk/api_sdk.go gen/ 2>/dev/null || cp generated-sdk/api_ocr.go gen/ 2>/dev/null || echo "No API files found"
+	@echo "📋 Step 5: Cleaning up temporary files"
 	@rm -rf generated-sdk openapi-full.json openapi-sdk.json
-	@echo "📋 Step 7: Formatting generated code"
-	@go fmt ./ocr/... 2>/dev/null || echo "No OCR package to format"
+	@echo "📋 Step 6: Formatting generated code"
+	@go fmt ./gen/... 2>/dev/null || echo "No generated package to format"
 	@go mod tidy
 	@echo "✅ SDK generation complete!"
 
@@ -161,12 +159,12 @@ clean: ## Clean build artifacts and generated files
 	@echo "🧹 Cleaning up..."
 	go clean ./...
 	rm -f coverage.out coverage.html
-	rm -rf generated/ generated-sdk/ types/
+	rm -rf generated/ generated-sdk/ types/ gen/
 	rm -f openapi.json openapi-full.json openapi-sdk.json
 
 clean-types: ## Clean only generated types (keep other artifacts)
 	@echo "🧹 Cleaning generated types..."
-	rm -rf types/ generated/ generated-sdk/
+	rm -rf types/ generated/ generated-sdk/ gen/
 
 # Development Workflow
 dev-setup: install validate-spec generate build ## Complete development setup
@@ -222,7 +220,7 @@ status: ## Show current SDK status
 	@echo "===================="
 	@echo ""
 	@echo "📁 Project Structure:"
-	@find . -name "*.go" -not -path "./examples/*" | head -20
+	@find . -name "*.go" -not -path "./examples/*" -not -path "./gen/*" | head -20
 	@echo ""
 	@echo "🏷️  Available endpoint tags:"
 	@curl -s $(OPENAPI_URL) 2>/dev/null | jq -r '.paths | to_entries[] | .value | to_entries[] | .value.tags[]?' | sort -u | sed 's/^/  /' || echo "  API not accessible"

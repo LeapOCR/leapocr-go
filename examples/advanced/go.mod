@@ -1,7 +1,7 @@
 module example-advanced
 
-go 1.22
+go 1.25.1
 
-replace github.com/your-org/ocr-go-sdk => ../..
+replace github.com/leapocr/go-sdk => ../..
 
-require github.com/your-org/ocr-go-sdk v0.0.0-00010101000000-000000000000
+require github.com/leapocr/go-sdk v0.0.0-00010101000000-000000000000

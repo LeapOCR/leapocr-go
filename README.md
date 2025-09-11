@@ -19,351 +19,250 @@ import (
     "log"
     "os"
     
-    ocrsdk "github.com/leapocr/go-sdk"
+    "github.com/leapocr/go-sdk"
 )
 
 func main() {
-    // Initialize client with API key
-    client := ocrsdk.New(os.Getenv("OCR_API_KEY"))
+    // Initialize SDK with API key
+    sdk, err := ocr.New(os.Getenv("OCR_API_KEY"))
+    if err != nil {
+        log.Fatal(err)
+    }
     
-    // Process a local file
-    result, err := client.OCR.ProcessFileFromPath(context.Background(), "./document.pdf",
-        ocrsdk.WithFormat(ocrsdk.FormatStructured),
-        ocrsdk.WithInstructions("Extract invoice details"),
-    )
+    // Process a file from URL
+    job, err := sdk.ProcessURL(context.Background(), "https://example.com/document.pdf",
+        ocr.WithFormat(ocr.FormatStructured),
+        ocr.WithTier(ocr.TierCore))
     if err != nil {
         log.Fatal(err)
     }
     
     // Wait for completion
-    jobResult, err := client.OCR.WaitForCompletion(context.Background(), result.JobID)
+    result, err := sdk.WaitUntilDone(context.Background(), job.ID)
     if err != nil {
         log.Fatal(err)
     }
     
-    fmt.Printf("Extracted data: %+v\n", jobResult.Data)
-    fmt.Printf("Credits used: %d\n", jobResult.CreditsUsed)
+    fmt.Printf("Extracted data: %+v\n", result.Data)
 }
 ```
 
 ## Features
 
-- ✅ Type-safe API client generated from OpenAPI 3.1 spec
-- ✅ Automatic authentication with API keys
-- ✅ Built-in retry logic and error handling
-- ✅ Context support for all operations
-- ✅ File and URL processing support
-- ✅ Custom processing options and schemas
-- ✅ Real-time job status monitoring
-- ✅ Comprehensive test coverage
-- ✅ Examples and documentation
-
-## Client Configuration
-
-### Basic Configuration
-
-```go
-// Simple client with API key
-client := ocrsdk.New("your-api-key")
-
-// Custom configuration
-config := ocrsdk.NewConfig("your-api-key")
-config.SetBaseURL("https://api.leapocr.com")
-config.WithTimeout(60 * time.Second)
-config.WithUserAgent("my-app/1.0.0")
-config.WithRetries(5, time.Second, 2*time.Minute)
-
-client := ocrsdk.NewWithConfig(config)
-```
-
-### Environment Variables
-
-```bash
-export OCR_API_KEY="your-api-key-here"
-export OCR_BASE_URL="https://api.leapocr.com"  # optional
-```
+- **Go-Native Interface**: Clean, idiomatic Go API with functional options
+- **Type-Safe**: Strong typing with compile-time error checking
+- **Concurrent-Friendly**: Works seamlessly with goroutines and channels
+- **Flexible Configuration**: Support for custom schemas, instructions, and processing tiers
+- **Robust Error Handling**: Comprehensive error types with retry logic
+- **File Upload Support**: Direct file upload with presigned URLs
 
 ## Usage Examples
 
-### Processing Local Files
+### Process Local File
 
 ```go
-package main
-
-import (
-    "context"
-    "fmt"
-    "log"
-    
-    ocrsdk "github.com/leapocr/go-sdk"
-)
-
-func main() {
-    client := ocrsdk.New(os.Getenv("OCR_API_KEY"))
-    
-    // Process with options
-    result, err := client.OCR.ProcessFileFromPath(context.Background(), "./invoice.pdf",
-        ocrsdk.WithFormat(ocrsdk.FormatStructured),
-        ocrsdk.WithSchema(map[string]interface{}{
-            "invoice_number": "string",
-            "total_amount":   "number",
-            "date":          "date",
-        }),
-        ocrsdk.WithInstructions("Extract key invoice information"),
-        ocrsdk.WithTier(ocrsdk.TierCore),
-    )
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    // Wait for completion
-    jobResult, err := client.OCR.WaitForCompletion(context.Background(), result.JobID)
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    fmt.Printf("Status: %s\n", jobResult.Status)
-    fmt.Printf("Data: %+v\n", jobResult.Data)
-    fmt.Printf("Pages: %d\n", len(jobResult.Pages))
-    fmt.Printf("Credits: %d\n", jobResult.CreditsUsed)
+file, err := os.Open("document.pdf")
+if err != nil {
+    log.Fatal(err)
 }
-```
+defer file.Close()
 
-### Processing Files from URLs
-
-```go
-result, err := client.OCR.ProcessFileFromURL(context.Background(), 
-    "https://example.com/document.pdf",
-    ocrsdk.WithFormat(ocrsdk.FormatMarkdown),
-    ocrsdk.WithTier(ocrsdk.TierSwift),
-)
+job, err := sdk.ProcessFile(ctx, file, "document.pdf",
+    ocr.WithFormat(ocr.FormatStructured),
+    ocr.WithInstructions("Extract invoice data"))
 if err != nil {
     log.Fatal(err)
 }
 
-// Monitor progress
+result, err := sdk.WaitUntilDone(ctx, job.ID)
+// Handle result...
+```
+
+### Custom Configuration
+
+```go
+config := ocr.DefaultConfig("your-api-key")
+config.BaseURL = "https://api-staging.example.com"
+config.Timeout = 60 * time.Second
+
+sdk, err := ocr.NewSDK(config)
+```
+
+### Concurrent Processing
+
+```go
+var wg sync.WaitGroup
+results := make(chan *ocr.OCRResult, len(urls))
+
+for _, url := range urls {
+    wg.Add(1)
+    go func(fileURL string) {
+        defer wg.Done()
+        
+        job, err := sdk.ProcessURL(ctx, fileURL, 
+            ocr.WithFormat(ocr.FormatMarkdown))
+        if err != nil {
+            log.Printf("Failed: %v", err)
+            return
+        }
+        
+        result, err := sdk.WaitUntilDone(ctx, job.ID)
+        if err != nil {
+            log.Printf("Failed: %v", err)
+            return
+        }
+        
+        results <- result
+    }(url)
+}
+
+go func() {
+    wg.Wait()
+    close(results)
+}()
+
+for result := range results {
+    fmt.Printf("Completed: %+v\n", result.Data)
+}
+```
+
+### Manual Status Polling
+
+```go
+job, err := sdk.ProcessURL(ctx, url, ocr.WithFormat(ocr.FormatStructured))
+if err != nil {
+    log.Fatal(err)
+}
+
+// Poll manually instead of using WaitUntilDone
 ticker := time.NewTicker(2 * time.Second)
 defer ticker.Stop()
 
 for {
-    status, err := client.OCR.GetJobStatus(context.Background(), result.JobID)
+    status, err := sdk.GetJobStatus(ctx, job.ID)
     if err != nil {
-        log.Fatal(err)
+        log.Printf("Failed to get status: %v", err)
+        continue
     }
     
-    fmt.Printf("Progress: %.1f%%\n", status.Progress)
+    fmt.Printf("Status: %s (%.1f%% complete)\n", status.Status, status.Progress)
     
     if status.Status == "completed" {
-        jobResult, _ := client.OCR.GetJobResult(context.Background(), result.JobID)
-        fmt.Printf("Completed: %+v\n", jobResult.Data)
+        result, err := sdk.GetJobResult(ctx, job.ID)
+        if err != nil {
+            log.Fatal(err)
+        }
+        fmt.Printf("Result: %+v\n", result.Data)
         break
-    } else if status.Status == "failed" {
-        log.Fatalf("Job failed: %s", status.Error)
     }
     
     <-ticker.C
 }
 ```
 
-### Batch Processing
+### Schema-Based Extraction
 
 ```go
-files := []string{"doc1.pdf", "doc2.pdf", "doc3.pdf"}
-jobIDs := make([]string, 0, len(files))
-
-// Start all jobs
-for _, file := range files {
-    result, err := client.OCR.ProcessFileFromPath(context.Background(), file)
-    if err != nil {
-        log.Printf("Failed to start %s: %v", file, err)
-        continue
-    }
-    jobIDs = append(jobIDs, result.JobID)
-}
-
-// Wait for all completions
-for _, jobID := range jobIDs {
-    result, err := client.OCR.WaitForCompletion(context.Background(), jobID)
-    if err != nil {
-        log.Printf("Job %s failed: %v", jobID, err)
-        continue
-    }
-    fmt.Printf("Job %s completed with %d credits\n", jobID, result.CreditsUsed)
-}
-```
-
-## Processing Options
-
-### Output Formats
-
-```go
-// Available formats
-ocrsdk.FormatMarkdown            // Plain markdown text
-ocrsdk.FormatStructured          // JSON structured data
-ocrsdk.FormatPerPageStructured   // JSON per page
-```
-
-### Processing Tiers
-
-```go
-// Available tiers (speed vs accuracy tradeoff)
-ocrsdk.TierSwift    // Fastest processing
-ocrsdk.TierCore     // Balanced speed and accuracy
-ocrsdk.TierIntelli  // Highest accuracy
-```
-
-### Custom Schemas
-
-```go
-// Define expected data structure
 schema := map[string]interface{}{
-    "invoice_number": "string",
-    "vendor_name":    "string",
-    "total_amount":   "number",
-    "line_items": []map[string]interface{}{
-        {
-            "description": "string",
-            "quantity":    "number",
-            "unit_price":  "number",
-        },
+    "type": "object",
+    "properties": map[string]interface{}{
+        "invoice_number": map[string]interface{}{"type": "string"},
+        "total_amount":   map[string]interface{}{"type": "number"},
+        "vendor_name":    map[string]interface{}{"type": "string"},
     },
 }
 
-result, err := client.OCR.ProcessFileFromPath(ctx, "invoice.pdf",
-    ocrsdk.WithSchema(schema),
-    ocrsdk.WithInstructions("Extract all invoice details including line items"),
-)
-```
-
-## Error Handling
-
-```go
-result, err := client.OCR.ProcessFileFromPath(ctx, "document.pdf")
-if err != nil {
-    // Handle different error types
-    switch {
-    case strings.Contains(err.Error(), "authentication"):
-        log.Fatal("Invalid API key")
-    case strings.Contains(err.Error(), "file not found"):
-        log.Fatal("Document file not found")
-    case strings.Contains(err.Error(), "quota exceeded"):
-        log.Fatal("Credit quota exceeded")
-    default:
-        log.Fatalf("Processing failed: %v", err)
-    }
-}
-
-// Check job result for processing errors
-jobResult, err := client.OCR.WaitForCompletion(ctx, result.JobID)
-if err != nil {
-    log.Fatal(err)
-}
-
-if jobResult.Status == "failed" {
-    log.Fatalf("OCR processing failed: %s", jobResult.Error)
-}
-```
-
-## Advanced Usage
-
-### Custom HTTP Client
-
-```go
-httpClient := &http.Client{
-    Timeout: 60 * time.Second,
-    Transport: &http.Transport{
-        TLSClientConfig: &tls.Config{
-            InsecureSkipVerify: false,
-        },
-    },
-}
-
-config := ocrsdk.NewConfig("your-api-key")
-config.HTTPClient = httpClient
-client := ocrsdk.NewWithConfig(config)
-```
-
-### Retry Configuration
-
-```go
-config := ocrsdk.NewConfig("your-api-key")
-config.WithRetries(
-    5,                    // max retries
-    time.Second,         // initial delay
-    2*time.Minute,       // max delay
-)
-client := ocrsdk.NewWithConfig(config)
+job, err := sdk.ProcessURL(ctx, invoiceURL,
+    ocr.WithFormat(ocr.FormatStructured),
+    ocr.WithTier(ocr.TierIntelli),
+    ocr.WithSchema(schema),
+    ocr.WithInstructions("Extract invoice data according to schema"))
 ```
 
 ## API Reference
 
-### Core Methods
+### SDK Methods
 
-- `client.OCR.ProcessFileFromPath(ctx, path, ...options) (*ProcessResult, error)` - Process local file
-- `client.OCR.ProcessFileFromURL(ctx, url, ...options) (*ProcessResult, error)` - Process file from URL
-- `client.OCR.GetJobStatus(ctx, jobID) (*JobStatus, error)` - Get job status
-- `client.OCR.GetJobResult(ctx, jobID) (*JobResult, error)` - Get job result
-- `client.OCR.WaitForCompletion(ctx, jobID) (*JobResult, error)` - Wait for job completion
+- `New(apiKey string) (*SDK, error)` - Create SDK with default config
+- `NewSDK(config *Config) (*SDK, error)` - Create SDK with custom config
+- `ProcessURL(ctx, url, ...options) (*Job, error)` - Process file from URL
+- `ProcessFile(ctx, file, filename, ...options) (*Job, error)` - Process uploaded file
+- `WaitUntilDone(ctx, jobID) (*OCRResult, error)` - Wait for job completion
+- `WaitUntilDoneWithOptions(ctx, jobID, options) (*OCRResult, error)` - Wait with custom options
+- `GetJobStatus(ctx, jobID) (*JobStatusInfo, error)` - Get current job status without waiting
+- `GetJobResult(ctx, jobID) (*OCRResult, error)` - Get final job result (for completed jobs)
 
-### Response Types
+### Processing Options
+
+- `WithFormat(format Format)` - Set output format (Markdown, Structured, PerPageStructured)
+- `WithTier(tier Tier)` - Set processing tier (Swift, Core, Intelli)
+- `WithSchema(schema map[string]interface{})` - Custom extraction schema
+- `WithInstructions(instructions string)` - Custom processing instructions
+- `WithCategoryID(categoryID string)` - Document category ID
+
+### Types
+
+- `Format`: `FormatMarkdown`, `FormatStructured`, `FormatPerPageStructured`
+- `Tier`: `TierSwift`, `TierCore`, `TierIntelli`
+- `OCRResult`: Final processing result with text, data, pages, credits
+- `JobStatusInfo`: Job status information with progress
+- `SDKError`: Custom error type with retry logic
+
+## Error Handling
+
+The SDK provides comprehensive error handling:
 
 ```go
-type ProcessResult struct {
-    JobID     string
-    UploadURL string
-    Status    string
+result, err := sdk.WaitUntilDone(ctx, job.ID)
+if err != nil {
+    if sdkErr, ok := err.(*ocr.SDKError); ok {
+        fmt.Printf("SDK Error: %s\n", sdkErr.Type)
+        fmt.Printf("Message: %s\n", sdkErr.Message)
+        
+        if sdkErr.IsRetryable() {
+            // Implement retry logic
+        }
+    }
 }
+```
 
-type JobStatus struct {
-    JobID         string
-    Status        string
-    Progress      float64
-    EstimatedTime int
-    Error         string
-}
+## Development
 
-type JobResult struct {
-    JobID          string
-    Status         string
-    Data           map[string]interface{}
-    Pages          []PageResult
-    ProcessingTime int
-    CreditsUsed    int
-    Error          string
-}
+### Building
 
-type PageResult struct {
-    PageNumber int                    `json:"page_number"`
-    Text       string                 `json:"text"`
-    Data       map[string]interface{} `json:"data"`
-    Confidence float64                `json:"confidence"`
-}
+```bash
+make build        # Build SDK
+make test         # Run tests  
+make examples     # Build examples
+```
+
+### Code Generation
+
+```bash
+make generate     # Generate from OpenAPI spec
+make clean        # Clean generated files
+```
+
+### Testing
+
+```bash
+make test                    # Unit tests
+make test-integration        # Integration tests (requires OCR_API_KEY)
+make test-coverage          # Coverage report
 ```
 
 ## Examples
 
-See the [`examples/`](./examples/) directory for complete working examples:
+See the `examples/` directory for complete working examples:
 
-- [`examples/basic/`](./examples/basic/) - Basic usage patterns
-- [`examples/advanced/`](./examples/advanced/) - Advanced configuration and batch processing
-
-## Testing
-
-```bash
-# Run tests
-go test ./...
-
-# Run tests with coverage
-go test -cover ./...
-
-# Run integration tests (requires API key)
-OCR_API_KEY=your-key go test ./test/integration/...
-```
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
+- **Basic**: Simple file processing from URL and local file
+- **Advanced**: Concurrent processing, custom configuration, schema extraction  
+- **Validation**: Error handling and timeout scenarios
 
 ## License
 
-MIT License - see [LICENSE](./LICENSE) for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support and questions, please refer to the [API documentation](https://docs.example.com) or open an issue.

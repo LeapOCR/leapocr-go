@@ -1,0 +1,261 @@
+package ocr
+
+import (
+	"fmt"
+	"net/url"
+	"path/filepath"
+	"strings"
+)
+
+// ValidationError represents validation-specific errors
+type ValidationError struct {
+	Field   string
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	if e.Field != "" {
+		return fmt.Sprintf("validation failed for %s: %s", e.Field, e.Message)
+	}
+	return fmt.Sprintf("validation failed: %s", e.Message)
+}
+
+// NewValidationError creates a new validation error
+func NewValidationError(field, message string) *ValidationError {
+	return &ValidationError{Field: field, Message: message}
+}
+
+// SupportedFileExtensions lists all supported file extensions
+var SupportedFileExtensions = []string{".pdf"}
+
+// MaxFileSizeBytes represents the maximum allowed file size (50MB)
+const MaxFileSizeBytes = 50 * 1024 * 1024
+
+// MaxInstructionsLength represents the maximum length for instructions
+const MaxInstructionsLength = 5000
+
+// ValidateFileExtension validates that the file extension is supported
+func ValidateFileExtension(filename string) error {
+	if filename == "" {
+		return NewValidationError("filename", "filename cannot be empty")
+	}
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	if ext == "" {
+		return NewValidationError("filename", "file must have an extension")
+	}
+
+	for _, supported := range SupportedFileExtensions {
+		if ext == supported {
+			return nil
+		}
+	}
+
+	return NewValidationError("filename", fmt.Sprintf("unsupported file type '%s'. Only PDF files are currently supported", ext))
+}
+
+// ValidateURL validates that a URL is properly formatted and uses allowed schemes
+func ValidateURL(fileURL string) error {
+	if fileURL == "" {
+		return NewValidationError("url", "URL cannot be empty")
+	}
+
+	parsedURL, err := url.Parse(fileURL)
+	if err != nil {
+		return NewValidationError("url", fmt.Sprintf("invalid URL format: %v", err))
+	}
+
+	if parsedURL.Scheme == "" {
+		return NewValidationError("url", "URL must include a scheme (http or https)")
+	}
+
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return NewValidationError("url", "URL must use http or https scheme")
+	}
+
+	if parsedURL.Host == "" {
+		return NewValidationError("url", "URL must include a host")
+	}
+
+	// Validate file extension from URL path
+	if err := ValidateFileExtension(parsedURL.Path); err != nil {
+		// Re-wrap with URL context
+		return NewValidationError("url", fmt.Sprintf("URL path validation failed: %s", err.(*ValidationError).Message))
+	}
+
+	return nil
+}
+
+// ValidateFormat validates the OCR format
+func ValidateFormat(format Format) error {
+	switch format {
+	case FormatMarkdown, FormatStructured, FormatPerPageStructured:
+		return nil
+	case "":
+		return NewValidationError("format", "format cannot be empty")
+	default:
+		return NewValidationError("format", fmt.Sprintf("invalid format '%s'. Valid formats are: %s, %s, %s",
+			format, FormatMarkdown, FormatStructured, FormatPerPageStructured))
+	}
+}
+
+// ValidateTier validates the processing tier
+func ValidateTier(tier Tier) error {
+	switch tier {
+	case TierSwift, TierCore, TierIntelli:
+		return nil
+	case "":
+		return NewValidationError("tier", "tier cannot be empty")
+	default:
+		return NewValidationError("tier", fmt.Sprintf("invalid tier '%s'. Valid tiers are: %s, %s, %s",
+			tier, TierSwift, TierCore, TierIntelli))
+	}
+}
+
+// ValidateInstructions validates custom processing instructions
+func ValidateInstructions(instructions string) error {
+	if len(instructions) > MaxInstructionsLength {
+		return NewValidationError("instructions", fmt.Sprintf("instructions too long (%d characters). Maximum allowed is %d characters",
+			len(instructions), MaxInstructionsLength))
+	}
+	return nil
+}
+
+// ValidateSchema validates the extraction schema based on format
+func ValidateSchema(schema map[string]interface{}, format Format) error {
+	if schema == nil {
+		return nil // Schema is optional
+	}
+
+	// Schema is not allowed with markdown format
+	if format == FormatMarkdown {
+		return NewValidationError("schema", "custom schema is not supported with markdown format. Use structured format instead")
+	}
+
+	// Basic schema structure validation
+	if len(schema) == 0 {
+		return NewValidationError("schema", "schema cannot be empty when provided")
+	}
+
+	// Validate schema doesn't contain invalid keys or structures
+	if err := validateSchemaStructure(schema, ""); err != nil {
+		return NewValidationError("schema", err.Error())
+	}
+
+	return nil
+}
+
+// ValidateCategoryID validates document category ID
+func ValidateCategoryID(categoryID string) error {
+	if categoryID == "" {
+		return nil // Category ID is optional
+	}
+
+	// Category ID should be a reasonable length and contain valid characters
+	if len(categoryID) > 100 {
+		return NewValidationError("categoryID", "category ID too long. Maximum allowed is 100 characters")
+	}
+
+	// Basic character validation - only allow alphanumeric, hyphens, and underscores
+	for _, char := range categoryID {
+		if !((char >= 'a' && char <= 'z') ||
+			(char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') ||
+			char == '-' || char == '_') {
+			return NewValidationError("categoryID", "category ID can only contain letters, numbers, hyphens, and underscores")
+		}
+	}
+
+	return nil
+}
+
+// ValidateProcessingConfig validates the entire processing configuration
+func ValidateProcessingConfig(config *processingConfig) error {
+	// Validate format
+	if err := ValidateFormat(config.format); err != nil {
+		return err
+	}
+
+	// Validate tier
+	if err := ValidateTier(config.tier); err != nil {
+		return err
+	}
+
+	// Validate instructions
+	if err := ValidateInstructions(config.instructions); err != nil {
+		return err
+	}
+
+	// Validate schema (depends on format)
+	if err := ValidateSchema(config.schema, config.format); err != nil {
+		return err
+	}
+
+	// Validate category ID
+	if err := ValidateCategoryID(config.categoryID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateSchemaStructure performs deep validation of schema structure
+func validateSchemaStructure(schema map[string]interface{}, path string) error {
+	const maxDepth = 10
+	const maxKeys = 100
+
+	if len(path) > 0 && strings.Count(path, ".") > maxDepth {
+		return fmt.Errorf("schema nesting too deep at %s. Maximum depth is %d levels", path, maxDepth)
+	}
+
+	if len(schema) > maxKeys {
+		return fmt.Errorf("too many keys in schema object at %s. Maximum allowed is %d", path, maxKeys)
+	}
+
+	for key, value := range schema {
+		currentPath := key
+		if path != "" {
+			currentPath = path + "." + key
+		}
+
+		// Validate key name
+		if key == "" {
+			return fmt.Errorf("empty key not allowed in schema at %s", path)
+		}
+
+		if len(key) > 100 {
+			return fmt.Errorf("key '%s' too long. Maximum length is 100 characters", key)
+		}
+
+		// Validate value based on type
+		switch v := value.(type) {
+		case map[string]interface{}:
+			if err := validateSchemaStructure(v, currentPath); err != nil {
+				return err
+			}
+		case []interface{}:
+			if len(v) > 1000 {
+				return fmt.Errorf("array at %s too large. Maximum length is 1000 items", currentPath)
+			}
+			for i, item := range v {
+				if nested, ok := item.(map[string]interface{}); ok {
+					if err := validateSchemaStructure(nested, fmt.Sprintf("%s[%d]", currentPath, i)); err != nil {
+						return err
+					}
+				}
+			}
+		case string:
+			if len(v) > 1000 {
+				return fmt.Errorf("string value at %s too long. Maximum length is 1000 characters", currentPath)
+			}
+		case nil:
+			// Null values are allowed
+		case bool, float64:
+			// These types are allowed
+		default:
+			return fmt.Errorf("unsupported value type %T at %s", v, currentPath)
+		}
+	}
+
+	return nil
+}

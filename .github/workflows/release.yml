@@ -92,7 +92,7 @@ jobs:
             ## Installation
 
             ```bash
-            go get github.com/your-org/ocr-go-sdk@${{ steps.tag.outputs.tag }}
+            go get github.com/leapocr/go-sdk@${{ steps.tag.outputs.tag }}
             ```
 
             ## Usage

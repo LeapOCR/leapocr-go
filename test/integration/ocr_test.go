@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/your-org/ocr-go-sdk"
-	"github.com/your-org/ocr-go-sdk/ocr"
+	ocr "github.com/leapocr/go-sdk"
 )
 
 // Integration tests require:
@@ -20,21 +19,8 @@ import (
 // 2. OCR API server running (default: http://localhost:8080)
 // 3. Sample test files in test/fixtures/
 
-func TestIntegration_HealthCheck(t *testing.T) {
-	client := createTestClient(t)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	health, err := client.Health.Check(ctx)
-	require.NoError(t, err)
-	assert.NotNil(t, health)
-
-	t.Logf("Health check response: %+v", health)
-}
-
 func TestIntegration_ProcessFile(t *testing.T) {
-	client := createTestClient(t)
+	sdk := createTestSDK(t)
 
 	// Look for test files
 	testFiles := []string{
@@ -57,33 +43,35 @@ func TestIntegration_ProcessFile(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	req := &ocr.ProcessFileRequest{
-		FilePath:           testFile,
-		Mode:               ocr.ModeTextAndImage,
-		CustomInstructions: "Extract all text and identify key information",
-		Priority:           ocr.PriorityNormal,
-	}
+	// Open test file
+	file, err := os.Open(testFile)
+	require.NoError(t, err)
+	defer file.Close()
 
 	t.Logf("Processing file: %s", testFile)
-	job, err := client.OCR.ProcessFile(ctx, req)
+	job, err := sdk.ProcessFile(ctx, file, "test-document.pdf",
+		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithTier(ocr.TierCore),
+		ocr.WithInstructions("Extract all text and identify key information"),
+	)
 	require.NoError(t, err)
 	require.NotNil(t, job)
 
 	t.Logf("Job created with ID: %s", job.ID)
 
 	// Wait for completion
-	result, err := client.OCR.WaitForCompletion(ctx, job.ID)
+	result, err := sdk.WaitUntilDone(ctx, job.ID)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
 	// Verify results
-	assert.Equal(t, ocr.StatusCompleted, result.Status)
-	assert.Greater(t, result.CreditsCost, 0)
+	assert.Equal(t, "completed", result.Status)
+	assert.Greater(t, result.Credits, 0)
 	assert.Greater(t, len(result.Pages), 0)
 
 	t.Logf("Processing completed successfully!")
-	t.Logf("Credits used: %d", result.CreditsCost)
-	t.Logf("Processing time: %v", result.ProcessingTime)
+	t.Logf("Credits used: %d", result.Credits)
+	t.Logf("Processing time: %v", result.Duration)
 	t.Logf("Pages processed: %d", len(result.Pages))
 
 	if len(result.Pages) > 0 {
@@ -93,7 +81,7 @@ func TestIntegration_ProcessFile(t *testing.T) {
 }
 
 func TestIntegration_ProcessURL(t *testing.T) {
-	client := createTestClient(t)
+	sdk := createTestSDK(t)
 
 	// This test would need a publicly accessible test document URL
 	testURL := os.Getenv("TEST_DOCUMENT_URL")
@@ -104,13 +92,11 @@ func TestIntegration_ProcessURL(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	opts := &ocr.ProcessFileRequest{
-		Mode:     ocr.ModeTextOnly,
-		Priority: ocr.PriorityHigh,
-	}
-
 	t.Logf("Processing URL: %s", testURL)
-	job, err := client.OCR.ProcessURL(ctx, testURL, opts)
+	job, err := sdk.ProcessURL(ctx, testURL,
+		ocr.WithFormat(ocr.FormatMarkdown),
+		ocr.WithTier(ocr.TierSwift),
+	)
 	require.NoError(t, err)
 	require.NotNil(t, job)
 
@@ -125,29 +111,31 @@ func TestIntegration_ProcessURL(t *testing.T) {
 		case <-ctx.Done():
 			t.Fatal("Timeout waiting for job completion")
 		case <-ticker.C:
-			status, err := client.OCR.GetStatus(ctx, job.ID)
+			status, err := sdk.GetJobStatus(ctx, job.ID)
 			require.NoError(t, err)
 
 			t.Logf("Job status: %s", status.Status)
-			if status.Progress != nil {
-				t.Logf("Progress: %.1f%%", status.Progress.Percentage)
+			if status.Progress != 0 {
+				t.Logf("Progress: %.1f%%", status.Progress)
 			}
 
-			if status.Status == ocr.StatusCompleted {
-				result, err := client.OCR.GetResult(ctx, job.ID)
+			switch status.Status {
+			case "completed":
+				result, err := sdk.GetJobResult(ctx, job.ID)
 				require.NoError(t, err)
 
-				assert.Equal(t, ocr.StatusCompleted, result.Status)
-				assert.Greater(t, result.CreditsCost, 0)
-				assert.Greater(t, len(result.Pages), 0)
+				assert.Equal(t, "completed", result.Status)
+				assert.Greater(t, result.Credits, 0)
+				assert.Greater(t, len(result.Text), 0)
 
 				t.Logf("URL processing completed successfully!")
-				t.Logf("Credits used: %d", result.CreditsCost)
-				t.Logf("Text extracted: %d characters", len(result.Pages[0].Text))
+				t.Logf("Credits used: %d", result.Credits)
+				t.Logf("Text extracted: %d characters", len(result.Text))
 				return
-			} else if status.Status == ocr.StatusFailed {
-				if status.Error != nil {
-					t.Fatalf("Job failed: %s", *status.Error)
+
+			case "failed", "error":
+				if status.Error != "" {
+					t.Fatalf("Job failed: %s", status.Error)
 				}
 				t.Fatal("Job failed with unknown error")
 			}
@@ -155,43 +143,56 @@ func TestIntegration_ProcessURL(t *testing.T) {
 	}
 }
 
-func TestIntegration_Analytics(t *testing.T) {
-	client := createTestClient(t)
+func TestIntegration_ErrorHandling(t *testing.T) {
+	sdk := createTestSDK(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Test credits analytics
-	t.Run("Credits Analytics", func(t *testing.T) {
-		analytics, err := client.Analytics.GetCreditsAnalytics(ctx)
-		require.NoError(t, err)
-		assert.NotNil(t, analytics)
-		t.Logf("Credits analytics: %+v", analytics)
+	// Test invalid URL
+	t.Run("Invalid URL", func(t *testing.T) {
+		_, err := sdk.ProcessURL(ctx, "not-a-valid-url",
+			ocr.WithFormat(ocr.FormatStructured))
+		require.Error(t, err)
+
+		// Check if it's an SDK error
+		if sdkErr, ok := err.(*ocr.SDKError); ok {
+			t.Logf("Received SDK error: %s - %s", sdkErr.Type, sdkErr.Message)
+		}
 	})
 
-	// Test jobs analytics
-	t.Run("Jobs Analytics", func(t *testing.T) {
-		analytics, err := client.Analytics.GetJobsAnalytics(ctx)
-		require.NoError(t, err)
-		assert.NotNil(t, analytics)
-		t.Logf("Jobs analytics: %+v", analytics)
+	// Test non-existent job status
+	t.Run("Non-existent Job Status", func(t *testing.T) {
+		_, err := sdk.GetJobStatus(ctx, "non-existent-job-id-12345")
+		require.Error(t, err)
+		t.Logf("Correctly handled non-existent job: %v", err)
 	})
 }
 
-func TestIntegration_JobManagement(t *testing.T) {
-	client := createTestClient(t)
+func TestIntegration_CustomWaitOptions(t *testing.T) {
+	sdk := createTestSDK(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Test job listing
-	jobs, err := client.Jobs.List(ctx)
-	require.NoError(t, err)
-	assert.NotNil(t, jobs)
-	t.Logf("Job list: %+v", jobs)
+	// Test custom wait options with non-existent job (should fail quickly)
+	waitOpts := ocr.WaitOptions{
+		InitialDelay: 100 * time.Millisecond,
+		MaxDelay:     1 * time.Second,
+		Multiplier:   2.0,
+		MaxJitter:    200 * time.Millisecond,
+		MaxAttempts:  3, // Very few attempts
+	}
+
+	start := time.Now()
+	_, err := sdk.WaitUntilDoneWithOptions(ctx, "fake-job-id", waitOpts)
+	duration := time.Since(start)
+
+	require.Error(t, err)
+	t.Logf("Wait with custom options failed after %v: %v", duration, err)
 }
 
-func createTestClient(t *testing.T) *ocr.Client {
+func createTestSDK(t *testing.T) *ocr.SDK {
 	apiKey := os.Getenv("OCR_API_KEY")
 	if apiKey == "" {
 		t.Fatal("OCR_API_KEY environment variable is required for integration tests")
@@ -202,15 +203,16 @@ func createTestClient(t *testing.T) *ocr.Client {
 		baseURL = "http://localhost:8080"
 	}
 
-	config := ocr.NewConfig(apiKey)
-	if err := config.SetBaseURL(baseURL); err != nil {
-		t.Fatalf("Invalid base URL: %v", err)
+	// Create custom config for testing
+	config := ocr.DefaultConfig(apiKey)
+	config.BaseURL = baseURL
+	config.Timeout = 2 * time.Minute
+	config.UserAgent = "ocr-go-sdk-test/1.0.0"
+
+	sdk, err := ocr.NewSDK(config)
+	if err != nil {
+		t.Fatalf("Failed to create test SDK: %v", err)
 	}
 
-	// Configure for testing
-	config.WithTimeout(2 * time.Minute)
-	config.WithUserAgent("ocr-go-sdk-test/1.0.0")
-
-	client := ocr.NewWithConfig(config)
-	return client
+	return sdk
 }

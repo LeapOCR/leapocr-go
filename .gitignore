@@ -14,7 +14,9 @@ coverage.out
 
 # Generated files
 openapi.json
+openapi-*.json
 generated/
+generated-sdk/
 
 # IDE
 .vscode/
@@ -33,7 +35,10 @@ Thumbs.db
 .env
 .env.local
 
-# Examples output
+# Examples output and binaries
 examples/*/output/
 examples/*/*.pdf
 examples/*/*.json
+examples/*/basic
+examples/*/advanced
+examples/*/validation
