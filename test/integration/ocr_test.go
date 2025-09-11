@@ -15,7 +15,7 @@ import (
 )
 
 // Integration tests require:
-// 1. OCR_API_KEY environment variable
+// 1. LEAPOCR_API_KEY environment variable
 // 2. OCR API server running (default: http://localhost:8080)
 // 3. Sample test files in test/fixtures/
 
@@ -193,9 +193,9 @@ func TestIntegration_CustomWaitOptions(t *testing.T) {
 }
 
 func createTestSDK(t *testing.T) *ocr.SDK {
-	apiKey := os.Getenv("OCR_API_KEY")
+	apiKey := os.Getenv("LEAPOCR_API_KEY")
 	if apiKey == "" {
-		t.Fatal("OCR_API_KEY environment variable is required for integration tests")
+		t.Fatal("LEAPOCR_API_KEY environment variable is required for integration tests")
 	}
 
 	baseURL := os.Getenv("OCR_BASE_URL")

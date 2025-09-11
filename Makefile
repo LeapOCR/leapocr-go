@@ -116,10 +116,10 @@ test-coverage: ## Run tests with coverage report
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "📊 Coverage report generated: coverage.html"
 
-test-integration: ## Run integration tests (requires OCR_API_KEY)
+test-integration: ## Run integration tests (requires LEAPOCR_API_KEY)
 	@echo "🧪 Running integration tests..."
-	@if [ -z "$$OCR_API_KEY" ]; then \
-		echo "❌ OCR_API_KEY environment variable is required"; \
+	@if [ -z "$$LEAPOCR_API_KEY" ]; then \
+		echo "❌ LEAPOCR_API_KEY environment variable is required"; \
 		exit 1; \
 	fi
 	go test -race -v -tags=integration ./test/integration/...
@@ -145,10 +145,10 @@ examples: ## Build all examples
 		fi; \
 	done
 
-examples-run: ## Run all examples (requires OCR_API_KEY)
+examples-run: ## Run all examples (requires LEAPOCR_API_KEY)
 	@echo "🚀 Running examples..."
-	@if [ -z "$$OCR_API_KEY" ]; then \
-		echo "❌ OCR_API_KEY environment variable is required to run examples"; \
+	@if [ -z "$$LEAPOCR_API_KEY" ]; then \
+		echo "❌ LEAPOCR_API_KEY environment variable is required to run examples"; \
 		exit 1; \
 	fi
 	@for example in examples/*/; do \
@@ -175,7 +175,7 @@ dev-setup: install validate-spec generate build ## Complete development setup
 	@echo "🎉 Development environment ready!"
 	@echo ""
 	@echo "📋 Next steps:"
-	@echo "  1. Set your API key: export OCR_API_KEY=pk_live_your_key_here"
+	@echo "  1. Set your API key: export LEAPOCR_API_KEY=pk_live_your_key_here"
 	@echo "  2. Run tests: make test"
 	@echo "  3. Try examples: make examples-run"
 

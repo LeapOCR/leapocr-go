@@ -1,6 +1,16 @@
-# OCR Go SDK
+# Go SDK for LeapOCR
 
-Official Go SDK for the OCR API - Process PDFs and extract structured data using AI.
+[![Go Reference](https://pkg.go.dev/badge/github.com/leapocr/go-sdk.svg)](https://pkg.go.dev/github.com/leapocr/go-sdk)
+[![Go Report Card](https://goreportcard.com/badge/github.com/leapocr/go-sdk)](https://goreportcard.com/report/github.com/leapocr/go-sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Go SDK for the [LeapOCR API](https://www.leapocr.com/) - Process PDFs and extract structured data using AI.
+
+## Project Status
+
+**Version**: `v0.0.0`
+
+This SDK is currently in **beta** and is subject to change.
 
 ## Installation
 
@@ -8,7 +18,13 @@ Official Go SDK for the OCR API - Process PDFs and extract structured data using
 go get github.com/leapocr/go-sdk
 ```
 
-## Quick Start
+## Getting Started
+
+### 1. Get Your API Key
+
+To use the LeapOCR API, you'll need an API key. You can get one by signing up on the [LeapOCR website](https://www.leapocr.com/signup).
+
+### 2. Quick Start
 
 ```go
 package main
@@ -18,32 +34,33 @@ import (
     "fmt"
     "log"
     "os"
-    
+
     "github.com/leapocr/go-sdk"
 )
 
 func main() {
     // Initialize SDK with API key
-    sdk, err := ocr.New(os.Getenv("OCR_API_KEY"))
+    sdk, err := ocr.New(os.Getenv("LEAPLEAPOCR_API_KEY"))
     if err != nil {
         log.Fatal(err)
     }
-    
+
     // Process a file from URL
-    job, err := sdk.ProcessURL(context.Background(), "https://example.com/document.pdf",
+    job, err := sdk.ProcessURL(context.Background(), "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
         ocr.WithFormat(ocr.FormatStructured),
         ocr.WithTier(ocr.TierCore))
     if err != nil {
         log.Fatal(err)
     }
-    
+
     // Wait for completion
     result, err := sdk.WaitUntilDone(context.Background(), job.ID)
     if err != nil {
         log.Fatal(err)
     }
-    
-    fmt.Printf("Extracted data: %+v\n", result.Data)
+
+    fmt.Printf("Extracted data: %+v
+", result.Data)
 }
 ```
 
@@ -58,155 +75,11 @@ func main() {
 
 ## Usage Examples
 
-### Process Local File
-
-```go
-file, err := os.Open("document.pdf")
-if err != nil {
-    log.Fatal(err)
-}
-defer file.Close()
-
-job, err := sdk.ProcessFile(ctx, file, "document.pdf",
-    ocr.WithFormat(ocr.FormatStructured),
-    ocr.WithInstructions("Extract invoice data"))
-if err != nil {
-    log.Fatal(err)
-}
-
-result, err := sdk.WaitUntilDone(ctx, job.ID)
-// Handle result...
-```
-
-### Custom Configuration
-
-```go
-config := ocr.DefaultConfig("your-api-key")
-config.BaseURL = "https://api-staging.example.com"
-config.Timeout = 60 * time.Second
-
-sdk, err := ocr.NewSDK(config)
-```
-
-### Concurrent Processing
-
-```go
-var wg sync.WaitGroup
-results := make(chan *ocr.OCRResult, len(urls))
-
-for _, url := range urls {
-    wg.Add(1)
-    go func(fileURL string) {
-        defer wg.Done()
-        
-        job, err := sdk.ProcessURL(ctx, fileURL, 
-            ocr.WithFormat(ocr.FormatMarkdown))
-        if err != nil {
-            log.Printf("Failed: %v", err)
-            return
-        }
-        
-        result, err := sdk.WaitUntilDone(ctx, job.ID)
-        if err != nil {
-            log.Printf("Failed: %v", err)
-            return
-        }
-        
-        results <- result
-    }(url)
-}
-
-go func() {
-    wg.Wait()
-    close(results)
-}()
-
-for result := range results {
-    fmt.Printf("Completed: %+v\n", result.Data)
-}
-```
-
-### Manual Status Polling
-
-```go
-job, err := sdk.ProcessURL(ctx, url, ocr.WithFormat(ocr.FormatStructured))
-if err != nil {
-    log.Fatal(err)
-}
-
-// Poll manually instead of using WaitUntilDone
-ticker := time.NewTicker(2 * time.Second)
-defer ticker.Stop()
-
-for {
-    status, err := sdk.GetJobStatus(ctx, job.ID)
-    if err != nil {
-        log.Printf("Failed to get status: %v", err)
-        continue
-    }
-    
-    fmt.Printf("Status: %s (%.1f%% complete)\n", status.Status, status.Progress)
-    
-    if status.Status == "completed" {
-        result, err := sdk.GetJobResult(ctx, job.ID)
-        if err != nil {
-            log.Fatal(err)
-        }
-        fmt.Printf("Result: %+v\n", result.Data)
-        break
-    }
-    
-    <-ticker.C
-}
-```
-
-### Schema-Based Extraction
-
-```go
-schema := map[string]interface{}{
-    "type": "object",
-    "properties": map[string]interface{}{
-        "invoice_number": map[string]interface{}{"type": "string"},
-        "total_amount":   map[string]interface{}{"type": "number"},
-        "vendor_name":    map[string]interface{}{"type": "string"},
-    },
-}
-
-job, err := sdk.ProcessURL(ctx, invoiceURL,
-    ocr.WithFormat(ocr.FormatStructured),
-    ocr.WithTier(ocr.TierIntelli),
-    ocr.WithSchema(schema),
-    ocr.WithInstructions("Extract invoice data according to schema"))
-```
+See the `examples/` directory for more detailed examples.
 
 ## API Reference
 
-### SDK Methods
-
-- `New(apiKey string) (*SDK, error)` - Create SDK with default config
-- `NewSDK(config *Config) (*SDK, error)` - Create SDK with custom config
-- `ProcessURL(ctx, url, ...options) (*Job, error)` - Process file from URL
-- `ProcessFile(ctx, file, filename, ...options) (*Job, error)` - Process uploaded file
-- `WaitUntilDone(ctx, jobID) (*OCRResult, error)` - Wait for job completion
-- `WaitUntilDoneWithOptions(ctx, jobID, options) (*OCRResult, error)` - Wait with custom options
-- `GetJobStatus(ctx, jobID) (*JobStatusInfo, error)` - Get current job status without waiting
-- `GetJobResult(ctx, jobID) (*OCRResult, error)` - Get final job result (for completed jobs)
-
-### Processing Options
-
-- `WithFormat(format Format)` - Set output format (Markdown, Structured, PerPageStructured)
-- `WithTier(tier Tier)` - Set processing tier (Swift, Core, Intelli)
-- `WithSchema(schema map[string]interface{})` - Custom extraction schema
-- `WithInstructions(instructions string)` - Custom processing instructions
-- `WithCategoryID(categoryID string)` - Document category ID
-
-### Types
-
-- `Format`: `FormatMarkdown`, `FormatStructured`, `FormatPerPageStructured`
-- `Tier`: `TierSwift`, `TierCore`, `TierIntelli`
-- `OCRResult`: Final processing result with text, data, pages, credits
-- `JobStatusInfo`: Job status information with progress
-- `SDKError`: Custom error type with retry logic
+For a complete API reference, see the [Go documentation](https://pkg.go.dev/github.com/leapocr/go-sdk).
 
 ## Error Handling
 
@@ -216,9 +89,11 @@ The SDK provides comprehensive error handling:
 result, err := sdk.WaitUntilDone(ctx, job.ID)
 if err != nil {
     if sdkErr, ok := err.(*ocr.SDKError); ok {
-        fmt.Printf("SDK Error: %s\n", sdkErr.Type)
-        fmt.Printf("Message: %s\n", sdkErr.Message)
-        
+        fmt.Printf("SDK Error: %s
+", sdkErr.Type)
+        fmt.Printf("Message: %s
+", sdkErr.Message)
+
         if sdkErr.IsRetryable() {
             // Implement retry logic
         }
@@ -232,7 +107,7 @@ if err != nil {
 
 ```bash
 make build        # Build SDK
-make test         # Run tests  
+make test         # Run tests
 make examples     # Build examples
 ```
 
@@ -247,22 +122,17 @@ make clean        # Clean generated files
 
 ```bash
 make test                    # Unit tests
-make test-integration        # Integration tests (requires OCR_API_KEY)
 make test-coverage          # Coverage report
 ```
 
-## Examples
+## Contributing
 
-See the `examples/` directory for complete working examples:
-
-- **Basic**: Simple file processing from URL and local file
-- **Advanced**: Concurrent processing, custom configuration, schema extraction  
-- **Validation**: Error handling and timeout scenarios
+Contributions are welcome! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
-For support and questions, please refer to the [API documentation](https://docs.example.com) or open an issue.
+For support and questions, please refer to the [API documentation](https://docs.leapocr.com) or open an issue.

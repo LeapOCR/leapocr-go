@@ -9,16 +9,19 @@ This is the official Go SDK for the OCR API, providing a type-safe client for pr
 ## Key Architecture
 
 ### OpenAPI-Generated Code
+
 - The SDK uses `openapi-generator-cli` to generate Go client code from a live OpenAPI spec
 - Generated code is placed in `ocr/` directory and includes models, API clients, and configuration
 - The build system filters endpoints tagged with "SDK" to focus on public API operations
 
 ### Wrapper Architecture
+
 - `client/` provides a clean, developer-friendly wrapper around generated code
 - `ocr.go` re-exports key types and functions for simplified imports
 - Custom types and options are defined in `client/client.go`
 
 ### Project Structure
+
 ```
 go-sdk/
 ├── ocr/                 # Generated OpenAPI client code
@@ -32,6 +35,7 @@ go-sdk/
 ## Development Commands
 
 ### SDK Generation
+
 ```bash
 # Generate SDK for SDK-tagged endpoints only (recommended)
 make generate
@@ -49,6 +53,7 @@ make validate-spec
 ```
 
 ### Build and Test
+
 ```bash
 # Install dependencies
 make install
@@ -62,7 +67,7 @@ make test
 # Run tests with coverage
 make test-coverage
 
-# Run integration tests (requires OCR_API_KEY)
+# Run integration tests (requires LEAPOCR_API_KEY)
 make test-integration
 
 # Run code quality checks
@@ -71,10 +76,11 @@ make format
 
 # Build and run examples
 make examples
-make examples-run  # requires OCR_API_KEY
+make examples-run  # requires LEAPOCR_API_KEY
 ```
 
 ### Development Setup
+
 ```bash
 # Complete development setup
 make dev-setup
@@ -87,6 +93,7 @@ make clean
 ```
 
 ### CI/CD
+
 ```bash
 # Run all CI tests
 make ci-test
@@ -109,7 +116,9 @@ The SDK follows a sophisticated generation process:
 5. **Organize Files**: Moves generated files to appropriate directories
 
 ### Filtering Logic
+
 The filtering script (`filter-sdk-endpoints.sh`) uses jq to:
+
 - Extract endpoints with "SDK" tag
 - Collect all referenced component schemas
 - Create a minimal OpenAPI spec with only needed dependencies
@@ -117,11 +126,13 @@ The filtering script (`filter-sdk-endpoints.sh`) uses jq to:
 ## Client Architecture
 
 ### Main Components
+
 - **Client**: Main client that wraps generated API client
 - **OCRService**: Handles OCR-specific operations with simplified interface
 - **Config**: Manages API configuration, authentication, and retry logic
 
 ### Key Types
+
 ```go
 // Main client
 client := ocrsdk.New("api-key")
@@ -140,7 +151,9 @@ PageResult      // Individual page results
 ```
 
 ### Configuration
+
 The client supports extensive configuration:
+
 - Base URL customization
 - HTTP client configuration
 - Retry logic with exponential backoff
@@ -150,17 +163,19 @@ The client supports extensive configuration:
 ## Testing Strategy
 
 ### Test Structure
+
 - **Unit Tests**: Client functionality and wrapper behavior
-- **Integration Tests**: Real API calls (requires `OCR_API_KEY`)
+- **Integration Tests**: Real API calls (requires `LEAPOCR_API_KEY`)
 - **Example Tests**: Ensure examples compile and run
 
 ### Running Tests
+
 ```bash
 # Unit tests only
 make test
 
 # Integration tests (requires API key)
-OCR_API_KEY=your-key make test-integration
+LEAPOCR_API_KEY=your-key make test-integration
 
 # Coverage report
 make test-coverage
@@ -169,12 +184,14 @@ make test-coverage
 ## Environment Variables
 
 ### Required for Integration
+
 ```bash
-OCR_API_KEY=your_api_key_here          # API authentication
+LEAPOCR_API_KEY=your_api_key_here          # API authentication
 OCR_BASE_URL=http://localhost:8080      # API base URL (optional)
 ```
 
 ### Build Dependencies
+
 ```bash
 # For code generation
 OPENAPI_URL=http://localhost:8080/api/v1/swagger.json
@@ -184,18 +201,22 @@ GENERATOR_VERSION=7.9.0
 ## Code Standards
 
 ### Generated Code
+
 - Generated code in `ocr/` should not be manually edited
 - Linter excludes `types/` directory from most rules
 - Use `make generate` to regenerate after API changes
 
 ### Wrapper Code
+
 - Follow Go standard formatting and naming conventions
 - Use functional options pattern for configuration
 - Provide clear error messages with context
 - All network operations accept `context.Context`
 
 ### Commit Format
+
 Use conventional commits:
+
 - `feat:` New features
 - `fix:` Bug fixes
 - `docs:` Documentation changes
@@ -205,18 +226,22 @@ Use conventional commits:
 ## Important Development Notes
 
 ### API Changes
+
 When the upstream API changes:
+
 1. Update OpenAPI spec URL if needed
 2. Run `make generate` to regenerate client code
 3. Update wrapper layer if needed
 4. Run tests to ensure compatibility
 
 ### Version Compatibility
+
 - The SDK targets Go 1.21+
 - Generated code compatibility depends on OpenAPI generator version
 - Test with multiple Go versions if releasing publicly
 
 ### Error Handling
+
 - Wrapper provides simplified error messages
 - Generated code may return detailed API errors
 - Retry logic handles transient failures automatically
@@ -224,6 +249,7 @@ When the upstream API changes:
 ## Common Development Patterns
 
 ### Adding New Features
+
 1. Check if feature exists in OpenAPI spec
 2. Regenerate SDK if needed
 3. Add wrapper methods in `client/client.go`
@@ -231,6 +257,7 @@ When the upstream API changes:
 5. Add tests and examples
 
 ### Debugging Generation Issues
+
 ```bash
 # Check spec accessibility
 make validate-spec
@@ -243,6 +270,7 @@ make analyze-spec
 ```
 
 ### Testing New Functionality
+
 1. Add unit tests for wrapper logic
 2. Add integration tests for API calls
 3. Create example in `examples/`

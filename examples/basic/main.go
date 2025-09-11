@@ -12,9 +12,9 @@ import (
 
 func main() {
 	// Get API key from environment variable
-	apiKey := os.Getenv("OCR_API_KEY")
+	apiKey := os.Getenv("LEAPOCR_API_KEY")
 	if apiKey == "" {
-		log.Fatal("OCR_API_KEY environment variable is required")
+		log.Fatal("LEAPOCR_API_KEY environment variable is required")
 	}
 
 	// Create OCR SDK
@@ -37,7 +37,7 @@ func main() {
 func processLocalFile(sdk *ocr.SDK) error {
 	fmt.Println("=== Processing Local File ===")
 
-	// Check if example file exists (you'll need to provide one)
+	// Check if example file exists
 	filePath := "./sample-document.pdf"
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		fmt.Printf("Sample file %s not found, skipping local file example\n", filePath)

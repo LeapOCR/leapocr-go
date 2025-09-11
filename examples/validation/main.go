@@ -13,9 +13,9 @@ import (
 
 func main() {
 	// Get API key from environment variable
-	apiKey := os.Getenv("OCR_API_KEY")
+	apiKey := os.Getenv("LEAPOCR_API_KEY")
 	if apiKey == "" {
-		log.Fatal("OCR_API_KEY environment variable is required")
+		log.Fatal("LEAPOCR_API_KEY environment variable is required")
 	}
 
 	// Example: Input validation

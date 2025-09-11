@@ -26,9 +26,9 @@ type Config struct {
 func DefaultConfig(apiKey string) *Config {
 	return &Config{
 		APIKey:     apiKey,
-		BaseURL:    "https://api.ocr.example.com", // Update with actual base URL
+		BaseURL:    "https://api.leapocr.com",
 		HTTPClient: &http.Client{},
-		UserAgent:  "ocr-go-sdk/1.0.0",
+		UserAgent:  "go-sdk/" + Version,
 		Timeout:    30 * time.Second,
 	}
 }
