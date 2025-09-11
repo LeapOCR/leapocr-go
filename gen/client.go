@@ -49,7 +49,11 @@ type APIClient struct {
 
 	// API Services
 
+	// 	OCRAPI OCRAPI - removed (not generated)
+
 	SDKAPI SDKAPI
+
+	// UploadAPI UploadAPI - removed (not generated)
 }
 
 type service struct {
@@ -68,7 +72,9 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.common.client = c
 
 	// API Services
+	// 	c.OCRAPI = (*OCRAPIService)(&c.common) - removed (not generated)
 	c.SDKAPI = (*SDKAPIService)(&c.common)
+	// 	c.UploadAPI = (*UploadAPIService)(&c.common) - removed (not generated)
 
 	return c
 }

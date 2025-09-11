@@ -28,7 +28,7 @@ generate-sdk-endpoints: ## Generate Go SDK only for SDK-tagged endpoints (recomm
 		-g go \
 		-o ./generated-sdk \
 		--skip-validate-spec \
-		--additional-properties=packageName=ocr,generateInterfaces=true,structPrefix=false,enumClassPrefix=false \
+		--additional-properties=packageName=gen,generateInterfaces=true,structPrefix=false,enumClassPrefix=false \
 		--global-property=models,apis,supportingFiles
 	@echo "📋 Step 4: Organizing generated code"
 	@mkdir -p gen/
@@ -44,8 +44,11 @@ generate-sdk-endpoints: ## Generate Go SDK only for SDK-tagged endpoints (recomm
 	@cp generated-sdk/api_sdk.go gen/ 2>/dev/null || cp generated-sdk/api_ocr.go gen/ 2>/dev/null || echo "No API files found"
 	@echo "📋 Step 5: Cleaning up temporary files"
 	@rm -rf generated-sdk openapi-full.json openapi-sdk.json
-	@echo "📋 Step 6: Formatting generated code"
+	@echo "📋 Step 6: Fixing generated client"
+	@./scripts/fix-generated-client.sh
+	@echo "📋 Step 7: Formatting generated code"
 	@go fmt ./gen/... 2>/dev/null || echo "No generated package to format"
+	@gofumpt -w .
 	@go mod tidy
 	@echo "✅ SDK generation complete!"
 
@@ -130,6 +133,7 @@ format: ## Format code
 	@echo "💅 Formatting code..."
 	go fmt ./...
 	goimports -w . 2>/dev/null || echo "goimports not available, using go fmt only"
+	gofumpt -w .
 
 # Examples
 examples: ## Build all examples
