@@ -17,12 +17,12 @@ Follow these steps to create a new release:
 ### Step 1: Update the Version
 
 1.  **Choose the new version number** based on the changes you've made.
-2.  **Update the `version.go` file** with the new version number. For example, to release version `v0.1.0`, change the file to:
+2.  **Update the `version.go` file** with the new version number. For example, to release version `v0.0.1`, change the file to:
 
     ```go
     package ocr
 
-    const Version = "0.1.0"
+    const Version = "0.0.1"
     ```
 
 ### Step 2: Commit the Version Change
@@ -31,7 +31,7 @@ Commit the change to `version.go` and push it to the `main` branch.
 
 ```bash
 git add version.go
-git commit -m "chore: bump version to 0.1.0"
+git commit -m "chore: bump version to 0.0.1"
 git push origin main
 ```
 
@@ -41,10 +41,10 @@ This is the most important step. Go modules are versioned using git tags. To pub
 
 ```bash
 # Create the tag
-git tag v0.1.0
+git tag v0.0.1
 
 # Push the tag to GitHub
-git push origin v0.1.0
+git push origin v0.0.1
 ```
 
 ### Step 4: Verify the Release
@@ -62,7 +62,7 @@ You can monitor the progress of the workflow on the "Actions" tab of the GitHub 
 Once the release is published, the Go module proxy will automatically pick up the new version. Users will then be able to get the new version of the SDK by running:
 
 ```bash
-go get github.com/leapocr/go-sdk@v0.1.0
+go get github.com/leapocr/go-sdk@v0.0.1
 ```
 
 Or, to get the latest version:
