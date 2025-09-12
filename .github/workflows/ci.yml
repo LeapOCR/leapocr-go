@@ -25,59 +25,44 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: true
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.4.0
+          skip-cache: false
+          skip-save-cache: false
 
   test:
-    name: Test
+    name: Test & Quality
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         go-version: ["1.24", "1.25.1"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          # Fetch full history for SonarCloud
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
+          cache: true
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-${{ matrix.go-version }}-
-
-      - name: Install dependencies
-        run: go mod download
-
-      - name: Run tests
+      - name: Run tests with coverage
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
-  examples:
-    name: Examples
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+      - name: SonarCloud Scan
+        if: matrix.go-version == '1.25.1'
+        uses: SonarSource/sonarqube-scan-action@v5.3.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Build examples
-        run: |
-          cd examples/basic && go build .
-          cd ../advanced && go build .
 
   # integration:
   #   name: Integration Tests
@@ -108,11 +93,23 @@ jobs:
   #         OCR_BASE_URL: http://localhost:8080
 
   security:
-    name: Security Scan
+    name: Security & Examples
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: 'npm'
 
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
@@ -129,23 +126,16 @@ jobs:
         with:
           sarif_file: results.sarif
 
-  validate-spec:
-    name: Validate OpenAPI Spec
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "22"
+      - name: Build examples
+        run: |
+          cd examples/basic && go build .
+          cd ../advanced && go build .
 
       - name: Install OpenAPI Generator CLI
         run: npm install -g @openapitools/openapi-generator-cli
 
-      - name: Validate spec is accessible
+      - name: Validate OpenAPI spec
         run: |
-          # This would typically check against a running API instance
-          # For now, just validate the make target works
           make validate-spec || echo "API not running, skipping validation"
+
+
