@@ -77,4 +77,3 @@ func (s *SDK) uploadFile(ctx context.Context, presignedURL string, file io.Reade
 
 	return nil
 }
-

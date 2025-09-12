@@ -51,47 +51,4 @@ jobs:
         with:
           generate_release_notes: true
 
-  publish-docs:
-    name: Publish Documentation
-    needs: release
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Generate documentation
-        run: |
-          go install golang.org/x/tools/cmd/godoc@latest
-          mkdir -p docs/api
-          # Generate API documentation
-          godoc -html . > docs/api/index.html
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: startsWith(github.ref, 'refs/tags/v')
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-
-  notify:
-    name: Notify Release
-    needs: [release, publish-docs]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Notify success
-        if: needs.release.result == 'success'
-        run: |
-          echo "🎉 Release ${{ github.ref_name }} published successfully!"
-
-      - name: Notify failure
-        if: needs.release.result == 'failure'
-        run: |
-          echo "❌ Release ${{ github.ref_name }} failed!"
-          exit 1

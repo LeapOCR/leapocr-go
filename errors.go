@@ -10,21 +10,21 @@ type ErrorType string
 
 const (
 	// ErrorTypeInvalidConfig represents configuration validation errors
-	ErrorTypeInvalidConfig   ErrorType = "invalid_config"
+	ErrorTypeInvalidConfig ErrorType = "invalid_config"
 	// ErrorTypeValidationError represents input validation errors
 	ErrorTypeValidationError ErrorType = "validation_error"
 	// ErrorTypeHTTPError represents HTTP-level errors
-	ErrorTypeHTTPError       ErrorType = "http_error"
+	ErrorTypeHTTPError ErrorType = "http_error"
 	// ErrorTypeAPIError represents API-level errors
-	ErrorTypeAPIError        ErrorType = "api_error"
+	ErrorTypeAPIError ErrorType = "api_error"
 	// ErrorTypeTimeout represents timeout errors
-	ErrorTypeTimeout         ErrorType = "timeout"
+	ErrorTypeTimeout ErrorType = "timeout"
 	// ErrorTypeUploadError represents file upload errors
-	ErrorTypeUploadError     ErrorType = "upload_error"
+	ErrorTypeUploadError ErrorType = "upload_error"
 	// ErrorTypeJobError represents job processing errors
-	ErrorTypeJobError        ErrorType = "job_error"
+	ErrorTypeJobError ErrorType = "job_error"
 	// ErrorTypeUnknown represents unknown errors
-	ErrorTypeUnknown         ErrorType = "unknown"
+	ErrorTypeUnknown ErrorType = "unknown"
 )
 
 // SDKError is the main error type for the SDK

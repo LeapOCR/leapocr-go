@@ -40,7 +40,7 @@ func DefaultWaitOptions() WaitOptions {
 // WaitUntilDoneWithOptions waits for job completion with custom options
 func (s *SDK) WaitUntilDoneWithOptions(ctx context.Context, jobID string, opts WaitOptions) (*OCRResult, error) {
 	opts = applyWaitDefaults(opts)
-	
+
 	currentDelay := opts.InitialDelay
 	attempts := 0
 
