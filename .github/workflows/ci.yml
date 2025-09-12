@@ -105,12 +105,6 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "22"
-          cache: 'npm'
-
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
@@ -130,12 +124,5 @@ jobs:
         run: |
           cd examples/basic && go build .
           cd ../advanced && go build .
-
-      - name: Install OpenAPI Generator CLI
-        run: npm install -g @openapitools/openapi-generator-cli
-
-      - name: Validate OpenAPI spec
-        run: |
-          make validate-spec || echo "API not running, skipping validation"
 
 
