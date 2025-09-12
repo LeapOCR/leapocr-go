@@ -1,10 +1,5 @@
 version: "2"
 
-run:
-  timeout: 5m
-  skip-dirs:
-    - ocr
-
 linters:
   enable:
     - errcheck
@@ -116,8 +111,6 @@ linters:
             - "disableStutteringCheck"
         - name: unused-parameter
           disabled: true
-
-
 
 issues:
   max-issues-per-linter: 0
