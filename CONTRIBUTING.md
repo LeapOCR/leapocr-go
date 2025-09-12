@@ -35,8 +35,8 @@ We welcome pull requests! If you'd like to contribute code, please follow these 
 To get started with development, you'll need to have Go installed. You can then clone the repository and install the dependencies:
 
 ```bash
-git clone https://github.com/leapocr/go-sdk.git
-cd go-sdk
+git clone https://github.com/leapocr/leapocr-go.git
+cd leapocr-go
 make test
 ```
 

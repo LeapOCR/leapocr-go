@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/leapocr/go-sdk/gen"
+	"github.com/leapocr/leapocr-go/gen"
 )
 
 // SDK is the main OCR API client that provides a clean, Go-native interface
@@ -28,7 +28,7 @@ func DefaultConfig(apiKey string) *Config {
 		APIKey:     apiKey,
 		BaseURL:    "https://api.leapocr.com",
 		HTTPClient: &http.Client{},
-		UserAgent:  "go-sdk/" + Version,
+		UserAgent:  "leapocr-go/" + Version,
 		Timeout:    30 * time.Second,
 	}
 }

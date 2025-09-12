@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	ocr "github.com/leapocr/go-sdk"
+	ocr "github.com/leapocr/leapocr-go"
 )
 
 // Integration tests require:
@@ -207,7 +207,7 @@ func createTestSDK(t *testing.T) *ocr.SDK {
 	config := ocr.DefaultConfig(apiKey)
 	config.BaseURL = baseURL
 	config.Timeout = 2 * time.Minute
-	config.UserAgent = "ocr-go-sdk-test/1.0.0"
+	config.UserAgent = "leapocr-go-sdk-test/1.0.0"
 
 	sdk, err := ocr.NewSDK(config)
 	if err != nil {

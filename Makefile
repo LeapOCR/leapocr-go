@@ -3,7 +3,7 @@
 # Variables
 OPENAPI_URL := http://localhost:8080/api/v1/swagger.json
 GENERATOR_VERSION := 7.9.0
-PACKAGE_NAME := github.com/leapocr/go-sdk
+PACKAGE_NAME := github.com/leapocr/leapocr-go
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'

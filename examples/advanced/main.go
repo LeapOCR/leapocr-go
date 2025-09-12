@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	ocr "github.com/leapocr/go-sdk"
+	ocr "github.com/leapocr/leapocr-go"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 # Go SDK for LeapOCR
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/leapocr/go-sdk.svg)](https://pkg.go.dev/github.com/leapocr/go-sdk)
-[![Go Report Card](https://goreportcard.com/badge/github.com/leapocr/go-sdk)](https://goreportcard.com/report/github.com/leapocr/go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/leapocr/leapocr-go.svg)](https://pkg.go.dev/github.com/leapocr/leapocr-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/leapocr/leapocr-go)](https://goreportcard.com/report/github.com/leapocr/leapocr-go)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Go SDK for the [LeapOCR API](https://www.leapocr.com/) - Process PDFs and extract structured data using AI.
@@ -15,7 +15,7 @@ This SDK is currently in **beta** and is subject to change.
 ## Installation
 
 ```bash
-go get github.com/leapocr/go-sdk
+go get github.com/leapocr/leapocr-go
 ```
 
 ## Getting Started
@@ -35,7 +35,7 @@ import (
     "log"
     "os"
 
-    "github.com/leapocr/go-sdk"
+    "github.com/leapocr/leapocr-go"
 )
 
 func main() {
@@ -79,7 +79,7 @@ See the `examples/` directory for more detailed examples.
 
 ## API Reference
 
-For a complete API reference, see the [Go documentation](https://pkg.go.dev/github.com/leapocr/go-sdk).
+For a complete API reference, see the [Go documentation](https://pkg.go.dev/github.com/leapocr/leapocr-go).
 
 ## Error Handling
 

@@ -23,7 +23,7 @@ This is the official Go SDK for the OCR API, providing a type-safe client for pr
 ### Project Structure
 
 ```
-go-sdk/
+leapocr-go/
 ├── ocr/                 # Generated OpenAPI client code
 ├── client/             # Wrapper client with simplified API
 ├── examples/           # Usage examples (basic, advanced)

@@ -62,11 +62,11 @@ You can monitor the progress of the workflow on the "Actions" tab of the GitHub 
 Once the release is published, the Go module proxy will automatically pick up the new version. Users will then be able to get the new version of the SDK by running:
 
 ```bash
-go get github.com/leapocr/go-sdk@v0.0.1
+go get github.com/leapocr/leapocr-go@v0.0.1
 ```
 
 Or, to get the latest version:
 
 ```bash
-go get -u github.com/leapocr/go-sdk
+go get -u github.com/leapocr/leapocr-go
 ```

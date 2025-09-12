@@ -1,4 +1,4 @@
-module github.com/leapocr/go-sdk
+module github.com/leapocr/leapocr-go
 
 go 1.24
 
