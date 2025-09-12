@@ -8,7 +8,7 @@ Go SDK for the [LeapOCR API](https://www.leapocr.com/) - Process PDFs and extrac
 
 ## Project Status
 
-**Version**: `v0.0.0`
+**Version**: `v0.0.1`
 
 This SDK is currently in **beta** and is subject to change.
 
@@ -40,7 +40,7 @@ import (
 
 func main() {
     // Initialize SDK with API key
-    sdk, err := ocr.New(os.Getenv("LEAPLEAPOCR_API_KEY"))
+    sdk, err := ocr.New(os.Getenv("LEAPOCR_API_KEY"))
     if err != nil {
         log.Fatal(err)
     }
