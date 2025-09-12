@@ -9,13 +9,21 @@ import (
 type ErrorType string
 
 const (
+	// ErrorTypeInvalidConfig represents configuration validation errors
 	ErrorTypeInvalidConfig   ErrorType = "invalid_config"
+	// ErrorTypeValidationError represents input validation errors
 	ErrorTypeValidationError ErrorType = "validation_error"
+	// ErrorTypeHTTPError represents HTTP-level errors
 	ErrorTypeHTTPError       ErrorType = "http_error"
+	// ErrorTypeAPIError represents API-level errors
 	ErrorTypeAPIError        ErrorType = "api_error"
+	// ErrorTypeTimeout represents timeout errors
 	ErrorTypeTimeout         ErrorType = "timeout"
+	// ErrorTypeUploadError represents file upload errors
 	ErrorTypeUploadError     ErrorType = "upload_error"
+	// ErrorTypeJobError represents job processing errors
 	ErrorTypeJobError        ErrorType = "job_error"
+	// ErrorTypeUnknown represents unknown errors
 	ErrorTypeUnknown         ErrorType = "unknown"
 )
 

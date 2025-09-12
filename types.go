@@ -8,8 +8,11 @@ import (
 type Format string
 
 const (
+	// FormatMarkdown outputs text as markdown
 	FormatMarkdown          Format = "markdown"
+	// FormatStructured outputs structured data as JSON
 	FormatStructured        Format = "structured"
+	// FormatPerPageStructured outputs structured data per page
 	FormatPerPageStructured Format = "per_page_structured"
 )
 
@@ -17,8 +20,11 @@ const (
 type Tier string
 
 const (
+	// TierSwift provides fast processing with basic accuracy
 	TierSwift   Tier = "swift"
+	// TierCore provides balanced speed and accuracy
 	TierCore    Tier = "core"
+	// TierIntelli provides highest accuracy with advanced processing
 	TierIntelli Tier = "intelli"
 )
 

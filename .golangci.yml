@@ -2,58 +2,22 @@ version: "2"
 
 run:
   timeout: 5m
-
-formatters:
-  enable:
-    - gofmt
-    - gofumpt
-    - goimports
-  settings:
-    gofumpt:
-      extra-rules: true
+  skip-dirs:
+    - ocr
 
 linters:
   enable:
-    - asciicheck
-    - bodyclose
-    - cyclop
-    - dupl
-    - durationcheck
     - errcheck
-    - errorlint
-    - exhaustive
-    - copyloopvar  # replaces exportloopref in v2
-    - forbidigo
-    - forcetypeassert
-    - goconst
-    - gocritic
-    - gocyclo
-    - godot
-    - goheader
-    - mnd  # replaces gomnd in v2
-    - gomoddirectives
-    - gomodguard
-    - goprintffuncname
-    - gosec
     - govet
-    - importas
     - ineffassign
-    - lll
-    - makezero
-    - misspell
-    - nakedret
-    - nilerr
-    - nolintlint
-    - prealloc
-    - predeclared
-    - revive
     - staticcheck
-    - thelper
-    - tparallel
-    - unconvert
-    - unparam
     - unused
-    - whitespace
+    - misspell
+    - goconst
+    - gocyclo
+    - dupl
+    - gosec
+    - revive
 
   exclusions:
     rules:

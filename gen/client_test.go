@@ -27,7 +27,8 @@ func TestGetJobStatus(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write([]byte(`{
+		//nolint:errcheck
+		_, _ = w.Write([]byte(`{
 			"id": "test-job-id",
 			"status": "completed",
 			"created_at": "2023-01-01T00:00:00Z"
@@ -62,7 +63,8 @@ func TestGetJobResult(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write([]byte(`{
+		//nolint:errcheck
+		_, _ = w.Write([]byte(`{
 			"job_id": "test-job-id",
 			"pages": []
 		}`))
@@ -97,7 +99,8 @@ func TestPresignedUpload(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write([]byte(`{
+		//nolint:errcheck
+		_, _ = w.Write([]byte(`{
 			"job_id": "test-job-id",
 			"upload_url": "https://example.com/upload",
 			"expires_at": "2023-01-01T01:00:00Z"
@@ -140,7 +143,8 @@ func TestUploadFromURL(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write([]byte(`{
+		//nolint:errcheck
+		_, _ = w.Write([]byte(`{
 			"job_id": "test-job-id",
 			"status": "processing"
 		}`))
@@ -196,7 +200,8 @@ func TestErrorHandling(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(404)
-		w.Write([]byte(`{
+		//nolint:errcheck
+		_, _ = w.Write([]byte(`{
 			"error": "job not found",
 			"message": "The requested job does not exist"
 		}`))

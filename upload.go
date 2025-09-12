@@ -68,7 +68,7 @@ func (s *SDK) uploadFile(ctx context.Context, presignedURL string, file io.Reade
 	if err != nil {
 		return NewSDKError(ErrorTypeUploadError, "failed to upload file", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck
 
 	// Check response status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -78,34 +78,3 @@ func (s *SDK) uploadFile(ctx context.Context, presignedURL string, file io.Reade
 	return nil
 }
 
-// uploadFileSimple performs a simple PUT upload (alternative implementation)
-func (s *SDK) uploadFileSimple(ctx context.Context, presignedURL string, file io.Reader, filename string) error {
-	// Create HTTP request with file content
-	req, err := http.NewRequestWithContext(ctx, "PUT", presignedURL, file)
-	if err != nil {
-		return NewSDKError(ErrorTypeUploadError, "failed to create upload request", err)
-	}
-
-	// Set appropriate content type based on filename
-	contentType := getContentType(filename)
-	req.Header.Set("Content-Type", contentType)
-
-	// Make the upload request
-	client := s.config.HTTPClient
-	if client == nil {
-		client = http.DefaultClient
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return NewSDKError(ErrorTypeUploadError, "failed to upload file", err)
-	}
-	defer resp.Body.Close()
-
-	// Check response status
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return WrapHTTPError(resp, err)
-	}
-
-	return nil
-}

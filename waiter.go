@@ -2,7 +2,8 @@ package ocr
 
 import (
 	"context"
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"time"
 )
 
@@ -38,7 +39,39 @@ func DefaultWaitOptions() WaitOptions {
 
 // WaitUntilDoneWithOptions waits for job completion with custom options
 func (s *SDK) WaitUntilDoneWithOptions(ctx context.Context, jobID string, opts WaitOptions) (*OCRResult, error) {
-	// Apply defaults
+	opts = applyWaitDefaults(opts)
+	
+	currentDelay := opts.InitialDelay
+	attempts := 0
+
+	for {
+		if err := checkMaxAttempts(attempts, opts.MaxAttempts); err != nil {
+			return nil, err
+		}
+
+		if err := checkContext(ctx); err != nil {
+			return nil, err
+		}
+
+		attempts++
+
+		result, shouldContinue, err := s.pollJobStatus(ctx, jobID)
+		if err != nil {
+			return nil, err
+		}
+		if !shouldContinue {
+			return result, nil
+		}
+
+		if err := s.waitWithBackoff(ctx, currentDelay, opts.MaxJitter); err != nil {
+			return nil, err
+		}
+
+		currentDelay = calculateNextDelay(currentDelay, opts.Multiplier, opts.MaxDelay)
+	}
+}
+
+func applyWaitDefaults(opts WaitOptions) WaitOptions {
 	if opts.InitialDelay == 0 {
 		opts.InitialDelay = 1 * time.Second
 	}
@@ -51,57 +84,64 @@ func (s *SDK) WaitUntilDoneWithOptions(ctx context.Context, jobID string, opts W
 	if opts.MaxJitter == 0 {
 		opts.MaxJitter = 1 * time.Second
 	}
+	return opts
+}
 
-	currentDelay := opts.InitialDelay
-	attempts := 0
-
-	for {
-		// Check if we've exceeded maximum attempts
-		if opts.MaxAttempts > 0 && attempts >= opts.MaxAttempts {
-			return nil, NewSDKError(ErrorTypeTimeout, "maximum polling attempts exceeded", nil)
-		}
-
-		attempts++
-
-		// Check context cancellation
-		select {
-		case <-ctx.Done():
-			return nil, NewSDKError(ErrorTypeTimeout, "context cancelled while waiting for completion", ctx.Err())
-		default:
-		}
-
-		// Get job status
-		status, err := s.getJobStatus(ctx, jobID)
-		if err != nil {
-			return nil, err
-		}
-
-		// Check if job is complete
-		switch status.Status {
-		case "completed":
-			return s.getJobResult(ctx, jobID)
-		case "failed", "error":
-			return nil, NewSDKError(ErrorTypeJobError, "job failed", nil)
-		case "cancelled":
-			return nil, NewSDKError(ErrorTypeJobError, "job was cancelled", nil)
-		}
-
-		// Wait before next poll with exponential backoff and jitter
-		jitter := time.Duration(rand.Int63n(int64(opts.MaxJitter)))
-		sleepDuration := currentDelay + jitter
-
-		select {
-		case <-ctx.Done():
-			return nil, NewSDKError(ErrorTypeTimeout, "context cancelled while waiting", ctx.Err())
-		case <-time.After(sleepDuration):
-		}
-
-		// Increase delay for next iteration
-		currentDelay = time.Duration(float64(currentDelay) * opts.Multiplier)
-		if currentDelay > opts.MaxDelay {
-			currentDelay = opts.MaxDelay
-		}
+func checkMaxAttempts(attempts, maxAttempts int) error {
+	if maxAttempts > 0 && attempts >= maxAttempts {
+		return NewSDKError(ErrorTypeTimeout, "maximum polling attempts exceeded", nil)
 	}
+	return nil
+}
+
+func checkContext(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return NewSDKError(ErrorTypeTimeout, "context canceled while waiting for completion", ctx.Err())
+	default:
+		return nil
+	}
+}
+
+func (s *SDK) pollJobStatus(ctx context.Context, jobID string) (*OCRResult, bool, error) {
+	status, err := s.getJobStatus(ctx, jobID)
+	if err != nil {
+		return nil, false, err
+	}
+
+	switch status.Status {
+	case "completed":
+		result, err := s.getJobResult(ctx, jobID)
+		return result, false, err
+	case "failed", "error":
+		return nil, false, NewSDKError(ErrorTypeJobError, "job failed", nil)
+	case "canceled":
+		return nil, false, NewSDKError(ErrorTypeJobError, "job was canceled", nil)
+	}
+
+	return nil, true, nil
+}
+
+func (s *SDK) waitWithBackoff(ctx context.Context, delay, maxJitter time.Duration) error {
+	jitterMax := big.NewInt(int64(maxJitter))
+	jitterRand, _ := rand.Int(rand.Reader, jitterMax) //nolint:errcheck
+	jitter := time.Duration(jitterRand.Int64())
+	sleepDuration := delay + jitter
+
+	select {
+	case <-ctx.Done():
+		return NewSDKError(ErrorTypeTimeout, "context canceled while waiting", ctx.Err())
+	case <-time.After(sleepDuration):
+		return nil
+	}
+}
+
+func calculateNextDelay(currentDelay time.Duration, multiplier float64, maxDelay time.Duration) time.Duration {
+	nextDelay := time.Duration(float64(currentDelay) * multiplier)
+	if nextDelay > maxDelay {
+		return maxDelay
+	}
+	return nextDelay
 }
 
 // JobStatusInfo represents job status information
@@ -162,7 +202,7 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 	}
 
 	// Extract page results (main content)
-	if resp.Pages != nil && len(resp.Pages) > 0 {
+	if len(resp.Pages) > 0 {
 		result.Pages = make([]PageResult, len(resp.Pages))
 		var allText string
 		for i, page := range resp.Pages {

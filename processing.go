@@ -38,11 +38,6 @@ func (s *SDK) ProcessURL(ctx context.Context, fileURL string, opts ...Processing
 	if config.schema != nil {
 		request.Schema = config.schema
 	}
-	if config.schema != nil {
-		// Convert schema to the format expected by the generated client
-		// This would need to be adapted based on the actual generated types
-		// For now, we'll skip this as it depends on the generated schema structure
-	}
 
 	// Make the API call using the generated client
 	apiRequest := s.client.SDKAPI.UploadFromURL(ctx)

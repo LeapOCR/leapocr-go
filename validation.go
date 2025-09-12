@@ -80,7 +80,10 @@ func ValidateURL(fileURL string) error {
 	// Validate file extension from URL path
 	if err := ValidateFileExtension(parsedURL.Path); err != nil {
 		// Re-wrap with URL context
-		return NewValidationError("url", fmt.Sprintf("URL path validation failed: %s", err.(*ValidationError).Message))
+		if validationErr, ok := err.(*ValidationError); ok {
+			return NewValidationError("url", fmt.Sprintf("URL path validation failed: %s", validationErr.Message))
+		}
+		return NewValidationError("url", fmt.Sprintf("URL path validation failed: %v", err))
 	}
 
 	return nil
@@ -158,10 +161,10 @@ func ValidateCategoryID(categoryID string) error {
 
 	// Basic character validation - only allow alphanumeric, hyphens, and underscores
 	for _, char := range categoryID {
-		if !((char >= 'a' && char <= 'z') ||
-			(char >= 'A' && char <= 'Z') ||
-			(char >= '0' && char <= '9') ||
-			char == '-' || char == '_') {
+		if (char < 'a' || char > 'z') &&
+			(char < 'A' || char > 'Z') &&
+			(char < '0' || char > '9') &&
+			char != '-' && char != '_' {
 			return NewValidationError("categoryID", "category ID can only contain letters, numbers, hyphens, and underscores")
 		}
 	}
@@ -201,6 +204,25 @@ func ValidateProcessingConfig(config *processingConfig) error {
 
 // validateSchemaStructure performs deep validation of schema structure
 func validateSchemaStructure(schema map[string]interface{}, path string) error {
+	if err := validateSchemaLimits(schema, path); err != nil {
+		return err
+	}
+
+	for key, value := range schema {
+		if err := validateSchemaKey(key, path); err != nil {
+			return err
+		}
+
+		currentPath := buildPath(path, key)
+		if err := validateSchemaValue(value, currentPath); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateSchemaLimits(schema map[string]interface{}, path string) error {
 	const maxDepth = 10
 	const maxKeys = 100
 
@@ -212,50 +234,62 @@ func validateSchemaStructure(schema map[string]interface{}, path string) error {
 		return fmt.Errorf("too many keys in schema object at %s. Maximum allowed is %d", path, maxKeys)
 	}
 
-	for key, value := range schema {
-		currentPath := key
-		if path != "" {
-			currentPath = path + "." + key
-		}
+	return nil
+}
 
-		// Validate key name
-		if key == "" {
-			return fmt.Errorf("empty key not allowed in schema at %s", path)
-		}
+func validateSchemaKey(key, path string) error {
+	if key == "" {
+		return fmt.Errorf("empty key not allowed in schema at %s", path)
+	}
 
-		if len(key) > 100 {
-			return fmt.Errorf("key '%s' too long. Maximum length is 100 characters", key)
-		}
+	if len(key) > 100 {
+		return fmt.Errorf("key '%s' too long. Maximum length is 100 characters", key)
+	}
 
-		// Validate value based on type
-		switch v := value.(type) {
-		case map[string]interface{}:
-			if err := validateSchemaStructure(v, currentPath); err != nil {
+	return nil
+}
+
+func validateSchemaValue(value interface{}, currentPath string) error {
+	switch v := value.(type) {
+	case map[string]interface{}:
+		return validateSchemaStructure(v, currentPath)
+	case []interface{}:
+		return validateSchemaArray(v, currentPath)
+	case string:
+		return validateSchemaString(v, currentPath)
+	case nil, bool, float64:
+		return nil
+	default:
+		return fmt.Errorf("unsupported value type %T at %s", v, currentPath)
+	}
+}
+
+func validateSchemaArray(arr []interface{}, currentPath string) error {
+	if len(arr) > 1000 {
+		return fmt.Errorf("array at %s too large. Maximum length is 1000 items", currentPath)
+	}
+
+	for i, item := range arr {
+		if nested, ok := item.(map[string]interface{}); ok {
+			if err := validateSchemaStructure(nested, fmt.Sprintf("%s[%d]", currentPath, i)); err != nil {
 				return err
 			}
-		case []interface{}:
-			if len(v) > 1000 {
-				return fmt.Errorf("array at %s too large. Maximum length is 1000 items", currentPath)
-			}
-			for i, item := range v {
-				if nested, ok := item.(map[string]interface{}); ok {
-					if err := validateSchemaStructure(nested, fmt.Sprintf("%s[%d]", currentPath, i)); err != nil {
-						return err
-					}
-				}
-			}
-		case string:
-			if len(v) > 1000 {
-				return fmt.Errorf("string value at %s too long. Maximum length is 1000 characters", currentPath)
-			}
-		case nil:
-			// Null values are allowed
-		case bool, float64:
-			// These types are allowed
-		default:
-			return fmt.Errorf("unsupported value type %T at %s", v, currentPath)
 		}
 	}
 
 	return nil
+}
+
+func validateSchemaString(s string, currentPath string) error {
+	if len(s) > 1000 {
+		return fmt.Errorf("string value at %s too long. Maximum length is 1000 characters", currentPath)
+	}
+	return nil
+}
+
+func buildPath(path, key string) string {
+	if path == "" {
+		return key
+	}
+	return path + "." + key
 }
