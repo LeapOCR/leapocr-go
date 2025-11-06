@@ -56,7 +56,7 @@ func customConfigExample(apiKey string) error {
 	// Example URL processing with custom options
 	_, err = sdk.ProcessURL(ctx, "https://example.com/test.pdf",
 		ocr.WithFormat(ocr.FormatStructured),
-		ocr.WithTier(ocr.TierIntelli),
+		ocr.WithModel(ocr.ModelProV1),
 		ocr.WithInstructions("Extract all data with high accuracy"),
 	)
 	if err != nil {
@@ -101,7 +101,7 @@ func batchProcessingExample(apiKey string) error {
 			// Start processing
 			job, err := sdk.ProcessURL(ctx, url,
 				ocr.WithFormat(ocr.FormatStructured),
-				ocr.WithTier(ocr.TierCore),
+				ocr.WithModel(ocr.ModelStandardV1),
 				ocr.WithInstructions(fmt.Sprintf("Process document %d", idx+1)),
 			)
 			if err != nil {
@@ -228,7 +228,7 @@ func schemaExtractionExample(apiKey string) error {
 
 	job, err := sdk.ProcessURL(ctx, invoiceURL,
 		ocr.WithFormat(ocr.FormatStructured),
-		ocr.WithTier(ocr.TierIntelli), // Use highest tier for best accuracy
+		ocr.WithModel(ocr.ModelProV1), // Use highest quality model for best accuracy
 		ocr.WithSchema(invoiceSchema),
 		ocr.WithInstructions("Extract invoice data according to the provided schema. Be precise with numbers and dates."),
 	)

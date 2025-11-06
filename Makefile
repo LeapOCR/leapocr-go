@@ -1,9 +1,17 @@
-.PHONY: help generate-sdk-endpoints generate-full build test lint clean install format coverage examples validate-spec dev-setup ci-test release-check
+.PHONY: help generate-sdk-endpoints generate-full build test lint clean install format coverage examples validate-spec dev-setup ci-test release-check check-java
 
 # Variables
-OPENAPI_URL := http://localhost:8080/api/v1/swagger.json
+OPENAPI_URL := http://localhost:8080/api/v1/docs/openapi.json
 GENERATOR_VERSION := 7.9.0
 PACKAGE_NAME := github.com/leapocr/leapocr-go
+
+# Java PATH setup - automatically detect and configure Java
+# Uses helper script to setup Java PATH from common Homebrew locations
+
+# Check Java availability
+check-java: ## Check if Java is available for OpenAPI generator
+	@echo "🔍 Checking Java availability..."
+	@. ./scripts/setup-java-path.sh && java -version 2>&1 | head -n 1 && echo "✅ Java is ready"
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -18,12 +26,14 @@ install: ## Install dependencies
 # SDK Generation Targets
 generate-sdk-endpoints: ## Generate Go SDK only for SDK-tagged endpoints (recommended)
 	@echo "🎯 Generating SDK for SDK-tagged endpoints only..."
+	@echo "📋 Step 0: Setting up Java environment"
+	@. ./scripts/setup-java-path.sh || exit 1
 	@echo "📋 Step 1: Downloading OpenAPI spec"
 	curl -s $(OPENAPI_URL) > openapi-full.json
 	@echo "📋 Step 2: Filtering SDK endpoints"
 	@./scripts/filter-sdk-endpoints.sh openapi-full.json openapi-sdk.json
 	@echo "📋 Step 3: Generating Go client from filtered spec"
-	openapi-generator-cli generate \
+	@. ./scripts/setup-java-path.sh && npx @openapitools/openapi-generator-cli generate \
 		-i openapi-sdk.json \
 		-g go \
 		-o ./generated-sdk \
@@ -54,10 +64,12 @@ generate-sdk-endpoints: ## Generate Go SDK only for SDK-tagged endpoints (recomm
 
 generate-full: ## Generate Go SDK for ALL endpoints (not recommended)
 	@echo "⚠️  WARNING: Generating SDK for ALL endpoints (not just SDK-tagged ones)"
+	@echo "📋 Setting up Java environment"
+	@. ./scripts/setup-java-path.sh || exit 1
 	@echo "📋 Downloading OpenAPI spec..."
 	curl -s $(OPENAPI_URL) > openapi.json
 	@echo "📋 Generating Go client..."
-	openapi-generator-cli generate \
+	@. ./scripts/setup-java-path.sh && npx @openapitools/openapi-generator-cli generate \
 		-i openapi.json \
 		-g go \
 		-o ./generated \
@@ -201,12 +213,14 @@ docs: ## Generate documentation
 # Advanced SDK Generation with Custom Filtering
 generate-custom: ## Generate SDK with custom endpoint filtering
 	@echo "🎯 Custom SDK generation..."
+	@echo "📋 Setting up Java environment"
+	@. ./scripts/setup-java-path.sh || exit 1
 	@read -p "Enter tag to filter by (default: SDK): " TAG; \
 	TAG=$${TAG:-SDK}; \
 	echo "Filtering endpoints with tag: $$TAG"; \
 	curl -s $(OPENAPI_URL) > openapi-full.json; \
 	./scripts/filter-endpoints-by-tag.sh openapi-full.json openapi-custom.json "$$TAG"; \
-	openapi-generator-cli generate \
+	. ./scripts/setup-java-path.sh && npx @openapitools/openapi-generator-cli generate \
 		-i openapi-custom.json \
 		-g go \
 		-o ./generated-custom \

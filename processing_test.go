@@ -48,10 +48,10 @@ func TestProcessURL_Validation(t *testing.T) {
 			expectError: "invalid format 'invalid'",
 		},
 		{
-			name:        "invalid tier",
+			name:        "model too long",
 			url:         "https://example.com/document.pdf",
-			opts:        []ProcessingOption{WithTier(Tier("invalid"))},
-			expectError: "invalid tier 'invalid'",
+			opts:        []ProcessingOption{WithModelString(strings.Repeat("a", 101))},
+			expectError: "model name too long",
 		},
 		{
 			name: "schema with markdown format",
@@ -164,7 +164,7 @@ func TestProcessFile_Validation(t *testing.T) {
 			// Test processing config validation
 			config := applyProcessingOptions(tt.opts)
 			err := ValidateProcessingConfig(config)
-			if strings.Contains(tt.expectError, "format") || strings.Contains(tt.expectError, "tier") {
+			if strings.Contains(tt.expectError, "format") || strings.Contains(tt.expectError, "model") {
 				if err == nil {
 					t.Fatal("expected processing config validation error, got none")
 				}
@@ -186,7 +186,7 @@ func TestProcessingOptions_Validation(t *testing.T) {
 			name: "valid structured with schema",
 			opts: []ProcessingOption{
 				WithFormat(FormatStructured),
-				WithTier(TierCore),
+				WithModel(ModelStandardV1),
 				WithSchema(map[string]interface{}{
 					"title":  "string",
 					"amount": "number",
@@ -200,7 +200,7 @@ func TestProcessingOptions_Validation(t *testing.T) {
 			name: "valid markdown without schema",
 			opts: []ProcessingOption{
 				WithFormat(FormatMarkdown),
-				WithTier(TierSwift),
+				WithModel(ModelStandardV1),
 				WithInstructions("Extract all text"),
 			},
 			expectError: "",

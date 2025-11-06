@@ -102,17 +102,21 @@ func ValidateFormat(format Format) error {
 	}
 }
 
-// ValidateTier validates the processing tier
-func ValidateTier(tier Tier) error {
-	switch tier {
-	case TierSwift, TierCore, TierIntelli:
+// ValidateModel validates the OCR model name
+// Model is optional, but if provided, it should be a non-empty string
+// Any model name is allowed (not restricted to predefined constants)
+func ValidateModel(model string) error {
+	// Model is optional, so empty string is allowed
+	if model == "" {
 		return nil
-	case "":
-		return NewValidationError("tier", "tier cannot be empty")
-	default:
-		return NewValidationError("tier", fmt.Sprintf("invalid tier '%s'. Valid tiers are: %s, %s, %s",
-			tier, TierSwift, TierCore, TierIntelli))
 	}
+	
+	// Basic validation: model name should be reasonable length
+	if len(model) > 100 {
+		return NewValidationError("model", "model name too long. Maximum allowed is 100 characters")
+	}
+	
+	return nil
 }
 
 // ValidateInstructions validates custom processing instructions
@@ -179,8 +183,8 @@ func ValidateProcessingConfig(config *processingConfig) error {
 		return err
 	}
 
-	// Validate tier
-	if err := ValidateTier(config.tier); err != nil {
+	// Validate model (optional)
+	if err := ValidateModel(config.model); err != nil {
 		return err
 	}
 

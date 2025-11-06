@@ -24,14 +24,15 @@ func (s *SDK) ProcessURL(ctx context.Context, fileURL string, opts ...Processing
 
 	// Create the URL upload request
 	formatStr := string(config.format)
-	tierStr := string(config.tier)
-	request := gen.UploadURLUploadRequest{
+	request := gen.UploadRemoteURLUploadRequest{
 		Url:    fileURL,
 		Format: &formatStr,
-		Tier:   &tierStr,
 	}
 
 	// Add optional fields if provided
+	if config.model != "" {
+		request.Model = &config.model
+	}
 	if config.instructions != "" {
 		request.Instructions = &config.instructions
 	}
@@ -40,8 +41,8 @@ func (s *SDK) ProcessURL(ctx context.Context, fileURL string, opts ...Processing
 	}
 
 	// Make the API call using the generated client
-	apiRequest := s.client.SDKAPI.UploadFromURL(ctx)
-	apiRequest = apiRequest.UploadURLUploadRequest(request)
+	apiRequest := s.client.SDKAPI.UploadFromRemoteURL(ctx)
+	apiRequest = apiRequest.UploadRemoteURLUploadRequest(request)
 
 	resp, httpResp, err := apiRequest.Execute()
 	if err != nil {
@@ -74,17 +75,18 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 		return nil, NewSDKError(ErrorTypeValidationError, "invalid processing configuration", err)
 	}
 
-	// Step 1: Get presigned upload URL
+	// Step 1: Get presigned upload URLs for multipart upload
 	formatStr := string(config.format)
-	tierStr := string(config.tier)
-	uploadRequest := gen.UploadInitiateUploadRequest{
+	uploadRequest := gen.UploadInitiateDirectUploadRequest{
 		FileName:    filename,
 		ContentType: getContentType(filename),
 		Format:      &formatStr,
-		Tier:        &tierStr,
 	}
 
 	// Add optional fields if provided
+	if config.model != "" {
+		uploadRequest.Model = &config.model
+	}
 	if config.instructions != "" {
 		uploadRequest.Instructions = &config.instructions
 	}
@@ -92,26 +94,29 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 		uploadRequest.Schema = config.schema
 	}
 
-	// Make the API call to get presigned URL
-	apiRequest := s.client.SDKAPI.PresignedUpload(ctx)
-	apiRequest = apiRequest.UploadInitiateUploadRequest(uploadRequest)
+	// Make the API call to get presigned URLs
+	apiRequest := s.client.SDKAPI.DirectUpload(ctx)
+	apiRequest = apiRequest.UploadInitiateDirectUploadRequest(uploadRequest)
 
 	resp, httpResp, err := apiRequest.Execute()
 	if err != nil {
 		return nil, s.handleAPIError(err, httpResp, "failed to initiate file upload")
 	}
 
-	var presignedURL, jobID string
-	if resp.UploadUrl != nil {
-		presignedURL = *resp.UploadUrl
-	}
+	var jobID string
 	if resp.JobId != nil {
 		jobID = *resp.JobId
 	}
 
-	// Step 2: Upload file to presigned URL
-	if err := s.uploadFile(ctx, presignedURL, file, filename); err != nil {
+	// Step 2: Upload file parts to presigned URLs and collect ETags
+	completedParts, err := s.uploadFileParts(ctx, resp, file)
+	if err != nil {
 		return nil, NewSDKError(ErrorTypeUploadError, "failed to upload file", err)
+	}
+
+	// Step 3: Complete the multipart upload
+	if err := s.completeDirectUpload(ctx, jobID, completedParts); err != nil {
+		return nil, NewSDKError(ErrorTypeUploadError, "failed to complete upload", err)
 	}
 
 	return &Job{

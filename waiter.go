@@ -172,8 +172,9 @@ func (s *SDK) getJobStatus(ctx context.Context, jobID string) (*JobStatusInfo, e
 	if resp.Status != nil {
 		status.Status = *resp.Status
 	}
-	if resp.ProgressPercentage != nil {
-		status.Progress = float64(*resp.ProgressPercentage)
+	// Calculate progress from processed pages and total pages
+	if resp.ProcessedPages != nil && resp.TotalPages != nil && *resp.TotalPages > 0 {
+		status.Progress = float64(*resp.ProcessedPages) / float64(*resp.TotalPages) * 100.0
 	}
 	if resp.ProcessingTime != nil {
 		status.EstimatedTime = int(*resp.ProcessingTime)
@@ -197,8 +198,20 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 
 	// Convert generated response to our result type
 	result := &OCRResult{
-		JobID:  jobID,
-		Status: "completed",
+		JobID: jobID,
+	}
+
+	// Extract status from response
+	if resp.Status != nil && resp.Status.Status != nil {
+		result.Status = *resp.Status.Status
+	} else {
+		// Default to completed if status not available
+		result.Status = "completed"
+	}
+
+	// Extract job ID from response if available (may differ from parameter)
+	if resp.JobId != nil {
+		result.JobID = *resp.JobId
 	}
 
 	// Extract page results (main content)
@@ -225,9 +238,6 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 					result.Data[k] = v
 				}
 			}
-			if page.Confidence != nil {
-				pageResult.Confidence = *page.Confidence
-			}
 			if page.PageNumber != nil {
 				pageResult.PageNumber = int(*page.PageNumber)
 			}
@@ -242,7 +252,8 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 		result.Credits = int(*resp.CreditsUsed)
 	}
 	if resp.ProcessingTimeSeconds != nil {
-		result.Duration = time.Duration(*resp.ProcessingTimeSeconds) * time.Second
+		// ProcessingTimeSeconds is float32, convert to time.Duration
+		result.Duration = time.Duration(float64(*resp.ProcessingTimeSeconds) * float64(time.Second))
 	}
 
 	return result, nil

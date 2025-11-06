@@ -10,7 +10,6 @@ type ModelsPageResponse struct {
 	PageNumber *int32                 `json:"page_number,omitempty"`
 	Text       *string                `json:"text,omitempty"`
 	Data       map[string]interface{} `json:"data,omitempty"`
-	Confidence *float64               `json:"confidence,omitempty"`
 }
 
 // ModelsPaginationResponse represents pagination response
@@ -28,3 +27,17 @@ type ResponseErrorCode string
 
 // ResponseErrorMessage represents error messages
 type ResponseErrorMessage string
+
+// UploadMultipartPart represents a multipart upload part with presigned URL
+type UploadMultipartPart struct {
+	EndByte    *int32  `json:"end_byte,omitempty"`
+	PartNumber *int32  `json:"part_number,omitempty"`
+	StartByte  *int32  `json:"start_byte,omitempty"`
+	UploadUrl  *string `json:"upload_url,omitempty"`
+}
+
+// UploadCompletedPart represents a completed upload part with ETag
+type UploadCompletedPart struct {
+	Etag       *string `json:"etag,omitempty"`
+	PartNumber *int32  `json:"part_number,omitempty"`
+}

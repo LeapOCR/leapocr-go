@@ -51,7 +51,7 @@ func TestIntegration_ProcessFile(t *testing.T) {
 	t.Logf("Processing file: %s", testFile)
 	job, err := sdk.ProcessFile(ctx, file, "test-document.pdf",
 		ocr.WithFormat(ocr.FormatStructured),
-		ocr.WithTier(ocr.TierCore),
+		ocr.WithModel(ocr.ModelStandardV1),
 		ocr.WithInstructions("Extract all text and identify key information"),
 	)
 	require.NoError(t, err)
@@ -76,7 +76,7 @@ func TestIntegration_ProcessFile(t *testing.T) {
 
 	if len(result.Pages) > 0 {
 		t.Logf("First page text length: %d characters", len(result.Pages[0].Text))
-		t.Logf("First page confidence: %.2f", result.Pages[0].Confidence)
+		// Confidence is no longer returned by the API
 	}
 }
 
@@ -95,7 +95,7 @@ func TestIntegration_ProcessURL(t *testing.T) {
 	t.Logf("Processing URL: %s", testURL)
 	job, err := sdk.ProcessURL(ctx, testURL,
 		ocr.WithFormat(ocr.FormatMarkdown),
-		ocr.WithTier(ocr.TierSwift),
+		ocr.WithModel(ocr.ModelStandardV1),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, job)
