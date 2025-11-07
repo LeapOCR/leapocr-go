@@ -206,8 +206,8 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 	}
 
 	// Extract status from response
-	if resp.Status != nil && resp.Status.Status != nil {
-		result.Status = *resp.Status.Status
+	if resp.Status != nil {
+		result.Status = *resp.Status
 	} else {
 		// Default to completed if status not available
 		result.Status = "completed"
@@ -232,13 +232,14 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 				pageResult.Text = *page.Text
 				allText += *page.Text + "\n"
 			}
-			if page.Data != nil {
-				pageResult.Data = page.Data
+			// Extract data from metadata.Extra if available
+			if page.Metadata != nil && page.Metadata.Extra != nil {
+				pageResult.Data = page.Metadata.Extra
 				if result.Data == nil {
 					result.Data = make(map[string]interface{})
 				}
 				// Merge page data into result data
-				for k, v := range page.Data {
+				for k, v := range page.Metadata.Extra {
 					result.Data[k] = v
 				}
 			}

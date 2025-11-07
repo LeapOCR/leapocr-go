@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/leapocr/leapocr-go/gen"
+	"github.com/leapocr/leapocr-go/generated"
 )
 
 // ProcessURL starts OCR processing for a file at the given URL
@@ -25,7 +25,7 @@ func (s *SDK) ProcessURL(ctx context.Context, fileURL string, opts ...Processing
 
 	// Create the URL upload request
 	formatStr := string(config.format)
-	request := gen.UploadRemoteURLUploadRequest{
+	request := generated.UploadRemoteURLUploadRequest{
 		Url:    fileURL,
 		Format: &formatStr,
 	}
@@ -102,7 +102,7 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 	}
 	fileSize32 := int32(fileSize) // #nosec G115 - validated above
 
-	uploadRequest := gen.UploadInitiateDirectUploadRequest{
+	uploadRequest := generated.UploadInitiateDirectUploadRequest{
 		FileName:    filename,
 		ContentType: getContentType(filename),
 		Format:      &formatStr,

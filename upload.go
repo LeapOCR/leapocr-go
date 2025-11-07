@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/leapocr/leapocr-go/gen"
+	"github.com/leapocr/leapocr-go/generated"
 )
 
 // uploadFileParts uploads file parts to presigned URLs and returns completed parts with ETags
-func (s *SDK) uploadFileParts(ctx context.Context, resp *gen.UploadDirectUploadResponse, file io.Reader) ([]gen.UploadCompletedPart, error) {
+func (s *SDK) uploadFileParts(ctx context.Context, resp *generated.UploadDirectUploadResponse, file io.Reader) ([]generated.UploadCompletedPart, error) {
 	if len(resp.Parts) == 0 {
 		return nil, NewSDKError(ErrorTypeUploadError, "no upload parts provided", nil)
 	}
@@ -28,7 +28,7 @@ func (s *SDK) uploadFileParts(ctx context.Context, resp *gen.UploadDirectUploadR
 		client = http.DefaultClient
 	}
 
-	completedParts := make([]gen.UploadCompletedPart, 0, len(resp.Parts))
+	completedParts := make([]generated.UploadCompletedPart, 0, len(resp.Parts))
 
 	// Upload each part
 	for _, part := range resp.Parts {
@@ -43,9 +43,9 @@ func (s *SDK) uploadFileParts(ctx context.Context, resp *gen.UploadDirectUploadR
 }
 
 // uploadSinglePart uploads a single file part to a presigned URL
-func (s *SDK) uploadSinglePart(ctx context.Context, client *http.Client, part gen.UploadMultipartPart, fileContent []byte) (gen.UploadCompletedPart, error) {
+func (s *SDK) uploadSinglePart(ctx context.Context, client *http.Client, part generated.UploadMultipartPart, fileContent []byte) (generated.UploadCompletedPart, error) {
 	if part.UploadUrl == nil || part.StartByte == nil || part.EndByte == nil || part.PartNumber == nil {
-		return gen.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError, "invalid part configuration", nil)
+		return generated.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError, "invalid part configuration", nil)
 	}
 
 	startByte := int(*part.StartByte)
@@ -53,7 +53,7 @@ func (s *SDK) uploadSinglePart(ctx context.Context, client *http.Client, part ge
 
 	// Ensure we don't exceed file size
 	if startByte >= len(fileContent) {
-		return gen.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError,
+		return generated.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError,
 			fmt.Sprintf("start byte %d exceeds file size %d", startByte, len(fileContent)), nil)
 	}
 
@@ -67,19 +67,19 @@ func (s *SDK) uploadSinglePart(ctx context.Context, client *http.Client, part ge
 	// Create PUT request to upload the chunk
 	req, err := http.NewRequestWithContext(ctx, "PUT", *part.UploadUrl, bytes.NewReader(chunk))
 	if err != nil {
-		return gen.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError, "failed to create upload request", err)
+		return generated.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError, "failed to create upload request", err)
 	}
 
 	// Upload the chunk
 	uploadResp, err := client.Do(req)
 	if err != nil {
-		return gen.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError, "failed to upload chunk", err)
+		return generated.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError, "failed to upload chunk", err)
 	}
 	defer func() { _ = uploadResp.Body.Close() }() //nolint:errcheck
 
 	// Check response status
 	if uploadResp.StatusCode < 200 || uploadResp.StatusCode >= 300 {
-		return gen.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError,
+		return generated.UploadCompletedPart{}, NewSDKError(ErrorTypeUploadError,
 			fmt.Sprintf("upload failed with status %d", uploadResp.StatusCode), nil)
 	}
 
@@ -93,24 +93,26 @@ func (s *SDK) uploadSinglePart(ctx context.Context, client *http.Client, part ge
 	etag = strings.Trim(etag, `"`)
 
 	// Create completed part with ETag
-	completedPart := gen.UploadCompletedPart{
-		PartNumber: part.PartNumber,
+	var partNumber int32
+	if part.PartNumber != nil {
+		partNumber = *part.PartNumber
 	}
-	if etag != "" {
-		completedPart.Etag = &etag
+	completedPart := generated.UploadCompletedPart{
+		PartNumber: partNumber,
+		Etag:       etag,
 	}
 
 	return completedPart, nil
 }
 
 // completeDirectUpload completes the multipart upload by sending ETags
-func (s *SDK) completeDirectUpload(ctx context.Context, jobID string, completedParts []gen.UploadCompletedPart) error {
+func (s *SDK) completeDirectUpload(ctx context.Context, jobID string, completedParts []generated.UploadCompletedPart) error {
 	if len(completedParts) == 0 {
 		return NewSDKError(ErrorTypeUploadError, "no upload parts to complete", nil)
 	}
 
 	// Create completion request
-	completeRequest := gen.UploadDirectUploadCompleteRequest{
+	completeRequest := generated.UploadDirectUploadCompleteRequest{
 		Parts: completedParts,
 	}
 

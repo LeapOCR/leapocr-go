@@ -20,82 +20,82 @@ import (
 // 2. OCR API server running (default: http://localhost:8080/api/v1)
 // 3. Sample test files in sample/ folder (e.g., test.pdf, A129of19_14.01.22.pdf)
 
-// func TestIntegration_ProcessFile(t *testing.T) {
-// 	sdk := createTestSDK(t)
+func TestIntegration_ProcessFile(t *testing.T) {
+	sdk := createTestSDK(t)
 
-// 	// Find repo root by looking for go.mod file
-// 	repoRoot := findRepoRoot(t)
+	// Find repo root by looking for go.mod file
+	repoRoot := findRepoRoot(t)
 
-// 	// Look for test files in sample/ folder
-// 	sampleDir := filepath.Join(repoRoot, "sample")
-// 	testFiles := []string{
-// 		filepath.Join(sampleDir, "test.pdf"),
-// 		filepath.Join(sampleDir, "A129of19_14.01.22.pdf"),
-// 		filepath.Join(sampleDir, "A141of21_10.02.22.pdf"),
-// 		filepath.Join(sampleDir, "A29of21&B_31.03.22.pdf"),
-// 		filepath.Join(sampleDir, "A66of20_oral_07.01.22.pdf"),
-// 	}
+	// Look for test files in sample/ folder
+	sampleDir := filepath.Join(repoRoot, "sample")
+	testFiles := []string{
+		filepath.Join(sampleDir, "test.pdf"),
+		filepath.Join(sampleDir, "A129of19_14.01.22.pdf"),
+		filepath.Join(sampleDir, "A141of21_10.02.22.pdf"),
+		filepath.Join(sampleDir, "A29of21&B_31.03.22.pdf"),
+		filepath.Join(sampleDir, "A66of20_oral_07.01.22.pdf"),
+	}
 
-// 	var testFile string
-// 	for _, file := range testFiles {
-// 		if _, err := os.Stat(file); err == nil {
-// 			testFile = file
-// 			break
-// 		}
-// 	}
+	var testFile string
+	for _, file := range testFiles {
+		if _, err := os.Stat(file); err == nil {
+			testFile = file
+			break
+		}
+	}
 
-// 	if testFile == "" {
-// 		t.Skip("No test files found in sample/ folder. Add sample PDF files to run this test.")
-// 	}
+	if testFile == "" {
+		t.Skip("No test files found in sample/ folder. Add sample PDF files to run this test.")
+	}
 
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-// 	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
 
-// 	// Open test file
-// 	file, err := os.Open(testFile)
-// 	require.NoError(t, err)
-// 	defer file.Close()
+	// Open test file
+	file, err := os.Open(testFile)
+	require.NoError(t, err)
+	defer file.Close()
 
-// 	filename := filepath.Base(testFile)
-// 	t.Logf("Processing PDF file: %s (full path: %s)", filename, testFile)
+	filename := filepath.Base(testFile)
+	t.Logf("Processing PDF file: %s (full path: %s)", filename, testFile)
 
-// 	// Step 1: ProcessFile handles the full direct upload flow:
-// 	// - Initiates direct upload (gets presigned URLs for chunks)
-// 	// - Uploads chunks to presigned URLs
-// 	// - Completes the upload
-// 	// - Returns job ID
-// 	t.Logf("Step 1: Initiating direct upload (will get presigned URLs for chunks)...")
-// 	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile),
-// 		ocr.WithFormat(ocr.FormatStructured),
-// 		ocr.WithModel(ocr.ModelStandardV1),
-// 		ocr.WithInstructions("Extract all text and identify key information"),
-// 	)
-// 	require.NoError(t, err)
-// 	require.NotNil(t, job)
+	// Step 1: ProcessFile handles the full direct upload flow:
+	// - Initiates direct upload (gets presigned URLs for chunks)
+	// - Uploads chunks to presigned URLs
+	// - Completes the upload
+	// - Returns job ID
+	t.Logf("Step 1: Initiating direct upload (will get presigned URLs for chunks)...")
+	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile),
+		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithModel(ocr.ModelStandardV1),
+		ocr.WithInstructions("Extract all text and identify key information"),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, job)
 
-// 	t.Logf("Step 2: Direct upload completed. Job created with ID: %s", job.ID)
-// 	t.Logf("Step 3: Waiting for OCR processing to complete...")
+	t.Logf("Step 2: Direct upload completed. Job created with ID: %s", job.ID)
+	t.Logf("Step 3: Waiting for OCR processing to complete...")
 
-// 	// Step 4: Wait for completion after the upload is complete
-// 	result, err := sdk.WaitUntilDone(ctx, job.ID)
-// 	require.NoError(t, err)
-// 	require.NotNil(t, result)
+	// Step 4: Wait for completion after the upload is complete
+	result, err := sdk.WaitUntilDone(ctx, job.ID)
+	require.NoError(t, err)
+	require.NotNil(t, result)
 
-// 	// Verify results
-// 	assert.Equal(t, "completed", result.Status)
-// 	assert.Greater(t, result.Credits, 0)
-// 	assert.Greater(t, len(result.Pages), 0)
+	// Verify results
+	assert.Equal(t, "completed", result.Status)
+	assert.Greater(t, result.Credits, 0)
+	assert.Greater(t, len(result.Pages), 0)
 
-// 	t.Logf("Processing completed successfully!")
-// 	t.Logf("Credits used: %d", result.Credits)
-// 	t.Logf("Processing time: %v", result.Duration)
-// 	t.Logf("Pages processed: %d", len(result.Pages))
+	t.Logf("Processing completed successfully!")
+	t.Logf("Credits used: %d", result.Credits)
+	t.Logf("Processing time: %v", result.Duration)
+	t.Logf("Pages processed: %d", len(result.Pages))
 
-// 	if len(result.Pages) > 0 {
-// 		t.Logf("First page text length: %d characters", len(result.Pages[0].Text))
-// 		// Confidence is no longer returned by the API
-// 	}
-// }
+	if len(result.Pages) > 0 {
+		t.Logf("First page text length: %d characters", len(result.Pages[0].Text))
+		// Confidence is no longer returned by the API
+	}
+}
 
 // findRepoRoot finds the repository root by looking for go.mod file
 func findRepoRoot(t *testing.T) string {

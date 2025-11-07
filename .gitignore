@@ -12,11 +12,7 @@ go.work
 coverage.html
 coverage.out
 
-# Generated files
-openapi.json
-openapi-*.json
-generated/
-generated-sdk/
+
 
 # IDE
 .vscode/
