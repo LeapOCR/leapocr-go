@@ -97,16 +97,12 @@ func NewConfiguration() *Configuration {
 		Debug:         false,
 		Servers: ServerConfigurations{
 			{
-				URL:         "api.leapocr.com/api/v1",
-				Description: "No description provided",
+				URL:         "https://api.leapocr.com/api/v1",
+				Description: "Production server",
 			},
 			{
 				URL:         "http://localhost:8080/api/v1",
 				Description: "Local development server",
-			},
-			{
-				URL:         "https://api.leapocr.com/api/v1",
-				Description: "Production server",
 			},
 		},
 		OperationServers: map[string]ServerConfigurations{},

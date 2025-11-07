@@ -140,7 +140,7 @@ client := ocrsdk.New("api-key")
 // Processing options
 result, err := client.OCR.ProcessFileFromPath(ctx, "file.pdf",
     ocrsdk.WithFormat(ocrsdk.FormatStructured),
-    ocrsdk.WithTier(ocrsdk.TierCore),
+    ocrsdk.WithModel(ocrsdk.ModelStandardV1),
 )
 
 // Response types
