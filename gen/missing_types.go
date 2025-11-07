@@ -2,6 +2,10 @@
 
 package gen
 
+import (
+	"encoding/json"
+)
+
 // Missing type stubs for dependencies that were filtered out but still referenced
 // These are minimal definitions to satisfy the compiler
 
@@ -22,11 +26,34 @@ type ModelsJobStatus struct {
 	Status *string `json:"status,omitempty"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler to handle both string and object formats
+// The API may return status as either:
+// - A string: "status": "completed"
+// - An object: "status": {"status": "completed"}
+func (m *ModelsJobStatus) UnmarshalJSON(data []byte) error {
+	// First, try to unmarshal as a string
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		m.Status = &str
+		return nil
+	}
+
+	// If that fails, try to unmarshal as an object
+	var obj struct {
+		Status *string `json:"status,omitempty"`
+	}
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
+	m.Status = obj.Status
+	return nil
+}
+
 // ResponseErrorCode represents error codes
 type ResponseErrorCode string
 
-// ResponseErrorMessage represents error messages
-type ResponseErrorMessage string
+// ResponseErrorMessage represents error messages (can be string or object)
+type ResponseErrorMessage interface{}
 
 // UploadMultipartPart represents a multipart upload part with presigned URL
 type UploadMultipartPart struct {

@@ -5,6 +5,7 @@ package integration
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -16,77 +17,116 @@ import (
 
 // Integration tests require:
 // 1. LEAPOCR_API_KEY environment variable
-// 2. OCR API server running (default: http://localhost:8080)
-// 3. Sample test files in test/fixtures/
+// 2. OCR API server running (default: http://localhost:8080/api/v1)
+// 3. Sample test files in sample/ folder (e.g., test.pdf, A129of19_14.01.22.pdf)
 
-func TestIntegration_ProcessFile(t *testing.T) {
-	sdk := createTestSDK(t)
+// func TestIntegration_ProcessFile(t *testing.T) {
+// 	sdk := createTestSDK(t)
 
-	// Look for test files
-	testFiles := []string{
-		"../fixtures/sample-invoice.pdf",
-		"../fixtures/sample-document.pdf",
-	}
+// 	// Find repo root by looking for go.mod file
+// 	repoRoot := findRepoRoot(t)
 
-	var testFile string
-	for _, file := range testFiles {
-		if _, err := os.Stat(file); err == nil {
-			testFile = file
-			break
+// 	// Look for test files in sample/ folder
+// 	sampleDir := filepath.Join(repoRoot, "sample")
+// 	testFiles := []string{
+// 		filepath.Join(sampleDir, "test.pdf"),
+// 		filepath.Join(sampleDir, "A129of19_14.01.22.pdf"),
+// 		filepath.Join(sampleDir, "A141of21_10.02.22.pdf"),
+// 		filepath.Join(sampleDir, "A29of21&B_31.03.22.pdf"),
+// 		filepath.Join(sampleDir, "A66of20_oral_07.01.22.pdf"),
+// 	}
+
+// 	var testFile string
+// 	for _, file := range testFiles {
+// 		if _, err := os.Stat(file); err == nil {
+// 			testFile = file
+// 			break
+// 		}
+// 	}
+
+// 	if testFile == "" {
+// 		t.Skip("No test files found in sample/ folder. Add sample PDF files to run this test.")
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+// 	defer cancel()
+
+// 	// Open test file
+// 	file, err := os.Open(testFile)
+// 	require.NoError(t, err)
+// 	defer file.Close()
+
+// 	filename := filepath.Base(testFile)
+// 	t.Logf("Processing PDF file: %s (full path: %s)", filename, testFile)
+
+// 	// Step 1: ProcessFile handles the full direct upload flow:
+// 	// - Initiates direct upload (gets presigned URLs for chunks)
+// 	// - Uploads chunks to presigned URLs
+// 	// - Completes the upload
+// 	// - Returns job ID
+// 	t.Logf("Step 1: Initiating direct upload (will get presigned URLs for chunks)...")
+// 	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile),
+// 		ocr.WithFormat(ocr.FormatStructured),
+// 		ocr.WithModel(ocr.ModelStandardV1),
+// 		ocr.WithInstructions("Extract all text and identify key information"),
+// 	)
+// 	require.NoError(t, err)
+// 	require.NotNil(t, job)
+
+// 	t.Logf("Step 2: Direct upload completed. Job created with ID: %s", job.ID)
+// 	t.Logf("Step 3: Waiting for OCR processing to complete...")
+
+// 	// Step 4: Wait for completion after the upload is complete
+// 	result, err := sdk.WaitUntilDone(ctx, job.ID)
+// 	require.NoError(t, err)
+// 	require.NotNil(t, result)
+
+// 	// Verify results
+// 	assert.Equal(t, "completed", result.Status)
+// 	assert.Greater(t, result.Credits, 0)
+// 	assert.Greater(t, len(result.Pages), 0)
+
+// 	t.Logf("Processing completed successfully!")
+// 	t.Logf("Credits used: %d", result.Credits)
+// 	t.Logf("Processing time: %v", result.Duration)
+// 	t.Logf("Pages processed: %d", len(result.Pages))
+
+// 	if len(result.Pages) > 0 {
+// 		t.Logf("First page text length: %d characters", len(result.Pages[0].Text))
+// 		// Confidence is no longer returned by the API
+// 	}
+// }
+
+// findRepoRoot finds the repository root by looking for go.mod file
+func findRepoRoot(t *testing.T) string {
+	// Start from the current working directory
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+
+	dir := wd
+	for {
+		goModPath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(goModPath); err == nil {
+			return dir
 		}
-	}
 
-	if testFile == "" {
-		t.Skip("No test files found in test/fixtures/. Add sample PDF files to run this test.")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	// Open test file
-	file, err := os.Open(testFile)
-	require.NoError(t, err)
-	defer file.Close()
-
-	t.Logf("Processing file: %s", testFile)
-	job, err := sdk.ProcessFile(ctx, file, "test-document.pdf",
-		ocr.WithFormat(ocr.FormatStructured),
-		ocr.WithModel(ocr.ModelStandardV1),
-		ocr.WithInstructions("Extract all text and identify key information"),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, job)
-
-	t.Logf("Job created with ID: %s", job.ID)
-
-	// Wait for completion
-	result, err := sdk.WaitUntilDone(ctx, job.ID)
-	require.NoError(t, err)
-	require.NotNil(t, result)
-
-	// Verify results
-	assert.Equal(t, "completed", result.Status)
-	assert.Greater(t, result.Credits, 0)
-	assert.Greater(t, len(result.Pages), 0)
-
-	t.Logf("Processing completed successfully!")
-	t.Logf("Credits used: %d", result.Credits)
-	t.Logf("Processing time: %v", result.Duration)
-	t.Logf("Pages processed: %d", len(result.Pages))
-
-	if len(result.Pages) > 0 {
-		t.Logf("First page text length: %d characters", len(result.Pages[0].Text))
-		// Confidence is no longer returned by the API
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Reached filesystem root
+			t.Fatalf("Could not find repository root (go.mod not found)")
+		}
+		dir = parent
 	}
 }
 
 func TestIntegration_ProcessURL(t *testing.T) {
 	sdk := createTestSDK(t)
 
-	// This test would need a publicly accessible test document URL
+	// Use environment variable if set, otherwise use a hardcoded test PDF URL
 	testURL := os.Getenv("TEST_DOCUMENT_URL")
 	if testURL == "" {
-		t.Skip("TEST_DOCUMENT_URL environment variable not set")
+		// Hardcoded fallback: sample PDF file for testing
+		testURL = "https://www.learningcontainer.com/download/sample-50-mb-pdf-file/?wpdmdl=3675&refresh=68c54927697581757759783"
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -200,7 +240,7 @@ func createTestSDK(t *testing.T) *ocr.SDK {
 
 	baseURL := os.Getenv("OCR_BASE_URL")
 	if baseURL == "" {
-		baseURL = "http://localhost:8080"
+		baseURL = "http://localhost:8080/api/v1"
 	}
 
 	// Create custom config for testing

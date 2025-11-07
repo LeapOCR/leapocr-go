@@ -77,14 +77,21 @@ func ValidateURL(fileURL string) error {
 		return NewValidationError("url", "URL must include a host")
 	}
 
-	// Validate file extension from URL path
-	if err := ValidateFileExtension(parsedURL.Path); err != nil {
-		// Re-wrap with URL context
-		if validationErr, ok := err.(*ValidationError); ok {
-			return NewValidationError("url", fmt.Sprintf("URL path validation failed: %s", validationErr.Message))
+	// Validate file extension from URL path if present
+	// Note: Not all URLs have file extensions in the path (e.g., download links with query parameters)
+	// So we only validate if an extension is present
+	ext := strings.ToLower(filepath.Ext(parsedURL.Path))
+	if ext != "" {
+		// Extension is present, validate it
+		if err := ValidateFileExtension(parsedURL.Path); err != nil {
+			// Re-wrap with URL context
+			if validationErr, ok := err.(*ValidationError); ok {
+				return NewValidationError("url", fmt.Sprintf("URL path validation failed: %s", validationErr.Message))
+			}
+			return NewValidationError("url", fmt.Sprintf("URL path validation failed: %v", err))
 		}
-		return NewValidationError("url", fmt.Sprintf("URL path validation failed: %v", err))
 	}
+	// If no extension is present, we allow it - the server will determine the content type
 
 	return nil
 }
@@ -110,12 +117,12 @@ func ValidateModel(model string) error {
 	if model == "" {
 		return nil
 	}
-	
+
 	// Basic validation: model name should be reasonable length
 	if len(model) > 100 {
 		return NewValidationError("model", "model name too long. Maximum allowed is 100 characters")
 	}
-	
+
 	return nil
 }
 

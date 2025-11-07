@@ -1,6 +1,7 @@
 package ocr
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -75,12 +76,29 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 		return nil, NewSDKError(ErrorTypeValidationError, "invalid processing configuration", err)
 	}
 
+	// Read file content to get size (required for chunk calculation)
+	fileContent, err := io.ReadAll(file)
+	if err != nil {
+		return nil, NewSDKError(ErrorTypeUploadError, "failed to read file content", err)
+	}
+
+	fileSize := int64(len(fileContent))
+	if fileSize == 0 {
+		return nil, NewSDKError(ErrorTypeValidationError, "file is empty", nil)
+	}
+	if fileSize > MaxFileSizeBytes {
+		return nil, NewSDKError(ErrorTypeValidationError,
+			fmt.Sprintf("file size (%d bytes) exceeds maximum allowed size (%d bytes)", fileSize, MaxFileSizeBytes), nil)
+	}
+
 	// Step 1: Get presigned upload URLs for multipart upload
 	formatStr := string(config.format)
+	fileSize32 := int32(fileSize)
 	uploadRequest := gen.UploadInitiateDirectUploadRequest{
 		FileName:    filename,
 		ContentType: getContentType(filename),
 		Format:      &formatStr,
+		FileSize:    &fileSize32,
 	}
 
 	// Add optional fields if provided
@@ -109,7 +127,8 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 	}
 
 	// Step 2: Upload file parts to presigned URLs and collect ETags
-	completedParts, err := s.uploadFileParts(ctx, resp, file)
+	// Pass file content as a reader since we already read it
+	completedParts, err := s.uploadFileParts(ctx, resp, io.NopCloser(bytes.NewReader(fileContent)))
 	if err != nil {
 		return nil, NewSDKError(ErrorTypeUploadError, "failed to upload file", err)
 	}

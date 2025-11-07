@@ -114,7 +114,11 @@ func (s *SDK) pollJobStatus(ctx context.Context, jobID string) (*OCRResult, bool
 		result, err := s.getJobResult(ctx, jobID)
 		return result, false, err
 	case "failed", "error":
-		return nil, false, NewSDKError(ErrorTypeJobError, "job failed", nil)
+		errorMsg := "job failed"
+		if status.Error != "" {
+			errorMsg = "job failed: " + status.Error
+		}
+		return nil, false, NewSDKError(ErrorTypeJobError, errorMsg, nil)
 	case "canceled":
 		return nil, false, NewSDKError(ErrorTypeJobError, "job was canceled", nil)
 	}

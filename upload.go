@@ -107,13 +107,13 @@ func (s *SDK) uploadFileParts(ctx context.Context, resp *gen.UploadDirectUploadR
 
 		startByte := int(*part.StartByte)
 		endByte := int(*part.EndByte)
-		
+
 		// Ensure we don't exceed file size
 		if startByte >= len(fileContent) {
-			return nil, NewSDKError(ErrorTypeUploadError, 
+			return nil, NewSDKError(ErrorTypeUploadError,
 				fmt.Sprintf("start byte %d exceeds file size %d", startByte, len(fileContent)), nil)
 		}
-		
+
 		if endByte >= len(fileContent) {
 			endByte = len(fileContent) - 1
 		}
@@ -136,7 +136,7 @@ func (s *SDK) uploadFileParts(ctx context.Context, resp *gen.UploadDirectUploadR
 
 		// Check response status
 		if uploadResp.StatusCode < 200 || uploadResp.StatusCode >= 300 {
-			return nil, NewSDKError(ErrorTypeUploadError, 
+			return nil, NewSDKError(ErrorTypeUploadError,
 				fmt.Sprintf("upload failed with status %d", uploadResp.StatusCode), nil)
 		}
 

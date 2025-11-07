@@ -51,7 +51,7 @@ func NewSDK(config *Config) (*SDK, error) {
 	}
 
 	// Set up authentication
-	genConfig.DefaultHeader["Authorization"] = "Bearer " + config.APIKey
+	genConfig.DefaultHeader["X-API-KEY"] = config.APIKey
 
 	// Configure HTTP client
 	if config.HTTPClient != nil {

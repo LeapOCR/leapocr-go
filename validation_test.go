@@ -48,12 +48,13 @@ func TestValidateURL(t *testing.T) {
 		{"valid with port", "https://example.com:8080/document.pdf", false},
 		{"valid with path", "https://example.com/path/to/document.pdf", false},
 		{"valid with query", "https://example.com/document.pdf?version=1", false},
+		{"valid without extension", "https://example.com/document", false},      // URLs without extensions are allowed
+		{"valid download link", "https://example.com/download?file=123", false}, // Download links without extensions are allowed
 		{"invalid scheme", "ftp://example.com/document.pdf", true},
 		{"no scheme", "example.com/document.pdf", true},
 		{"empty URL", "", true},
 		{"no host", "https:///document.pdf", true},
 		{"invalid file type", "https://example.com/document.txt", true},
-		{"no file extension", "https://example.com/document", true},
 		{"malformed URL", "https://[invalid", true},
 	}
 
@@ -264,7 +265,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "valid structured config",
 			config: &processingConfig{
 				format:       FormatStructured,
-				model:         string(ModelStandardV1),
+				model:        string(ModelStandardV1),
 				schema:       map[string]interface{}{"title": "string"},
 				instructions: "Extract the title",
 				categoryID:   "invoice",
@@ -275,7 +276,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "valid markdown config without schema",
 			config: &processingConfig{
 				format:       FormatMarkdown,
-				model:         string(ModelStandardV1),
+				model:        string(ModelStandardV1),
 				instructions: "Extract all text",
 			},
 			expectError: false,
@@ -309,7 +310,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "invalid instructions too long",
 			config: &processingConfig{
 				format:       FormatStructured,
-				model:         string(ModelStandardV1),
+				model:        string(ModelStandardV1),
 				instructions: strings.Repeat("a", MaxInstructionsLength+1),
 			},
 			expectError: true,
