@@ -22,6 +22,11 @@ help: ## Show this help message
 install: ## Install dependencies
 	go mod download
 	go mod tidy
+	
+tidy:
+	go mod tidy
+	gofumpt -w .
+	go fmt ./...
 
 # SDK Generation Targets
 generate-sdk-endpoints: ## Generate Go SDK only for SDK-tagged endpoints (recommended)

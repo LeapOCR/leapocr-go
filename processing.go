@@ -93,7 +93,15 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 
 	// Step 1: Get presigned upload URLs for multipart upload
 	formatStr := string(config.format)
+
+	// Validate file size fits in int32 (API requirement)
+	const maxInt32 = 2147483647
+	if fileSize > maxInt32 {
+		return nil, NewSDKError(ErrorTypeValidationError,
+			fmt.Sprintf("file size (%d bytes) exceeds API limit (%d bytes)", fileSize, maxInt32), nil)
+	}
 	fileSize32 := int32(fileSize)
+
 	uploadRequest := gen.UploadInitiateDirectUploadRequest{
 		FileName:    filename,
 		ContentType: getContentType(filename),
