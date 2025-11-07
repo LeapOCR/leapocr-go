@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/leapocr/leapocr-go/generated"
+	"github.com/leapocr/leapocr-go/internal/generated"
 )
 
 // ProcessURL starts OCR processing for a file at the given URL

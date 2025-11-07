@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/leapocr/leapocr-go/generated"
+	"github.com/leapocr/leapocr-go/internal/generated"
 )
 
 // SDK is the main OCR API client that provides a clean, Go-native interface

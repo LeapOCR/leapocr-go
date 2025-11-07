@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/leapocr/leapocr-go/generated"
+	"github.com/leapocr/leapocr-go/internal/generated"
 )
 
 // uploadFileParts uploads file parts to presigned URLs and returns completed parts with ETags

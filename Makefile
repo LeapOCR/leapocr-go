@@ -23,11 +23,11 @@ generate: ## Generate Go SDK for ALL endpoints
 	@. ./scripts/setup-java-path.sh && npx @openapitools/openapi-generator-cli generate \
 		-i openapi.json \
 		-g go \
-		-o ./generated \
+		-o ./internal/generated \
 		--skip-validate-spec \
 		--additional-properties=packageName=generated,generateInterfaces=true,structPrefix=true,enumClassPrefix=true,generateTests=false \
 		--global-property=apiDocs=false,modelDocs=false,withGoMod=false,generateInterfaces=true,apiTests=false,modelTests=false
-	@rm -f ./generated/go.mod ./generated/go.sum
+	@rm -f ./internal/generated/go.mod ./internal/generated/go.sum
 	@make tidy
 
 build: ## Build the SDK
@@ -76,7 +76,7 @@ examples-run: ## Run all examples (requires LEAPOCR_API_KEY)
 clean: ## Clean build artifacts and generated files
 	go clean ./...
 	rm -f coverage.out coverage.html
-	rm -rf generated/ generated-sdk/ types/ gen/
+	rm -rf internal/generated/
 	rm -f openapi.json openapi-full.json openapi-sdk.json
 
 dev-setup: install generate build ## Complete development setup
