@@ -1,8 +1,8 @@
 version: "2"
 
 run:
-  skip-dirs:
-    - internal/generated
+  tests: false
+  timeout: 5m
 
 linters:
   enable:
@@ -39,6 +39,9 @@ linters:
       - path: examples/
         linters:
           - lll
+      - path: internal/generated/
+        linters:
+          - all
 
   settings:
     cyclop:
