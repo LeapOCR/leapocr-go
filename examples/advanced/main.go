@@ -150,7 +150,7 @@ func batchProcessingExample(apiKey string) error {
 			}
 			successCount++
 			totalCredits += result.Credits
-			fmt.Printf("✓ Processing completed - Credits: %d, Pages: %d\n",
+			fmt.Printf("[SUCCESS] Processing completed - Credits: %d, Pages: %d\n",
 				result.Credits, len(result.Pages))
 
 		case err, ok := <-errors:
@@ -158,7 +158,7 @@ func batchProcessingExample(apiKey string) error {
 				errors = nil
 				continue
 			}
-			fmt.Printf("✗ Processing failed: %v\n", err)
+			fmt.Printf("[FAILED] Processing failed: %v\n", err)
 
 		case <-ctx.Done():
 			return fmt.Errorf("batch processing timed out: %w", ctx.Err())

@@ -41,9 +41,9 @@ func inputValidationExample(apiKey string) error {
 	fmt.Println("1. Testing empty API key...")
 	_, err := ocr.New("")
 	if err != nil {
-		fmt.Printf("✓ Correctly rejected empty API key: %v\n", err)
+		fmt.Printf("[PASS] Correctly rejected empty API key: %v\n", err)
 	} else {
-		fmt.Println("✗ Should have rejected empty API key")
+		fmt.Println("[FAIL] Should have rejected empty API key")
 	}
 
 	// Test creating SDK with valid configuration
@@ -52,7 +52,7 @@ func inputValidationExample(apiKey string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create SDK: %w", err)
 	}
-	fmt.Println("✓ SDK created successfully")
+	fmt.Println("[PASS] SDK created successfully")
 
 	// Test invalid URL processing
 	fmt.Println("3. Testing invalid URL...")
@@ -63,18 +63,18 @@ func inputValidationExample(apiKey string) error {
 		ocr.WithFormat(ocr.FormatStructured),
 	)
 	if err != nil {
-		fmt.Printf("✓ Correctly rejected invalid URL: %v\n", err)
+		fmt.Printf("[PASS] Correctly rejected invalid URL: %v\n", err)
 	} else {
-		fmt.Println("✗ Should have rejected invalid URL")
+		fmt.Println("[FAIL] Should have rejected invalid URL")
 	}
 
 	// Test empty job ID
 	fmt.Println("4. Testing empty job ID...")
 	_, err = sdk.GetJobStatus(ctx, "")
 	if err != nil {
-		fmt.Printf("✓ Correctly rejected empty job ID: %v\n", err)
+		fmt.Printf("[PASS] Correctly rejected empty job ID: %v\n", err)
 	} else {
-		fmt.Println("✗ Should have rejected empty job ID")
+		fmt.Println("[FAIL] Should have rejected empty job ID")
 	}
 
 	fmt.Println()
@@ -100,7 +100,7 @@ func errorHandlingExample(apiKey string) error {
 	if err != nil {
 		// Demonstrate error type checking
 		if sdkErr, ok := err.(*ocr.SDKError); ok {
-			fmt.Printf("✓ Received SDK error: %s\n", sdkErr.Type)
+			fmt.Printf("[PASS] Received SDK error: %s\n", sdkErr.Type)
 			fmt.Printf("  Message: %s\n", sdkErr.Message)
 
 			if sdkErr.IsHTTPError() {
@@ -113,7 +113,7 @@ func errorHandlingExample(apiKey string) error {
 				fmt.Println("  This error is not retryable")
 			}
 		} else {
-			fmt.Printf("✓ Received generic error: %v\n", err)
+			fmt.Printf("[PASS] Received generic error: %v\n", err)
 		}
 	}
 
@@ -121,7 +121,7 @@ func errorHandlingExample(apiKey string) error {
 	fmt.Println("2. Testing error handling for non-existent job...")
 	_, err = sdk.GetJobStatus(ctx, "non-existent-job-id-12345")
 	if err != nil {
-		fmt.Printf("✓ Correctly handled non-existent job: %v\n", err)
+		fmt.Printf("[PASS] Correctly handled non-existent job: %v\n", err)
 	}
 
 	fmt.Println()
@@ -149,12 +149,12 @@ func timeoutHandlingExample(apiKey string) error {
 
 	if err != nil {
 		if strings.Contains(err.Error(), "context") || strings.Contains(err.Error(), "timeout") {
-			fmt.Printf("✓ Correctly timed out after %v: %v\n", duration, err)
+			fmt.Printf("[PASS] Correctly timed out after %v: %v\n", duration, err)
 		} else {
-			fmt.Printf("✓ Failed quickly (%v): %v\n", duration, err)
+			fmt.Printf("[PASS] Failed quickly (%v): %v\n", duration, err)
 		}
 	} else {
-		fmt.Printf("✗ Expected timeout, but succeeded in %v\n", duration)
+		fmt.Printf("[FAIL] Expected timeout, but succeeded in %v\n", duration)
 	}
 
 	// Test custom wait options with short timeout
@@ -177,9 +177,9 @@ func timeoutHandlingExample(apiKey string) error {
 	duration = time.Since(start)
 
 	if err != nil {
-		fmt.Printf("✓ Wait with custom options failed after %v: %v\n", duration, err)
+		fmt.Printf("[PASS] Wait with custom options failed after %v: %v\n", duration, err)
 	} else {
-		fmt.Printf("✗ Expected failure, but succeeded in %v\n", duration)
+		fmt.Printf("[FAIL] Expected failure, but succeeded in %v\n", duration)
 	}
 
 	fmt.Println()
