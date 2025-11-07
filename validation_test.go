@@ -48,12 +48,13 @@ func TestValidateURL(t *testing.T) {
 		{"valid with port", "https://example.com:8080/document.pdf", false},
 		{"valid with path", "https://example.com/path/to/document.pdf", false},
 		{"valid with query", "https://example.com/document.pdf?version=1", false},
+		{"valid without extension", "https://example.com/document", false},      // URLs without extensions are allowed
+		{"valid download link", "https://example.com/download?file=123", false}, // Download links without extensions are allowed
 		{"invalid scheme", "ftp://example.com/document.pdf", true},
 		{"no scheme", "example.com/document.pdf", true},
 		{"empty URL", "", true},
 		{"no host", "https:///document.pdf", true},
 		{"invalid file type", "https://example.com/document.txt", true},
-		{"no file extension", "https://example.com/document", true},
 		{"malformed URL", "https://[invalid", true},
 	}
 
@@ -96,27 +97,28 @@ func TestValidateFormat(t *testing.T) {
 	}
 }
 
-func TestValidateTier(t *testing.T) {
+func TestValidateModel(t *testing.T) {
 	tests := []struct {
 		name        string
-		tier        Tier
+		model       string
 		expectError bool
 	}{
-		{"valid swift", TierSwift, false},
-		{"valid core", TierCore, false},
-		{"valid intelli", TierIntelli, false},
-		{"invalid tier", Tier("invalid"), true},
-		{"empty tier", Tier(""), true},
+		{"valid standard-v1", "standard-v1", false},
+		{"valid english-pro-v1", "english-pro-v1", false},
+		{"valid pro-v1", "pro-v1", false},
+		{"valid custom model", "custom-model-v2", false},
+		{"empty model (optional)", "", false},
+		{"model too long", strings.Repeat("a", 101), true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateTier(tt.tier)
+			err := ValidateModel(tt.model)
 			if tt.expectError && err == nil {
-				t.Errorf("expected error for tier %q, got none", tt.tier)
+				t.Errorf("expected error for model %q, got none", tt.model)
 			}
 			if !tt.expectError && err != nil {
-				t.Errorf("expected no error for tier %q, got: %v", tt.tier, err)
+				t.Errorf("expected no error for model %q, got: %v", tt.model, err)
 			}
 		})
 	}
@@ -263,7 +265,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "valid structured config",
 			config: &processingConfig{
 				format:       FormatStructured,
-				tier:         TierCore,
+				model:        string(ModelStandardV1),
 				schema:       map[string]interface{}{"title": "string"},
 				instructions: "Extract the title",
 				categoryID:   "invoice",
@@ -274,7 +276,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "valid markdown config without schema",
 			config: &processingConfig{
 				format:       FormatMarkdown,
-				tier:         TierCore,
+				model:        string(ModelStandardV1),
 				instructions: "Extract all text",
 			},
 			expectError: false,
@@ -283,7 +285,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "invalid - schema with markdown",
 			config: &processingConfig{
 				format: FormatMarkdown,
-				tier:   TierCore,
+				model:  string(ModelStandardV1),
 				schema: map[string]interface{}{"title": "string"},
 			},
 			expectError: true,
@@ -292,15 +294,15 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "invalid format",
 			config: &processingConfig{
 				format: Format("invalid"),
-				tier:   TierCore,
+				model:  string(ModelStandardV1),
 			},
 			expectError: true,
 		},
 		{
-			name: "invalid tier",
+			name: "invalid model too long",
 			config: &processingConfig{
 				format: FormatStructured,
-				tier:   Tier("invalid"),
+				model:  strings.Repeat("a", 101),
 			},
 			expectError: true,
 		},
@@ -308,7 +310,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "invalid instructions too long",
 			config: &processingConfig{
 				format:       FormatStructured,
-				tier:         TierCore,
+				model:        string(ModelStandardV1),
 				instructions: strings.Repeat("a", MaxInstructionsLength+1),
 			},
 			expectError: true,
@@ -317,7 +319,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			name: "invalid category ID",
 			config: &processingConfig{
 				format:     FormatStructured,
-				tier:       TierCore,
+				model:      string(ModelStandardV1),
 				categoryID: "invalid category",
 			},
 			expectError: true,

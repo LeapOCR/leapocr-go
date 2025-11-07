@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/leapocr/leapocr-go/gen"
+	"github.com/leapocr/leapocr-go/internal/generated"
 )
 
 // SDK is the main OCR API client that provides a clean, Go-native interface
 type SDK struct {
-	client *gen.APIClient
+	client *generated.APIClient
 	config *Config
 }
 
@@ -43,15 +43,15 @@ func NewSDK(config *Config) (*SDK, error) {
 	}
 
 	// Create the generated client configuration
-	genConfig := gen.NewConfiguration()
-	genConfig.Servers = []gen.ServerConfiguration{
+	genConfig := generated.NewConfiguration()
+	genConfig.Servers = []generated.ServerConfiguration{
 		{
 			URL: config.BaseURL,
 		},
 	}
 
 	// Set up authentication
-	genConfig.DefaultHeader["Authorization"] = "Bearer " + config.APIKey
+	genConfig.DefaultHeader["X-API-KEY"] = config.APIKey
 
 	// Configure HTTP client
 	if config.HTTPClient != nil {
@@ -62,7 +62,7 @@ func NewSDK(config *Config) (*SDK, error) {
 	}
 
 	// Create the generated client
-	client := gen.NewAPIClient(genConfig)
+	client := generated.NewAPIClient(genConfig)
 
 	return &SDK{
 		client: client,

@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  GO_VERSION: "1.25.1"
+  GO_VERSION: "1.25.4"
 
 permissions:
   actions: read
@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.24", "1.25.1"]
+        go-version: ["1.24", "1.25.4"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -53,7 +53,6 @@ jobs:
 
       - name: Run tests with coverage
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
-
 
   # integration:
   #   name: Integration Tests
@@ -99,7 +98,7 @@ jobs:
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
-          args: "-no-fail -fmt sarif -out results.sarif ./..."
+          args: "-no-fail -fmt sarif -out results.sarif -exclude-generated ./..."
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -115,5 +114,3 @@ jobs:
         run: |
           cd examples/basic && go build .
           cd ../advanced && go build .
-
-

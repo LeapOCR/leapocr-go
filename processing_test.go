@@ -1,7 +1,6 @@
 package ocr
 
 import (
-	"bytes"
 	"context"
 	"strings"
 	"testing"
@@ -48,10 +47,10 @@ func TestProcessURL_Validation(t *testing.T) {
 			expectError: "invalid format 'invalid'",
 		},
 		{
-			name:        "invalid tier",
+			name:        "model too long",
 			url:         "https://example.com/document.pdf",
-			opts:        []ProcessingOption{WithTier(Tier("invalid"))},
-			expectError: "invalid tier 'invalid'",
+			opts:        []ProcessingOption{WithModelString(strings.Repeat("a", 101))},
+			expectError: "model name too long",
 		},
 		{
 			name: "schema with markdown format",
@@ -164,7 +163,7 @@ func TestProcessFile_Validation(t *testing.T) {
 			// Test processing config validation
 			config := applyProcessingOptions(tt.opts)
 			err := ValidateProcessingConfig(config)
-			if strings.Contains(tt.expectError, "format") || strings.Contains(tt.expectError, "tier") {
+			if strings.Contains(tt.expectError, "format") || strings.Contains(tt.expectError, "model") {
 				if err == nil {
 					t.Fatal("expected processing config validation error, got none")
 				}
@@ -186,7 +185,7 @@ func TestProcessingOptions_Validation(t *testing.T) {
 			name: "valid structured with schema",
 			opts: []ProcessingOption{
 				WithFormat(FormatStructured),
-				WithTier(TierCore),
+				WithModel(ModelStandardV1),
 				WithSchema(map[string]interface{}{
 					"title":  "string",
 					"amount": "number",
@@ -200,7 +199,7 @@ func TestProcessingOptions_Validation(t *testing.T) {
 			name: "valid markdown without schema",
 			opts: []ProcessingOption{
 				WithFormat(FormatMarkdown),
-				WithTier(TierSwift),
+				WithModel(ModelStandardV1),
 				WithInstructions("Extract all text"),
 			},
 			expectError: "",
@@ -254,58 +253,8 @@ func createDeeplyNestedSchema(depth int) map[string]interface{} {
 	}
 }
 
-func TestFileSizeValidation(t *testing.T) {
-	// Test file size validation in upload function
-	sdk := &SDK{
-		config: &Config{
-			APIKey:  "test-key",
-			BaseURL: "https://api.example.com",
-		},
-	}
-
-	tests := []struct {
-		name        string
-		content     []byte
-		expectError string
-	}{
-		{
-			name:        "empty file",
-			content:     []byte{},
-			expectError: "file cannot be empty",
-		},
-		{
-			name:        "file too large",
-			content:     bytes.Repeat([]byte("a"), MaxFileSizeBytes+1),
-			expectError: "file size",
-		},
-		{
-			name:        "valid file size",
-			content:     bytes.Repeat([]byte("a"), 1024), // 1KB
-			expectError: "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			file := bytes.NewReader(tt.content)
-			err := sdk.uploadFile(context.Background(), "https://example.com/upload", file, "document.pdf")
-
-			if tt.expectError == "" {
-				// We expect this to fail due to invalid upload URL, but not due to file size
-				if err != nil && strings.Contains(err.Error(), "file size") {
-					t.Errorf("unexpected file size validation error: %v", err)
-				}
-			} else {
-				if err == nil {
-					t.Fatal("expected validation error, got none")
-				}
-				if !strings.Contains(err.Error(), tt.expectError) {
-					t.Errorf("expected error containing %q, got %q", tt.expectError, err.Error())
-				}
-			}
-		})
-	}
-}
+// TestFileSizeValidation is now covered by TestProcessFile_Validation
+// File size validation is tested as part of ProcessFile validation tests
 
 func TestValidationError_Integration(t *testing.T) {
 	// Test that validation errors are properly wrapped in SDK errors

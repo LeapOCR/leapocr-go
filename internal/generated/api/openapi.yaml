@@ -1,0 +1,4417 @@
+openapi: 3.1.0
+info:
+  contact:
+    email: support@leapocr.com
+    name: LeapOCR Support
+    url: http://leapocr.com/support
+  description: "Provide your JWT token via the `Authorization` header. Example: Authorization:\
+    \ Bearer <token>"
+  license:
+    name: LeapOCR License
+    url: http://leapocr.com/license
+  termsOfService: http://leapocr.com/terms/
+  title: LeapOCR API
+  version: v1
+externalDocs:
+  description: OpenAPI Specification
+  url: https://swagger.io/resources/open-api/
+servers:
+- url: api.leapocr.com/api/v1
+- description: Local development server
+  url: http://localhost:8080/api/v1
+- description: Production server
+  url: https://api.leapocr.com/api/v1
+tags:
+- description: Authentication and authorization endpoints
+  name: Authentication
+- description: Core OCR processing endpoints for document text extraction
+  name: OCR
+- description: Job management and monitoring endpoints
+  name: Jobs
+- description: Template management for structured data extraction
+  name: Templates
+- description: Usage analytics and reporting endpoints
+  name: Analytics
+- description: Credit management and billing endpoints
+  name: Credits
+- description: Webhook management and event handling
+  name: Webhooks
+- description: System health and status endpoints
+  name: Health
+paths:
+  /analytics/credits/usage:
+    get:
+      description: "Returns comprehensive credit analytics including snapshot data,\
+        \ timeseries trends, and tier usage breakdown"
+      parameters:
+      - description: Time range preset
+        explode: true
+        in: query
+        name: range
+        required: false
+        schema:
+          enum:
+          - 24h
+          - 1d
+          - day
+          - 7d
+          - week
+          - 14d
+          - 30d
+          - month
+          - 90d
+          - quarter
+          - 180d
+          - 6m
+          - 365d
+          - year
+          type: string
+        style: form
+      - description: Start date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: End date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: end
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Time bucket granularity
+        explode: true
+        in: query
+        name: bucket
+        required: false
+        schema:
+          enum:
+          - hour
+          - day
+          - week
+          - month
+          type: string
+        style: form
+      - description: Alias for bucket parameter
+        explode: true
+        in: query
+        name: granularity
+        required: false
+        schema:
+          enum:
+          - hour
+          - day
+          - week
+          - month
+          type: string
+        style: form
+      - description: Filter by team ID
+        explode: true
+        in: query
+        name: team_id
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/analytics.CreditsUsageResponse"
+          description: Credit usage analytics data
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Invalid request parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Analytics not available for your plan
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: Get credit usage analytics
+      tags:
+      - analytics
+  /analytics/jobs/timeseries:
+    get:
+      description: "Returns job metrics aggregated by time buckets including total\
+        \ jobs, completed jobs, failed jobs, active jobs, pages processed, and credits\
+        \ consumed"
+      parameters:
+      - description: Time range preset
+        explode: true
+        in: query
+        name: range
+        required: false
+        schema:
+          enum:
+          - 24h
+          - 1d
+          - day
+          - 7d
+          - week
+          - 14d
+          - 30d
+          - month
+          - 90d
+          - quarter
+          - 180d
+          - 6m
+          - 365d
+          - year
+          type: string
+        style: form
+      - description: Start date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: End date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: end
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Time bucket granularity
+        explode: true
+        in: query
+        name: bucket
+        required: false
+        schema:
+          enum:
+          - hour
+          - day
+          - week
+          - month
+          type: string
+        style: form
+      - description: Alias for bucket parameter
+        explode: true
+        in: query
+        name: granularity
+        required: false
+        schema:
+          enum:
+          - hour
+          - day
+          - week
+          - month
+          type: string
+        style: form
+      - description: Filter by team ID
+        explode: true
+        in: query
+        name: team_id
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_analytics_jobs_timeseries_get_200_response"
+          description: Job timeseries data
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Invalid request parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Analytics not available for your plan
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: Get job analytics timeseries
+      tags:
+      - analytics
+  /analytics/overview:
+    get:
+      description: "Returns high-level analytics insights including job statistics,\
+        \ page outcomes, credit usage, and webhook metrics for the specified time\
+        \ range"
+      parameters:
+      - description: Time range preset
+        explode: true
+        in: query
+        name: range
+        required: false
+        schema:
+          enum:
+          - 24h
+          - 1d
+          - day
+          - 7d
+          - week
+          - 14d
+          - 30d
+          - month
+          - 90d
+          - quarter
+          - 180d
+          - 6m
+          - 365d
+          - year
+          type: string
+        style: form
+      - description: Start date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: End date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: end
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by team ID
+        explode: true
+        in: query
+        name: team_id
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/analytics.OverviewResponse"
+          description: Analytics overview data
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Invalid request parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Analytics not available for your plan
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: Get analytics overview
+      tags:
+      - analytics
+  /analytics/pages/timeseries:
+    get:
+      description: "Returns page outcomes aggregated by time buckets including totals,\
+        \ completion, failure, and token counts"
+      parameters:
+      - description: Time range preset
+        explode: true
+        in: query
+        name: range
+        required: false
+        schema:
+          enum:
+          - 24h
+          - 1d
+          - day
+          - 7d
+          - week
+          - 14d
+          - 30d
+          - month
+          - 90d
+          - quarter
+          - 180d
+          - 6m
+          - 365d
+          - year
+          type: string
+        style: form
+      - description: Start date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: End date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: end
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Time bucket granularity
+        explode: true
+        in: query
+        name: bucket
+        required: false
+        schema:
+          enum:
+          - hour
+          - day
+          - week
+          - month
+          type: string
+        style: form
+      - description: Alias for bucket parameter
+        explode: true
+        in: query
+        name: granularity
+        required: false
+        schema:
+          enum:
+          - hour
+          - day
+          - week
+          - month
+          type: string
+        style: form
+      - description: Filter by team ID
+        explode: true
+        in: query
+        name: team_id
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_analytics_pages_timeseries_get_200_response"
+          description: Page timeseries data
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Invalid request parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Analytics not available for your plan
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: Get page analytics timeseries
+      tags:
+      - analytics
+  /analytics/templates/top:
+    get:
+      description: "Returns the most frequently used templates ranked by job count,\
+        \ usage count, and credits consumed"
+      parameters:
+      - description: Time range preset
+        explode: true
+        in: query
+        name: range
+        required: false
+        schema:
+          enum:
+          - 24h
+          - 1d
+          - day
+          - 7d
+          - week
+          - 14d
+          - 30d
+          - month
+          - 90d
+          - quarter
+          - 180d
+          - 6m
+          - 365d
+          - year
+          type: string
+        style: form
+      - description: Start date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: End date (RFC3339 or YYYY-MM-DD format)
+        explode: true
+        in: query
+        name: end
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: "Maximum number of templates to return (default: 10, max: 100)"
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          type: integer
+        style: form
+      - description: Filter by team ID
+        explode: true
+        in: query
+        name: team_id
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/analytics.TopTemplatesResponse"
+          description: Top templates analytics data
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Invalid request parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Analytics not available for your plan
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: Get top templates analytics
+      tags:
+      - analytics
+  /auth/verify:
+    get:
+      description: Verify JWT token from Authorization header and return complete
+        user information including all claims and authentication details
+      operationId: verifyAuthToken
+      parameters:
+      - description: Bearer JWT token
+        example: '"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."'
+        explode: false
+        in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/auth.AuthResponse"
+          description: Token verified successfully - user authenticated
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - invalid or expired token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error during token verification
+      summary: Verify authentication token
+      tags:
+      - Authentication
+  /credits/organizations/balance:
+    get:
+      description: "Retrieve current credit balance, consumption, trial status, active\
+        \ subscriptions, granted benefits, and active meters for the authenticated\
+        \ user's organization from the JWT token."
+      operationId: getOrganizationCreditsBalance
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/credits.CreditBalanceResponse"
+          description: Organization credits and billing details retrieved successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get organization credits balance
+      tags:
+      - Credits
+  /credits/organizations/{organization_id}/transactions:
+    get:
+      description: Retrieve paginated list of credit transactions for the authenticated
+        user's organization
+      operationId: getCreditTransactionsByOrganizationID
+      parameters:
+      - description: Organization ID
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        explode: false
+        in: path
+        name: organization_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: "Page number (default: 1)"
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          minimum: 1
+          type: integer
+        style: form
+      - description: "Items per page (default: 20)"
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+        style: form
+      - description: "Search in description, file name, tier, or project name"
+        explode: true
+        in: query
+        name: search
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by tier
+        explode: true
+        in: query
+        name: tier
+        required: false
+        schema:
+          enum:
+          - standard
+          - pro
+          type: string
+        style: form
+      - description: Sort by field
+        explode: true
+        in: query
+        name: sort_by
+        required: false
+        schema:
+          default: created_at_desc
+          enum:
+          - created_at_desc
+          - created_at_asc
+          - amount_desc
+          - amount_asc
+          - transaction_type_asc
+          - transaction_type_desc
+          - file_name_asc
+          - file_name_desc
+          - project_name_asc
+          - project_name_desc
+          type: string
+        style: form
+      - description: Filter transactions from date (RFC3339 format)
+        explode: true
+        in: query
+        name: created_from
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter transactions to date (RFC3339 format)
+        explode: true
+        in: query
+        name: created_to
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/credits.CreditTransactionsResponse-credits_CreditTransactionOrganizationResponse"
+          description: Credit transactions retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get credit transactions by organization ID
+      tags:
+      - Credits
+  /credits/polar/products/catalog:
+    get:
+      description: Retrieve list of all available products from Polar with caching
+      operationId: getPolarProductsCatalog
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/credits.ProductCatalog"
+          description: Products retrieved successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get Polar products catalog
+      tags:
+      - Credits
+  /credits/teams/{team_id}/transactions:
+    get:
+      description: Retrieve paginated list of credit transactions for the authenticated
+        user's team
+      operationId: getCreditTransactionsByTeamID
+      parameters:
+      - description: Team ID
+        example: '"team_abc123"'
+        explode: false
+        in: path
+        name: team_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "Page number (default: 1)"
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          minimum: 1
+          type: integer
+        style: form
+      - description: "Items per page (default: 20)"
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+        style: form
+      - description: "Search in description, file name, or tier"
+        explode: true
+        in: query
+        name: search
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by tier
+        explode: true
+        in: query
+        name: tier
+        required: false
+        schema:
+          enum:
+          - standard
+          - pro
+          type: string
+        style: form
+      - description: Sort by field
+        explode: true
+        in: query
+        name: sort_by
+        required: false
+        schema:
+          default: created_at_desc
+          enum:
+          - created_at_desc
+          - created_at_asc
+          - amount_desc
+          - amount_asc
+          - transaction_type_asc
+          - transaction_type_desc
+          - file_name_asc
+          - file_name_desc
+          type: string
+        style: form
+      - description: Filter transactions from date (RFC3339 format)
+        explode: true
+        in: query
+        name: created_from
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter transactions to date (RFC3339 format)
+        explode: true
+        in: query
+        name: created_to
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/credits.CreditTransactionsResponse-credits_CreditTransactionProjectResponse"
+          description: Credit transactions retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get credit transactions by team ID
+      tags:
+      - Credits
+  /health:
+    get:
+      description: "Retrieve comprehensive system health information including database\
+        \ connectivity, Gemini API service status, and application performance metrics.\
+        \ Performs active health checks on critical system components and returns\
+        \ detailed status information with response times for monitoring and diagnostics\
+        \ purposes."
+      operationId: getHealthStatus
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/health.HealthStatus"
+          description: System health status retrieved successfully - all components
+            are healthy
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error during health check execution
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/health.HealthStatus"
+          description: Service unavailable - one or more critical system components
+            are down or degraded
+      summary: Get system health status
+      tags:
+      - Health
+  /jobs/list:
+    get:
+      description: Retrieve a paginated list of OCR jobs with basic filtering options.
+        This endpoint focuses on job management operations.
+      operationId: getJobsList
+      parameters:
+      - description: Team ID to filter jobs by
+        explode: true
+        in: query
+        name: teamId
+        required: true
+        schema:
+          type: string
+        style: form
+      - description: Page number for pagination
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Items per page
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          type: integer
+        style: form
+      - description: Search term for filename filtering
+        explode: true
+        in: query
+        name: search
+        required: false
+        schema:
+          minLength: 2
+          type: string
+        style: form
+      - description: Filter by job processing status
+        explode: true
+        in: query
+        name: status
+        required: false
+        schema:
+          enum:
+          - pending
+          - processing
+          - completed
+          - partially_done
+          - failed
+          type: string
+        style: form
+      - description: Filter by template UUID
+        explode: true
+        in: query
+        name: template_id
+        required: false
+        schema:
+          format: uuid
+          type: string
+        style: form
+      - description: Filter by OCR model
+        explode: true
+        in: query
+        name: model
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by result format
+        example: structured
+        explode: true
+        in: query
+        name: result_format
+        required: false
+        schema:
+          enum:
+          - structured
+          - per_page_structured
+          - markdown
+          type: string
+        style: form
+      - description: Sort results by field
+        explode: true
+        in: query
+        name: sort_by
+        required: false
+        schema:
+          default: created_at_desc
+          enum:
+          - created_at_desc
+          - created_at_asc
+          - file_name_asc
+          - file_name_desc
+          - status_asc
+          - status_desc
+          - credits_desc
+          - credits_asc
+          type: string
+        style: form
+      - description: Filter jobs created after this date
+        example: 2023-01-01T00:00:00Z
+        explode: true
+        in: query
+        name: created_after
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - description: Filter jobs created before this date
+        example: 2023-12-31T23:59:59Z
+        explode: true
+        in: query
+        name: created_before
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jobs.JobsListResponse"
+          description: Jobs list retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get jobs list
+      tags:
+      - Jobs
+  /jobs/{job_id}/cancel:
+    post:
+      description: "Cancel an OCR processing job that is currently in pending or processing\
+        \ status. Cannot cancel completed, failed, or already cancelled jobs"
+      operationId: cancelJob
+      parameters:
+      - description: OCR job ID to cancel
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jobs.JobResponse"
+          description: Job cancelled successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Conflict - job cannot be cancelled (already completed/failed/cancelled)
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Cancel OCR job
+      tags:
+      - Jobs
+  /jobs/{job_id}/restart:
+    post:
+      description: Restart an OCR job by canceling the current workflow (if running)
+        and starting fresh. This is a more aggressive action than retry.
+      operationId: restartJob
+      parameters:
+      - description: OCR job ID to restart
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/jobs.RestartJobRequest"
+        description: Restart options
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jobs.JobManagementResponse"
+          description: Job restart initiated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Conflict - job cannot be restarted
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Restart OCR job
+      tags:
+      - Jobs
+  /jobs/{job_id}/retry:
+    post:
+      description: Retry a failed OCR job or restart a stuck job that has been pending/processing
+        for over 1 hour. Checks Temporal workflow status before retrying.
+      operationId: retryJob
+      parameters:
+      - description: OCR job ID to retry
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/jobs.RetryJobRequest"
+        description: Retry options
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jobs.JobManagementResponse"
+          description: Job retry initiated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID or job not retryable
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Conflict - job is not in a retryable state
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Retry OCR job
+      tags:
+      - Jobs
+  /jobs/{job_id}/status:
+    get:
+      description: Get comprehensive job status including database state and Temporal
+        workflow progress information
+      operationId: getJobStatusSimple
+      parameters:
+      - description: OCR job ID
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: Include Temporal workflow details
+        explode: true
+        in: query
+        name: include_workflow
+        required: false
+        schema:
+          default: false
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jobs.JobStatusResponse"
+          description: Job status retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get job status with workflow details
+      tags:
+      - Jobs
+  /ocr/models:
+    get:
+      description: "Retrieve a list of all enabled OCR models with their configurations,\
+        \ pricing, and capabilities"
+      operationId: listOCRModels
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models_list.ModelsListResponse"
+          description: Models retrieved successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      security:
+      - BearerAuth: []
+      summary: List available OCR models
+      tags:
+      - OCR
+      - Models
+  /ocr/result/{job_id}:
+    get:
+      description: Retrieve OCR processing results for a completed job with extracted
+        text and structured data. Returns job status if processing is still in progress.
+        Supports pagination
+      operationId: getJobResult
+      parameters:
+      - description: OCR job ID
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      - description: Page number for result pagination
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Number of items per page
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 100
+          maximum: 1000
+          minimum: 1
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.OCRResultResponse"
+          description: "OCR processing completed, results available"
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.OCRStatusResponse"
+          description: "OCR processing in progress, status returned"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID or parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - job belongs to different user
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get OCR job result
+      tags:
+      - OCR
+      - SDK
+  /ocr/status/{job_id}:
+    get:
+      description: "Retrieve current processing status and progress information for\
+        \ an OCR job. Shows completion status, progress percentage, and any error\
+        \ details"
+      operationId: getJobStatus
+      parameters:
+      - description: OCR job ID
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/status.Response"
+          description: Job status retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID format
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - job belongs to different user
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get OCR job status
+      tags:
+      - OCR
+      - SDK
+  /ocr/uploads/direct:
+    post:
+      description: |-
+        Create a job and generate presigned URLs for direct file upload to S3. Uses multipart upload for all files (1 part for small files, multiple parts for large files ≥50MB).
+        **Output Types:**
+        - `structured`: Structured data extraction. Requires one of: category_id (with schema & instructions)
+        - `markdown`: Page-by-page OCR. All configuration fields are optional
+        - `per_page_structured`: Per-page structured extraction (future or hybrid mode)
+        **Note:** Only one of category_id, schema, or instruction can be provided per request
+      operationId: directUpload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/upload.InitiateDirectUploadRequest"
+        description: Upload initiation request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/upload.DirectUploadResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "402":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Insufficient credits
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      summary: Direct upload
+      tags:
+      - OCR
+      - Upload
+      - SDK
+  /ocr/uploads/url:
+    post:
+      description: |-
+        Create a job and start processing from a remote URL. Supported format: PDF (.pdf) only.
+        **Output Types:**
+        - `structured`: Structured data extraction. Requires one of: category_id (with schema & instructions)
+        - `markdown`: Page-by-page OCR. All configuration fields are optional
+        - `per_page_structured`: Per-page structured extraction (future or hybrid mode)
+        **Note:** Only one of category_id, schema, or instruction can be provided per request
+      operationId: uploadFromRemoteURL
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/upload.RemoteURLUploadRequest"
+        description: Remote URL upload request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/upload.RemoteURLUploadResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "402":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Insufficient credits
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      summary: Remote URL upload
+      tags:
+      - OCR
+      - Upload
+      - SDK
+  /ocr/uploads/{job_id}/complete:
+    post:
+      description: Complete a direct upload by providing all uploaded part ETags
+      operationId: completeDirectUpload
+      parameters:
+      - description: Job ID
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/upload.DirectUploadCompleteRequest"
+        description: Completion request with part ETags
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/upload.DirectUploadCompleteResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      summary: Complete direct upload
+      tags:
+      - OCR
+      - Upload
+      - SDK
+  /templates:
+    get:
+      description: Retrieve a paginated list of templates for a specific project with
+        filtering and sorting capabilities
+      operationId: listTemplates
+      parameters:
+      - description: Team ID to filter templates by
+        example: '"team_123abc"'
+        explode: true
+        in: query
+        name: team_id
+        required: true
+        schema:
+          format: string
+          type: string
+        style: form
+      - description: Page number for pagination
+        example: 1
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          type: integer
+        style: form
+      - description: Number of items per page
+        example: 10
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 10
+          maximum: 100
+          minimum: 1
+          type: integer
+        style: form
+      - description: Filter by format type
+        example: '"structured"'
+        explode: true
+        in: query
+        name: format
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Filter by favorite status
+        example: true
+        explode: true
+        in: query
+        name: favorite
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - description: Search term for template names
+        example: '"invoice"'
+        explode: true
+        in: query
+        name: search
+        required: false
+        schema:
+          maxLength: 255
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/templates.ListTemplatesResponse"
+          description: Templates retrieved successfully with pagination information
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid pagination parameters
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - user doesn't have access to the project
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: List OCR processing templates
+      tags:
+      - Templates
+    post:
+      description: "Create a new template for OCR processing with format, instructions,\
+        \ and schema configuration. Templates provide reusable configurations for\
+        \ document processing with consistent output formatting and validation rules"
+      operationId: createTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/templates.CreateTemplateRequest"
+        description: "Template creation details including name, format, instructions,\
+          \ and schema"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/templates.TemplateResponse"
+          description: Template created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid template data or validation failed
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - insufficient project permissions
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Create OCR processing template
+      tags:
+      - Templates
+  /templates/stats:
+    get:
+      description: Retrieve usage statistics for templates in a specific project
+      operationId: getTemplateStats
+      parameters:
+      - description: Team ID to get template statistics for
+        example: '"team_123abc"'
+        explode: true
+        in: query
+        name: team_id
+        required: true
+        schema:
+          format: string
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/templates.TemplateStatsResponse"
+          description: Template statistics retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - user doesn't have access to the project
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get template statistics
+      tags:
+      - Templates
+  /templates/{id}:
+    delete:
+      description: Permanently delete a template by its unique identifier
+      operationId: deleteTemplate
+      parameters:
+      - description: Unique template identifier
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Template deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid template ID format
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - insufficient permissions to delete template
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Template not found or access denied
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Delete OCR processing template
+      tags:
+      - Templates
+    get:
+      description: Retrieve a specific template by its unique identifier with complete
+        configuration details
+      operationId: getTemplate
+      parameters:
+      - description: Unique template identifier
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/templates.TemplateResponse"
+          description: Template retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid template ID format
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Template not found or access denied
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Get OCR processing template
+      tags:
+      - Templates
+    put:
+      description: "Update an existing template configuration including format, instructions,\
+        \ and schema"
+      operationId: updateTemplate
+      parameters:
+      - description: Unique template identifier
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/templates.UpdateTemplateRequest"
+        description: Updated template configuration
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/templates.TemplateResponse"
+          description: Template updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid template ID or validation failed
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - insufficient permissions to update template
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Template not found or access denied
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Update OCR processing template
+      tags:
+      - Templates
+  /templates/{id}/favorite:
+    post:
+      description: Toggle the favorite status of a template
+      operationId: toggleTemplateFavorite
+      parameters:
+      - description: Unique template identifier
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/templates.TemplateResponse"
+          description: Template favorite status toggled successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid template ID format
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Forbidden - insufficient permissions
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Template not found or access denied
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Toggle template favorite status
+      tags:
+      - Templates
+  /webhooks/polar:
+    post:
+      description: Process webhook events from Polar billing system with signature
+        verification
+      operationId: handlePolarWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Webhook processed successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid payload or timestamp
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - signature verification failed
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Handle Polar webhooks
+      tags:
+      - Webhooks
+  /webhooks/r2-upload-notification:
+    post:
+      description: Receive notification from Cloudflare R2 when file upload is complete
+      parameters:
+      - description: R2 webhook signature
+        explode: false
+        in: header
+        name: X-R2-Signature
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/webhooks.R2UploadNotification"
+        description: R2 upload notification
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      summary: Handle R2 upload notification
+      tags:
+      - Webhooks
+components:
+  schemas:
+    analytics.CreditsOverview:
+      example:
+        consumed: 2
+        balance: 5
+        adjusted: 5
+        refunded: 3
+        net: 9
+        granted: 7
+      properties:
+        adjusted:
+          type: integer
+        balance:
+          type: integer
+        consumed:
+          type: integer
+        granted:
+          type: integer
+        net:
+          type: integer
+        refunded:
+          type: integer
+    analytics.CreditsTimeseriesPoint:
+      example:
+        bucket: bucket
+        consumed: 4
+        adjusted: 2
+        refunded: 1
+        granted: 7
+        net_change: 1
+      properties:
+        adjusted:
+          type: integer
+        bucket:
+          type: string
+        consumed:
+          type: integer
+        granted:
+          type: integer
+        net_change:
+          type: integer
+        refunded:
+          type: integer
+    analytics.CreditsUsageResponse:
+      example:
+        timeseries:
+        - bucket: bucket
+          consumed: 4
+          adjusted: 2
+          refunded: 1
+          granted: 7
+          net_change: 1
+        - bucket: bucket
+          consumed: 4
+          adjusted: 2
+          refunded: 1
+          granted: 7
+          net_change: 1
+        model_breakdown:
+        - jobs_processed: 6
+          model: model
+          credits_consumed: 0
+          transactions: 1
+        - jobs_processed: 6
+          model: model
+          credits_consumed: 0
+          transactions: 1
+        range:
+          bucket: bucket
+          requested_range: requested_range
+          start: start
+          end: end
+          team_id: team_id
+        snapshot:
+          consumed: 2
+          balance: 5
+          adjusted: 5
+          refunded: 3
+          net: 9
+          granted: 7
+      properties:
+        model_breakdown:
+          items:
+            $ref: "#/components/schemas/analytics.ModelUsageStat"
+          type: array
+          uniqueItems: false
+        range:
+          $ref: "#/components/schemas/analytics.Range"
+        snapshot:
+          $ref: "#/components/schemas/analytics.CreditsOverview"
+        timeseries:
+          items:
+            $ref: "#/components/schemas/analytics.CreditsTimeseriesPoint"
+          type: array
+          uniqueItems: false
+    analytics.JobOverview:
+      example:
+        total_jobs: 4
+        avg_completion_seconds: 1.4658129805029452
+        failed_jobs: 7
+        avg_active_seconds: 6.027456183070403
+        processed_pages: 9
+        cancelled_jobs: 5
+        completed_jobs: 5
+        throughput_jobs_per_second: 2.027123023002322
+        credits_consumed: 2
+        total_pages: 7
+        success_rate: 3.616076749251911
+        active_jobs: 0
+      properties:
+        active_jobs:
+          type: integer
+        avg_active_seconds:
+          type: number
+        avg_completion_seconds:
+          type: number
+        cancelled_jobs:
+          type: integer
+        completed_jobs:
+          type: integer
+        credits_consumed:
+          type: integer
+        failed_jobs:
+          type: integer
+        processed_pages:
+          type: integer
+        success_rate:
+          type: number
+        throughput_jobs_per_second:
+          type: number
+        total_jobs:
+          type: integer
+        total_pages:
+          type: integer
+    analytics.JobTimeseriesPoint:
+      example:
+        bucket: bucket
+        total_jobs: 7
+        avg_completion_seconds: 6.027456183070403
+        failed_jobs: 5
+        processed_pages: 2
+        completed_jobs: 1
+        credits_consumed: 5
+        total_pages: 9
+        active_jobs: 0
+      properties:
+        active_jobs:
+          type: integer
+        avg_completion_seconds:
+          type: number
+        bucket:
+          type: string
+        completed_jobs:
+          type: integer
+        credits_consumed:
+          type: integer
+        failed_jobs:
+          type: integer
+        processed_pages:
+          type: integer
+        total_jobs:
+          type: integer
+        total_pages:
+          type: integer
+    analytics.ModelUsageStat:
+      example:
+        jobs_processed: 6
+        model: model
+        credits_consumed: 0
+        transactions: 1
+      properties:
+        credits_consumed:
+          type: integer
+        jobs_processed:
+          type: integer
+        model:
+          type: string
+        transactions:
+          type: integer
+    analytics.OverviewResponse:
+      example:
+        pages:
+          hard_failure_pages: 6
+          completed_pages: 1
+          total_tokens: 1
+          failed_pages: 1
+          total_pages: 7
+          empty_pages: 1
+        credits:
+          consumed: 2
+          balance: 5
+          adjusted: 5
+          refunded: 3
+          net: 9
+          granted: 7
+        webhooks:
+          avg_processing_seconds: 4.965218492984954
+          total_events: 8
+          failed_events: 5
+          processed_events: 9
+          pending_events: 9
+          success_rate: 6.683562403749608
+        jobs:
+          total_jobs: 4
+          avg_completion_seconds: 1.4658129805029452
+          failed_jobs: 7
+          avg_active_seconds: 6.027456183070403
+          processed_pages: 9
+          cancelled_jobs: 5
+          completed_jobs: 5
+          throughput_jobs_per_second: 2.027123023002322
+          credits_consumed: 2
+          total_pages: 7
+          success_rate: 3.616076749251911
+          active_jobs: 0
+        range:
+          bucket: bucket
+          requested_range: requested_range
+          start: start
+          end: end
+          team_id: team_id
+      properties:
+        credits:
+          $ref: "#/components/schemas/analytics.CreditsOverview"
+        jobs:
+          $ref: "#/components/schemas/analytics.JobOverview"
+        pages:
+          $ref: "#/components/schemas/analytics.PageOverview"
+        range:
+          $ref: "#/components/schemas/analytics.Range"
+        webhooks:
+          $ref: "#/components/schemas/analytics.WebhookSummary"
+    analytics.PageOverview:
+      example:
+        hard_failure_pages: 6
+        completed_pages: 1
+        total_tokens: 1
+        failed_pages: 1
+        total_pages: 7
+        empty_pages: 1
+      properties:
+        completed_pages:
+          type: integer
+        empty_pages:
+          type: integer
+        failed_pages:
+          type: integer
+        hard_failure_pages:
+          type: integer
+        total_pages:
+          type: integer
+        total_tokens:
+          type: integer
+    analytics.PageTimeseriesPoint:
+      example:
+        bucket: bucket
+        hard_failure_pages: 5
+        completed_pages: 0
+        total_tokens: 2
+        failed_pages: 1
+        total_pages: 5
+        empty_pages: 6
+      properties:
+        bucket:
+          type: string
+        completed_pages:
+          type: integer
+        empty_pages:
+          type: integer
+        failed_pages:
+          type: integer
+        hard_failure_pages:
+          type: integer
+        total_pages:
+          type: integer
+        total_tokens:
+          type: integer
+    analytics.Range:
+      example:
+        bucket: bucket
+        requested_range: requested_range
+        start: start
+        end: end
+        team_id: team_id
+      properties:
+        bucket:
+          type: string
+        end:
+          type: string
+        requested_range:
+          type: string
+        start:
+          type: string
+        team_id:
+          type: string
+    analytics.TemplateStat:
+      example:
+        usage_count: 5
+        job_count: 6
+        name: name
+        credits_consumed: 0
+        id: id
+        total_pages: 1
+      properties:
+        credits_consumed:
+          type: integer
+        id:
+          type: string
+        job_count:
+          type: integer
+        name:
+          type: string
+        total_pages:
+          type: integer
+        usage_count:
+          type: integer
+    analytics.TopTemplatesResponse:
+      example:
+        templates:
+        - usage_count: 5
+          job_count: 6
+          name: name
+          credits_consumed: 0
+          id: id
+          total_pages: 1
+        - usage_count: 5
+          job_count: 6
+          name: name
+          credits_consumed: 0
+          id: id
+          total_pages: 1
+        range:
+          bucket: bucket
+          requested_range: requested_range
+          start: start
+          end: end
+          team_id: team_id
+      properties:
+        range:
+          $ref: "#/components/schemas/analytics.Range"
+        templates:
+          items:
+            $ref: "#/components/schemas/analytics.TemplateStat"
+          type: array
+          uniqueItems: false
+    analytics.WebhookSummary:
+      example:
+        avg_processing_seconds: 4.965218492984954
+        total_events: 8
+        failed_events: 5
+        processed_events: 9
+        pending_events: 9
+        success_rate: 6.683562403749608
+      properties:
+        avg_processing_seconds:
+          type: number
+        failed_events:
+          type: integer
+        pending_events:
+          type: integer
+        processed_events:
+          type: integer
+        success_rate:
+          type: number
+        total_events:
+          type: integer
+    auth.AuthResponse:
+      example:
+        message: message
+        user: ""
+        status: status
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+        user: {}
+    credits.ActiveMeterResponse:
+      example:
+        balance: 111111
+        consumed_units: 0
+        meter_name: OCR Credits
+        credited_units: 111111
+        id: 089ca13b-ea12-48a2-89de-eebea2d43ef5
+        meter_id: 9c3cd7d2-2f1e-4a32-910d-17b55fe4a6f2
+      properties:
+        balance:
+          example: 111111
+          type: number
+        consumed_units:
+          example: 0
+          type: number
+        credited_units:
+          example: 111111
+          type: number
+        id:
+          example: 089ca13b-ea12-48a2-89de-eebea2d43ef5
+          type: string
+        meter_id:
+          example: 9c3cd7d2-2f1e-4a32-910d-17b55fe4a6f2
+          type: string
+        meter_name:
+          example: OCR Credits
+          type: string
+    credits.ActiveSubscriptionResponse:
+      example:
+        metadata:
+          key: ""
+        product_id: e1ae6cb1-547b-4c0e-a530-92a2e5b09d77
+        price_id: 4fd5d081-732c-4f7e-bfbf-54c1e17ea622
+        started_at: 2025-10-06T17:24:23.883522Z
+        ends_at: 2025-11-06T17:24:23.883522Z
+        id: 8ce40958-f3a0-4b5d-98b6-aa283ebf91e7
+        product_name: Growth Plan
+        discount_id: discount_id
+        meters:
+        - ""
+        - ""
+      properties:
+        discount_id:
+          type: string
+        ends_at:
+          example: 2025-11-06T17:24:23.883522Z
+          type: string
+        id:
+          example: 8ce40958-f3a0-4b5d-98b6-aa283ebf91e7
+          type: string
+        metadata:
+          additionalProperties: {}
+        meters:
+          items: {}
+          type: array
+          uniqueItems: false
+        price_id:
+          example: 4fd5d081-732c-4f7e-bfbf-54c1e17ea622
+          type: string
+        product_id:
+          example: e1ae6cb1-547b-4c0e-a530-92a2e5b09d77
+          type: string
+        product_name:
+          example: Growth Plan
+          type: string
+        started_at:
+          example: 2025-10-06T17:24:23.883522Z
+          type: string
+    credits.CatalogBenefit:
+      example:
+        description: description
+        units: 0
+      properties:
+        description:
+          type: string
+        units:
+          type: integer
+    credits.CatalogPrice:
+      example:
+        amount: 6
+        formatted: formatted
+        currency: currency
+      properties:
+        amount:
+          type: integer
+        currency:
+          type: string
+        formatted:
+          type: string
+    credits.CatalogProduct:
+      example:
+        benefits:
+        - description: description
+          units: 0
+        - description: description
+          units: 0
+        price:
+          amount: 6
+          formatted: formatted
+          currency: currency
+        name: name
+        billing_interval: billing_interval
+        description: description
+        id: id
+        type: type
+      properties:
+        benefits:
+          items:
+            $ref: "#/components/schemas/credits.CatalogBenefit"
+          type: array
+          uniqueItems: false
+        billing_interval:
+          type: string
+        description:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          $ref: "#/components/schemas/credits.CatalogPrice"
+        type:
+          type: string
+    credits.CreditBalanceResponse:
+      example:
+        trial_days_remaining: 14
+        granted_benefits:
+        - benefit_type: meter_credit
+          benefit_metadata:
+            key: ""
+          granted_at: 2025-10-06T17:24:25.620964Z
+          id: 2e2b4669-dcfc-44dd-9845-6f306f978abf
+          benefit_id: a5d7da4a-5c80-4c51-a6bc-d7118b03f27e
+          properties:
+            key: ""
+        - benefit_type: meter_credit
+          benefit_metadata:
+            key: ""
+          granted_at: 2025-10-06T17:24:25.620964Z
+          id: 2e2b4669-dcfc-44dd-9845-6f306f978abf
+          benefit_id: a5d7da4a-5c80-4c51-a6bc-d7118b03f27e
+          properties:
+            key: ""
+        team_id: 550e8400-e29b-41d4-a716-446655440000
+        trial_active: true
+        trial_credits_remaining: 250
+        plan_name: Free
+        active_subscriptions:
+        - metadata:
+            key: ""
+          product_id: e1ae6cb1-547b-4c0e-a530-92a2e5b09d77
+          price_id: 4fd5d081-732c-4f7e-bfbf-54c1e17ea622
+          started_at: 2025-10-06T17:24:23.883522Z
+          ends_at: 2025-11-06T17:24:23.883522Z
+          id: 8ce40958-f3a0-4b5d-98b6-aa283ebf91e7
+          product_name: Growth Plan
+          discount_id: discount_id
+          meters:
+          - ""
+          - ""
+        - metadata:
+            key: ""
+          product_id: e1ae6cb1-547b-4c0e-a530-92a2e5b09d77
+          price_id: 4fd5d081-732c-4f7e-bfbf-54c1e17ea622
+          started_at: 2025-10-06T17:24:23.883522Z
+          ends_at: 2025-11-06T17:24:23.883522Z
+          id: 8ce40958-f3a0-4b5d-98b6-aa283ebf91e7
+          product_name: Growth Plan
+          discount_id: discount_id
+          meters:
+          - ""
+          - ""
+        trial_credits_granted: 500
+        active_meters:
+        - balance: 111111
+          consumed_units: 0
+          meter_name: OCR Credits
+          credited_units: 111111
+          id: 089ca13b-ea12-48a2-89de-eebea2d43ef5
+          meter_id: 9c3cd7d2-2f1e-4a32-910d-17b55fe4a6f2
+        - balance: 111111
+          consumed_units: 0
+          meter_name: OCR Credits
+          credited_units: 111111
+          id: 089ca13b-ea12-48a2-89de-eebea2d43ef5
+          meter_id: 9c3cd7d2-2f1e-4a32-910d-17b55fe4a6f2
+        credits_remaining: 375
+        trial_ends_at: 2025-03-03T13:37:00Z
+        credits_consumed: 125
+        credits_granted: 500
+      properties:
+        active_meters:
+          items:
+            $ref: "#/components/schemas/credits.ActiveMeterResponse"
+          type: array
+          uniqueItems: false
+        active_subscriptions:
+          items:
+            $ref: "#/components/schemas/credits.ActiveSubscriptionResponse"
+          type: array
+          uniqueItems: false
+        credits_consumed:
+          example: 125
+          type: integer
+        credits_granted:
+          example: 500
+          type: integer
+        credits_remaining:
+          example: 375
+          type: integer
+        granted_benefits:
+          items:
+            $ref: "#/components/schemas/credits.GrantedBenefitResponse"
+          type: array
+          uniqueItems: false
+        plan_name:
+          example: Free
+          type: string
+        team_id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        trial_active:
+          example: true
+          type: boolean
+        trial_credits_granted:
+          example: 500
+          type: integer
+        trial_credits_remaining:
+          example: 250
+          type: integer
+        trial_days_remaining:
+          example: 14
+          type: integer
+        trial_ends_at:
+          example: 2025-03-03T13:37:00Z
+          type: string
+    credits.CreditTransactionOrganizationResponse:
+      example:
+        amount: 50
+        metadata: "{}"
+        expires_at: 2024-12-31T23:59:59Z
+        balance_after: 950
+        job_id: 550e8400-e29b-41d4-a716-446655440000
+        organization_id: 550e8400-e29b-41d4-a716-446655440000
+        created_at: 2024-01-15T10:30:00Z
+        description: OCR processing for document.pdf
+        idempotency_key: job_550e8400-e29b-41d4-a716-446655440000_consumed
+        id: 550e8400-e29b-41d4-a716-446655440000
+        transaction_type: consumed
+      properties:
+        amount:
+          example: 50
+          type: integer
+        balance_after:
+          example: 950
+          type: integer
+        created_at:
+          example: 2024-01-15T10:30:00Z
+          type: string
+        description:
+          example: OCR processing for document.pdf
+          type: string
+        expires_at:
+          example: 2024-12-31T23:59:59Z
+          type: string
+        id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        idempotency_key:
+          example: job_550e8400-e29b-41d4-a716-446655440000_consumed
+          type: string
+        job_id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        metadata:
+          type: object
+        organization_id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        transaction_type:
+          enum:
+          - credit
+          - consumed
+          - refunded
+          - adjustment
+          - expiration
+          example: consumed
+          type: string
+    credits.CreditTransactionProjectResponse:
+      example:
+        amount: 50
+        metadata: "{}"
+        expires_at: 2024-12-31T23:59:59Z
+        balance_after: 950
+        project_id: 550e8400-e29b-41d4-a716-446655440000
+        job_id: 550e8400-e29b-41d4-a716-446655440000
+        created_at: 2024-01-15T10:30:00Z
+        description: OCR processing for document.pdf
+        idempotency_key: job_550e8400-e29b-41d4-a716-446655440000_consumed
+        id: 550e8400-e29b-41d4-a716-446655440000
+        transaction_type: consumed
+      properties:
+        amount:
+          example: 50
+          type: integer
+        balance_after:
+          example: 950
+          type: integer
+        created_at:
+          example: 2024-01-15T10:30:00Z
+          type: string
+        description:
+          example: OCR processing for document.pdf
+          type: string
+        expires_at:
+          example: 2024-12-31T23:59:59Z
+          type: string
+        id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        idempotency_key:
+          example: job_550e8400-e29b-41d4-a716-446655440000_consumed
+          type: string
+        job_id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        metadata:
+          type: object
+        project_id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        transaction_type:
+          enum:
+          - credit
+          - consumed
+          - refunded
+          - adjustment
+          - expiration
+          example: consumed
+          type: string
+    credits.CreditTransactionsResponse-credits_CreditTransactionOrganizationResponse:
+      example:
+        pagination:
+          total: 150
+          limit: 20
+          page: 1
+        transactions:
+        - amount: 50
+          metadata: "{}"
+          expires_at: 2024-12-31T23:59:59Z
+          balance_after: 950
+          job_id: 550e8400-e29b-41d4-a716-446655440000
+          organization_id: 550e8400-e29b-41d4-a716-446655440000
+          created_at: 2024-01-15T10:30:00Z
+          description: OCR processing for document.pdf
+          idempotency_key: job_550e8400-e29b-41d4-a716-446655440000_consumed
+          id: 550e8400-e29b-41d4-a716-446655440000
+          transaction_type: consumed
+        - amount: 50
+          metadata: "{}"
+          expires_at: 2024-12-31T23:59:59Z
+          balance_after: 950
+          job_id: 550e8400-e29b-41d4-a716-446655440000
+          organization_id: 550e8400-e29b-41d4-a716-446655440000
+          created_at: 2024-01-15T10:30:00Z
+          description: OCR processing for document.pdf
+          idempotency_key: job_550e8400-e29b-41d4-a716-446655440000_consumed
+          id: 550e8400-e29b-41d4-a716-446655440000
+          transaction_type: consumed
+      properties:
+        pagination:
+          $ref: "#/components/schemas/credits.PaginationInfo"
+        transactions:
+          items:
+            $ref: "#/components/schemas/credits.CreditTransactionOrganizationResponse"
+          type: array
+          uniqueItems: false
+    credits.CreditTransactionsResponse-credits_CreditTransactionProjectResponse:
+      example:
+        pagination:
+          total: 150
+          limit: 20
+          page: 1
+        transactions:
+        - amount: 50
+          metadata: "{}"
+          expires_at: 2024-12-31T23:59:59Z
+          balance_after: 950
+          project_id: 550e8400-e29b-41d4-a716-446655440000
+          job_id: 550e8400-e29b-41d4-a716-446655440000
+          created_at: 2024-01-15T10:30:00Z
+          description: OCR processing for document.pdf
+          idempotency_key: job_550e8400-e29b-41d4-a716-446655440000_consumed
+          id: 550e8400-e29b-41d4-a716-446655440000
+          transaction_type: consumed
+        - amount: 50
+          metadata: "{}"
+          expires_at: 2024-12-31T23:59:59Z
+          balance_after: 950
+          project_id: 550e8400-e29b-41d4-a716-446655440000
+          job_id: 550e8400-e29b-41d4-a716-446655440000
+          created_at: 2024-01-15T10:30:00Z
+          description: OCR processing for document.pdf
+          idempotency_key: job_550e8400-e29b-41d4-a716-446655440000_consumed
+          id: 550e8400-e29b-41d4-a716-446655440000
+          transaction_type: consumed
+      properties:
+        pagination:
+          $ref: "#/components/schemas/credits.PaginationInfo"
+        transactions:
+          items:
+            $ref: "#/components/schemas/credits.CreditTransactionProjectResponse"
+          type: array
+          uniqueItems: false
+    credits.GrantedBenefitResponse:
+      example:
+        benefit_type: meter_credit
+        benefit_metadata:
+          key: ""
+        granted_at: 2025-10-06T17:24:25.620964Z
+        id: 2e2b4669-dcfc-44dd-9845-6f306f978abf
+        benefit_id: a5d7da4a-5c80-4c51-a6bc-d7118b03f27e
+        properties:
+          key: ""
+      properties:
+        benefit_id:
+          example: a5d7da4a-5c80-4c51-a6bc-d7118b03f27e
+          type: string
+        benefit_metadata:
+          additionalProperties: {}
+        benefit_type:
+          example: meter_credit
+          type: string
+        granted_at:
+          example: 2025-10-06T17:24:25.620964Z
+          type: string
+        id:
+          example: 2e2b4669-dcfc-44dd-9845-6f306f978abf
+          type: string
+        properties:
+          additionalProperties: {}
+    credits.PaginationInfo:
+      example:
+        total: 150
+        limit: 20
+        page: 1
+      properties:
+        limit:
+          example: 20
+          type: integer
+        page:
+          example: 1
+          type: integer
+        total:
+          example: 150
+          type: integer
+    credits.ProductCatalog:
+      example:
+        subscriptions:
+        - benefits:
+          - description: description
+            units: 0
+          - description: description
+            units: 0
+          price:
+            amount: 6
+            formatted: formatted
+            currency: currency
+          name: name
+          billing_interval: billing_interval
+          description: description
+          id: id
+          type: type
+        - benefits:
+          - description: description
+            units: 0
+          - description: description
+            units: 0
+          price:
+            amount: 6
+            formatted: formatted
+            currency: currency
+          name: name
+          billing_interval: billing_interval
+          description: description
+          id: id
+          type: type
+        credit_packs:
+        - benefits:
+          - description: description
+            units: 0
+          - description: description
+            units: 0
+          price:
+            amount: 6
+            formatted: formatted
+            currency: currency
+          name: name
+          billing_interval: billing_interval
+          description: description
+          id: id
+          type: type
+        - benefits:
+          - description: description
+            units: 0
+          - description: description
+            units: 0
+          price:
+            amount: 6
+            formatted: formatted
+            currency: currency
+          name: name
+          billing_interval: billing_interval
+          description: description
+          id: id
+          type: type
+      properties:
+        credit_packs:
+          items:
+            $ref: "#/components/schemas/credits.CatalogProduct"
+          type: array
+          uniqueItems: false
+        subscriptions:
+          items:
+            $ref: "#/components/schemas/credits.CatalogProduct"
+          type: array
+          uniqueItems: false
+    health.HealthCheck:
+      example:
+        details: "{}"
+        response_time: 5ms
+        message: Database connection successful
+        status: healthy
+      properties:
+        details:
+          description: Additional health check details
+          type: object
+        message:
+          example: Database connection successful
+          type: string
+        response_time:
+          example: 5ms
+          type: string
+        status:
+          example: healthy
+          type: string
+    health.HealthStatus:
+      example:
+        summary:
+          total: 3
+          healthy: 2
+          degraded: 1
+          down: 0
+        checks:
+          key:
+            details: "{}"
+            response_time: 5ms
+            message: Database connection successful
+            status: healthy
+        version: 1.0.0
+        status: healthy
+        timestamp: 2023-12-25T10:30:00Z
+      properties:
+        checks:
+          additionalProperties:
+            $ref: "#/components/schemas/health.HealthCheck"
+        status:
+          example: healthy
+          type: string
+        summary:
+          $ref: "#/components/schemas/health.HealthSummary"
+        timestamp:
+          example: 2023-12-25T10:30:00Z
+          format: date-time
+          type: string
+        version:
+          example: 1.0.0
+          type: string
+    health.HealthSummary:
+      example:
+        total: 3
+        healthy: 2
+        degraded: 1
+        down: 0
+      properties:
+        degraded:
+          example: 1
+          minimum: 0
+          type: integer
+        down:
+          example: 0
+          minimum: 0
+          type: integer
+        healthy:
+          example: 2
+          minimum: 0
+          type: integer
+        total:
+          example: 3
+          minimum: 0
+          type: integer
+    jobs.JobListItem:
+      example:
+        duration_seconds: 6.027456183070403
+        processing_time: 5.962133916683182
+        file_name: file_name
+        processed_pages: 1
+        created_at: created_at
+        result_format: result_format
+        total_pages: 5
+        completed_at: completed_at
+        template_name: template_name
+        stage: stage
+        template_id: template_id
+        id: id
+        category: category
+        credits_used: 0
+        status: status
+      properties:
+        category:
+          type: string
+        completed_at:
+          type: string
+        created_at:
+          type: string
+        credits_used:
+          type: integer
+        duration_seconds:
+          type: number
+        file_name:
+          type: string
+        id:
+          type: string
+        processed_pages:
+          type: integer
+        processing_time:
+          type: number
+        result_format:
+          type: string
+        stage:
+          type: string
+        status:
+          type: string
+        template_id:
+          type: string
+        template_name:
+          type: string
+        total_pages:
+          type: integer
+    jobs.JobManagementResponse:
+      example:
+        success: true
+        action: retry
+        job:
+          error_message: error_message
+          metadata:
+            key: ""
+          file_name: file_name
+          processed_pages: 1
+          created_at: created_at
+          team_id: team_id
+          total_pages: 5
+          file_size: 6
+          completed_at: completed_at
+          template_name: template_name
+          updated_at: updated_at
+          user_id: user_id
+          template_id: template_id
+          id: id
+          credits_used: 0
+          status: status
+        message: Job retry initiated successfully
+      properties:
+        action:
+          example: retry
+          type: string
+        job:
+          $ref: "#/components/schemas/jobs.JobResponse"
+        message:
+          example: Job retry initiated successfully
+          type: string
+        success:
+          example: true
+          type: boolean
+    jobs.JobResponse:
+      example:
+        error_message: error_message
+        metadata:
+          key: ""
+        file_name: file_name
+        processed_pages: 1
+        created_at: created_at
+        team_id: team_id
+        total_pages: 5
+        file_size: 6
+        completed_at: completed_at
+        template_name: template_name
+        updated_at: updated_at
+        user_id: user_id
+        template_id: template_id
+        id: id
+        credits_used: 0
+        status: status
+      properties:
+        completed_at:
+          type: string
+        created_at:
+          type: string
+        credits_used:
+          type: integer
+        error_message:
+          type: string
+        file_name:
+          type: string
+        file_size:
+          type: integer
+        id:
+          type: string
+        metadata:
+          additionalProperties: {}
+        processed_pages:
+          type: integer
+        status:
+          type: string
+        team_id:
+          type: string
+        template_id:
+          type: string
+        template_name:
+          type: string
+        total_pages:
+          type: integer
+        updated_at:
+          type: string
+        user_id:
+          type: string
+    jobs.JobStatusResponse:
+      example:
+        workflow_status:
+          job_status:
+            job_id: job_id
+            progress:
+              stage: page_processing
+              job_id: job_id
+              percentage: 50
+              message: Processing page 5 of 10
+              timestamp: 2000-01-23T04:56:07.000+00:00
+            status: page_processing
+          start_time: 2000-01-23T04:56:07.000+00:00
+          workflow_id: ocr-job-123e4567-e89b-12d3-a456-426614174000
+          run_id: abc123-def456-ghi789
+          progress:
+            stage: page_processing
+            job_id: job_id
+            percentage: 50
+            message: Processing page 5 of 10
+            timestamp: 2000-01-23T04:56:07.000+00:00
+          close_time: 2000-01-23T04:56:07.000+00:00
+          error: error
+          status: RUNNING
+        is_retryable: true
+        last_activity: 2000-01-23T04:56:07.000+00:00
+        estimated_stuck: false
+        is_restartable: true
+        job:
+          error_message: error_message
+          metadata:
+            key: ""
+          file_name: file_name
+          processed_pages: 1
+          created_at: created_at
+          team_id: team_id
+          total_pages: 5
+          file_size: 6
+          completed_at: completed_at
+          template_name: template_name
+          updated_at: updated_at
+          user_id: user_id
+          template_id: template_id
+          id: id
+          credits_used: 0
+          status: status
+      properties:
+        estimated_stuck:
+          example: false
+          type: boolean
+        is_restartable:
+          example: true
+          type: boolean
+        is_retryable:
+          example: true
+          type: boolean
+        job:
+          $ref: "#/components/schemas/jobs.JobResponse"
+        last_activity:
+          format: date-time
+          type: string
+        workflow_status:
+          $ref: "#/components/schemas/jobs.WorkflowStatusInfo"
+    jobs.JobsListResponse:
+      example:
+        pagination:
+          total: 9
+          limit: 2
+          page: 7
+          total_pages: 3
+        jobs:
+        - duration_seconds: 6.027456183070403
+          processing_time: 5.962133916683182
+          file_name: file_name
+          processed_pages: 1
+          created_at: created_at
+          result_format: result_format
+          total_pages: 5
+          completed_at: completed_at
+          template_name: template_name
+          stage: stage
+          template_id: template_id
+          id: id
+          category: category
+          credits_used: 0
+          status: status
+        - duration_seconds: 6.027456183070403
+          processing_time: 5.962133916683182
+          file_name: file_name
+          processed_pages: 1
+          created_at: created_at
+          result_format: result_format
+          total_pages: 5
+          completed_at: completed_at
+          template_name: template_name
+          stage: stage
+          template_id: template_id
+          id: id
+          category: category
+          credits_used: 0
+          status: status
+      properties:
+        jobs:
+          items:
+            $ref: "#/components/schemas/jobs.JobListItem"
+          type: array
+          uniqueItems: false
+        pagination:
+          $ref: "#/components/schemas/jobs.PaginationInfo"
+    jobs.PaginationInfo:
+      example:
+        total: 9
+        limit: 2
+        page: 7
+        total_pages: 3
+      properties:
+        limit:
+          type: integer
+        page:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+    jobs.RestartJobRequest:
+      properties:
+        force:
+          description: Force restart even for completed jobs
+          example: false
+          type: boolean
+        preserve_progress:
+          description: Keep existing progress when restarting
+          example: false
+          type: boolean
+    jobs.RetryJobRequest:
+      properties:
+        force:
+          description: Force retry even if job appears active
+          example: false
+          type: boolean
+        reset_pages:
+          description: Reset page processing status
+          example: false
+          type: boolean
+    jobs.WorkflowJobStatusInfo:
+      example:
+        job_id: job_id
+        progress:
+          stage: page_processing
+          job_id: job_id
+          percentage: 50
+          message: Processing page 5 of 10
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        status: page_processing
+      properties:
+        job_id:
+          type: string
+        progress:
+          $ref: "#/components/schemas/jobs.WorkflowProgressInfo"
+        status:
+          example: page_processing
+          type: string
+    jobs.WorkflowProgressInfo:
+      example:
+        stage: page_processing
+        job_id: job_id
+        percentage: 50
+        message: Processing page 5 of 10
+        timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        job_id:
+          type: string
+        message:
+          example: Processing page 5 of 10
+          type: string
+        percentage:
+          example: 50
+          maximum: 100
+          minimum: 0
+          type: integer
+        stage:
+          example: page_processing
+          type: string
+        timestamp:
+          format: date-time
+          type: string
+    jobs.WorkflowStatusInfo:
+      example:
+        job_status:
+          job_id: job_id
+          progress:
+            stage: page_processing
+            job_id: job_id
+            percentage: 50
+            message: Processing page 5 of 10
+            timestamp: 2000-01-23T04:56:07.000+00:00
+          status: page_processing
+        start_time: 2000-01-23T04:56:07.000+00:00
+        workflow_id: ocr-job-123e4567-e89b-12d3-a456-426614174000
+        run_id: abc123-def456-ghi789
+        progress:
+          stage: page_processing
+          job_id: job_id
+          percentage: 50
+          message: Processing page 5 of 10
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        close_time: 2000-01-23T04:56:07.000+00:00
+        error: error
+        status: RUNNING
+      properties:
+        close_time:
+          format: date-time
+          type: string
+        error:
+          type: string
+        job_status:
+          $ref: "#/components/schemas/jobs.WorkflowJobStatusInfo"
+        progress:
+          $ref: "#/components/schemas/jobs.WorkflowProgressInfo"
+        run_id:
+          example: abc123-def456-ghi789
+          type: string
+        start_time:
+          format: date-time
+          type: string
+        status:
+          enum:
+          - RUNNING
+          - COMPLETED
+          - FAILED
+          - CANCELED
+          - TERMINATED
+          - CONTINUED_AS_NEW
+          - TIMED_OUT
+          example: RUNNING
+          type: string
+        workflow_id:
+          example: ocr-job-123e4567-e89b-12d3-a456-426614174000
+          type: string
+    models.JobStatus:
+      type: string
+      x-enum-varnames:
+      - JobStatusPending
+      - JobStatusProcessing
+      - JobStatusCompleted
+      - JobStatusPartiallyDone
+      - JobStatusFailed
+    models.OCRResultResponse:
+      example:
+        completed_at: completed_at
+        pages:
+        - metadata:
+            extra: "{}"
+            retry_count: 1
+            processing_ms: 6
+          page_number: 5
+          processed_at: processed_at
+          id: id
+          text: text
+        - metadata:
+            extra: "{}"
+            retry_count: 1
+            processing_ms: 6
+          page_number: 5
+          processed_at: processed_at
+          id: id
+          text: text
+        pagination:
+          total: 9
+          limit: 2
+          page: 7
+          total_pages: 3
+        processing_time_seconds: 2.3021358869347655
+        file_name: file_name
+        job_id: job_id
+        processed_pages: 5
+        model: model
+        result_format: result_format
+        total_pages: 7
+        credits_used: 0
+        status: status
+      properties:
+        completed_at:
+          type: string
+        credits_used:
+          type: integer
+        file_name:
+          type: string
+        job_id:
+          type: string
+        model:
+          type: string
+        pages:
+          items:
+            $ref: "#/components/schemas/models.PageResponse"
+          type: array
+          uniqueItems: false
+        pagination:
+          $ref: "#/components/schemas/models.PaginationResponse"
+        processed_pages:
+          type: integer
+        processing_time_seconds:
+          type: number
+        result_format:
+          type: string
+        status:
+          type: string
+          x-enum-varnames:
+          - JobStatusPending
+          - JobStatusProcessing
+          - JobStatusCompleted
+          - JobStatusPartiallyDone
+          - JobStatusFailed
+        total_pages:
+          type: integer
+    models.OCRStatusResponse:
+      example:
+        error_message: error_message
+        completed_at: completed_at
+        job_id: job_id
+        processed_pages: 9
+        result_format: result_format
+        total_pages: 3
+        status: status
+      properties:
+        completed_at:
+          type: string
+        error_message:
+          type: string
+        job_id:
+          type: string
+        processed_pages:
+          type: integer
+        result_format:
+          type: string
+        status:
+          type: string
+          x-enum-varnames:
+          - JobStatusPending
+          - JobStatusProcessing
+          - JobStatusCompleted
+          - JobStatusPartiallyDone
+          - JobStatusFailed
+        total_pages:
+          type: integer
+    models.PageMetadata:
+      example:
+        extra: "{}"
+        retry_count: 1
+        processing_ms: 6
+      properties:
+        extra:
+          description: Additional page metadata
+          type: object
+        processing_ms:
+          type: integer
+        retry_count:
+          type: integer
+    models.PageResponse:
+      example:
+        metadata:
+          extra: "{}"
+          retry_count: 1
+          processing_ms: 6
+        page_number: 5
+        processed_at: processed_at
+        id: id
+        text: text
+      properties:
+        id:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/models.PageMetadata"
+        page_number:
+          type: integer
+        processed_at:
+          type: string
+        text:
+          type: string
+    models.PaginationResponse:
+      example:
+        total: 9
+        limit: 2
+        page: 7
+        total_pages: 3
+      properties:
+        limit:
+          type: integer
+        page:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+    models_list.ModelResponse:
+      example:
+        credits_per_page: 6
+        name: name
+        description: description
+        display_name: display_name
+        priority: 1
+      properties:
+        credits_per_page:
+          type: integer
+        description:
+          type: string
+        display_name:
+          type: string
+        name:
+          type: string
+        priority:
+          type: integer
+    models_list.ModelsListResponse:
+      example:
+        models:
+        - credits_per_page: 6
+          name: name
+          description: description
+          display_name: display_name
+          priority: 1
+        - credits_per_page: 6
+          name: name
+          description: description
+          display_name: display_name
+          priority: 1
+        count: 0
+      properties:
+        count:
+          type: integer
+        models:
+          items:
+            $ref: "#/components/schemas/models_list.ModelResponse"
+          type: array
+          uniqueItems: false
+    response.ErrorCode:
+      type: string
+      x-enum-varnames:
+      - ErrCodeValidation
+      - ErrCodeNotFound
+      - ErrCodeUnauthorized
+      - ErrCodeForbidden
+      - ErrCodeInternal
+      - ErrCodeBadRequest
+      - ErrCodeConflict
+      - ErrCodeTooManyReqs
+      - ErrLessCredits
+    response.ErrorMessage:
+      example:
+        message: message
+      properties:
+        message:
+          type: string
+    response.ErrorResponse:
+      example:
+        code: code
+        details: ""
+        error:
+          message: message
+      properties:
+        code:
+          type: string
+          x-enum-varnames:
+          - ErrCodeValidation
+          - ErrCodeNotFound
+          - ErrCodeUnauthorized
+          - ErrCodeForbidden
+          - ErrCodeInternal
+          - ErrCodeBadRequest
+          - ErrCodeConflict
+          - ErrCodeTooManyReqs
+          - ErrLessCredits
+        details: {}
+        error:
+          $ref: "#/components/schemas/response.ErrorMessage"
+    sqlc.ResultFormatEnum:
+      example: structured
+      type: string
+      x-enum-varnames:
+      - ResultFormatEnumMarkdown
+      - ResultFormatEnumStructured
+      - ResultFormatEnumPerPageStructured
+    status.Response:
+      example:
+        error_message: error_message
+        processing_time: 6
+        file_name: file_name
+        processed_pages: 0
+        created_at: created_at
+        result_format: result_format
+        id: id
+        total_pages: 1
+        status: status
+      properties:
+        created_at:
+          description: When the job was created
+          type: string
+        error_message:
+          description: |-
+            Error message if job failed
+            example: Failed to process page 5
+          type: string
+        file_name:
+          description: |-
+            The name of the file being processed
+            example: quarterly_financial_report_q4.pdf
+          type: string
+        id:
+          description: |-
+            The unique identifier of the job
+            example: 123e4567-e89b-12d3-a456-426614174000
+          type: string
+        processed_pages:
+          description: |-
+            Number of pages processed so far
+            example: 24
+          type: integer
+        processing_time:
+          description: |-
+            Total processing time in seconds
+            example: 156
+          type: integer
+        result_format:
+          description: |-
+            The result format type of the job
+            example: structured
+          type: string
+        status:
+          description: |-
+            The current status of the job
+            example: completed
+          type: string
+          x-enum-varnames:
+          - JobStatusPending
+          - JobStatusProcessing
+          - JobStatusCompleted
+          - JobStatusPartiallyDone
+          - JobStatusFailed
+        total_pages:
+          description: |-
+            Total number of pages in the document
+            example: 24
+          type: integer
+    templates.CreateTemplateRequest:
+      properties:
+        color:
+          example: "#FF5733"
+          type: string
+        description:
+          example: Template for processing invoice documents
+          maxLength: 1000
+          type: string
+        enabled:
+          example: true
+          type: boolean
+        favorite:
+          example: true
+          type: boolean
+        format:
+          example: structured
+          type: string
+          x-enum-varnames:
+          - ResultFormatEnumMarkdown
+          - ResultFormatEnumStructured
+          - ResultFormatEnumPerPageStructured
+        instructions:
+          example: Extract key financial information from invoices
+          maxLength: 2000
+          type: string
+        name:
+          example: Invoice Template
+          maxLength: 255
+          minLength: 1
+          type: string
+        schema:
+          description: JSON schema definition
+          type: object
+        tags:
+          example:
+          - financial
+          - invoice
+          - processing
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        team_id:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: string
+          type: string
+      required:
+      - format
+      - name
+      - team_id
+    templates.ListTemplatesResponse:
+      example:
+        total: 25
+        templates:
+        - schema: "{}"
+          instructions: Extract key financial information from invoices
+          color: "#FF5733"
+          last_used: 2023-12-25T10:30:00Z
+          format: structured
+          created_at: 2023-12-25T10:30:00Z
+          description: Template for processing invoice documents
+          team_id: 123e4567-e89b-12d3-a456-426614174002
+          enabled: true
+          tags:
+          - financial
+          - invoice
+          - processing
+          usage_count: 5
+          updated_at: 2023-12-25T10:30:00Z
+          user_id: 123e4567-e89b-12d3-a456-426614174001
+          checksum: abc123def456
+          name: Invoice Template
+          id: 123e4567-e89b-12d3-a456-426614174000
+          favorite: true
+        - schema: "{}"
+          instructions: Extract key financial information from invoices
+          color: "#FF5733"
+          last_used: 2023-12-25T10:30:00Z
+          format: structured
+          created_at: 2023-12-25T10:30:00Z
+          description: Template for processing invoice documents
+          team_id: 123e4567-e89b-12d3-a456-426614174002
+          enabled: true
+          tags:
+          - financial
+          - invoice
+          - processing
+          usage_count: 5
+          updated_at: 2023-12-25T10:30:00Z
+          user_id: 123e4567-e89b-12d3-a456-426614174001
+          checksum: abc123def456
+          name: Invoice Template
+          id: 123e4567-e89b-12d3-a456-426614174000
+          favorite: true
+        limit: 10
+        page: 1
+        total_pages: 3
+      properties:
+        limit:
+          example: 10
+          maximum: 100
+          minimum: 1
+          type: integer
+        page:
+          example: 1
+          minimum: 1
+          type: integer
+        templates:
+          items:
+            $ref: "#/components/schemas/templates.TemplateResponse"
+          type: array
+          uniqueItems: false
+        total:
+          example: 25
+          minimum: 0
+          type: integer
+        total_pages:
+          example: 3
+          minimum: 0
+          type: integer
+    templates.TemplateResponse:
+      example:
+        schema: "{}"
+        instructions: Extract key financial information from invoices
+        color: "#FF5733"
+        last_used: 2023-12-25T10:30:00Z
+        format: structured
+        created_at: 2023-12-25T10:30:00Z
+        description: Template for processing invoice documents
+        team_id: 123e4567-e89b-12d3-a456-426614174002
+        enabled: true
+        tags:
+        - financial
+        - invoice
+        - processing
+        usage_count: 5
+        updated_at: 2023-12-25T10:30:00Z
+        user_id: 123e4567-e89b-12d3-a456-426614174001
+        checksum: abc123def456
+        name: Invoice Template
+        id: 123e4567-e89b-12d3-a456-426614174000
+        favorite: true
+      properties:
+        checksum:
+          example: abc123def456
+          type: string
+        color:
+          example: "#FF5733"
+          type: string
+        created_at:
+          example: 2023-12-25T10:30:00Z
+          format: date-time
+          type: string
+        description:
+          example: Template for processing invoice documents
+          type: string
+        enabled:
+          example: true
+          type: boolean
+        favorite:
+          example: true
+          type: boolean
+        format:
+          example: structured
+          type: string
+          x-enum-varnames:
+          - ResultFormatEnumMarkdown
+          - ResultFormatEnumStructured
+          - ResultFormatEnumPerPageStructured
+        id:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: uuid
+          type: string
+        instructions:
+          example: Extract key financial information from invoices
+          type: string
+        last_used:
+          example: 2023-12-25T10:30:00Z
+          format: date-time
+          type: string
+        name:
+          example: Invoice Template
+          type: string
+        schema:
+          description: JSON schema definition
+          type: object
+        tags:
+          example:
+          - financial
+          - invoice
+          - processing
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        team_id:
+          example: 123e4567-e89b-12d3-a456-426614174002
+          format: uuid
+          type: string
+        updated_at:
+          example: 2023-12-25T10:30:00Z
+          format: date-time
+          type: string
+        usage_count:
+          example: 5
+          minimum: 0
+          type: integer
+        user_id:
+          example: 123e4567-e89b-12d3-a456-426614174001
+          format: uuid
+          type: string
+    templates.TemplateStatsResponse:
+      example:
+        favorite_templates: 5
+        average_usage_per_template: 6
+        max_usage: 25
+        markdown_templates: 10
+        total_usage: 150
+        min_usage: 0
+        per_page_structured_templates: 3
+        structured_templates: 12
+        total_templates: 25
+      properties:
+        average_usage_per_template:
+          example: 6
+          type: number
+        favorite_templates:
+          example: 5
+          type: integer
+        markdown_templates:
+          example: 10
+          type: integer
+        max_usage:
+          example: 25
+          type: integer
+        min_usage:
+          example: 0
+          type: integer
+        per_page_structured_templates:
+          example: 3
+          type: integer
+        structured_templates:
+          example: 12
+          type: integer
+        total_templates:
+          example: 25
+          type: integer
+        total_usage:
+          example: 150
+          type: integer
+    templates.UpdateTemplateRequest:
+      properties:
+        color:
+          example: "#FF5733"
+          type: string
+        description:
+          example: Updated template for processing invoice documents
+          maxLength: 1000
+          type: string
+        enabled:
+          example: true
+          type: boolean
+        favorite:
+          example: true
+          type: boolean
+        format:
+          example: structured
+          type: string
+          x-enum-varnames:
+          - ResultFormatEnumMarkdown
+          - ResultFormatEnumStructured
+          - ResultFormatEnumPerPageStructured
+        instructions:
+          example: Extract key financial information from invoices
+          maxLength: 2000
+          type: string
+        name:
+          example: Updated Invoice Template
+          maxLength: 255
+          minLength: 1
+          type: string
+        schema:
+          description: JSON schema definition
+          type: object
+        tags:
+          example:
+          - financial
+          - invoice
+          - processing
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+      required:
+      - format
+      - name
+    upload.CompletedPart:
+      properties:
+        etag:
+          example: '"9bb58f26192e4ba00f01e2e7b136bbd8"'
+          minLength: 1
+          type: string
+        part_number:
+          example: 1
+          minimum: 1
+          type: integer
+      required:
+      - etag
+      - part_number
+    upload.DirectUploadCompleteRequest:
+      properties:
+        parts:
+          items:
+            $ref: "#/components/schemas/upload.CompletedPart"
+          minItems: 1
+          type: array
+          uniqueItems: false
+      required:
+      - parts
+    upload.DirectUploadCompleteResponse:
+      example:
+        job_id: 123e4567-e89b-12d3-a456-426614174000
+        created_at: 2023-12-25T10:30:00Z
+        message: "Upload completed successfully, processing started"
+        status: pending
+      properties:
+        created_at:
+          example: 2023-12-25T10:30:00Z
+          format: date-time
+          type: string
+        job_id:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: uuid
+          type: string
+        message:
+          example: "Upload completed successfully, processing started"
+          type: string
+        status:
+          example: pending
+          type: string
+    upload.DirectUploadResponse:
+      example:
+        chunk_size: 5242880
+        upload_id: 550e8400-e29b-41d4-a716-446655440000
+        upload_type: multipart
+        expires_at: 2023-12-25T10:45:00Z
+        job_id: 123e4567-e89b-12d3-a456-426614174000
+        parts:
+        - start_byte: 0
+          part_number: 1
+          upload_url: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
+          end_byte: 5242879
+        - start_byte: 0
+          part_number: 1
+          upload_url: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
+          end_byte: 5242879
+        complete_url: /api/v1/ocr/uploads/123e4567-e89b-12d3-a456-426614174000/complete
+        total_chunks: 1
+      properties:
+        chunk_size:
+          example: 5242880
+          type: integer
+        complete_url:
+          example: /api/v1/ocr/uploads/123e4567-e89b-12d3-a456-426614174000/complete
+          type: string
+        expires_at:
+          example: 2023-12-25T10:45:00Z
+          format: date-time
+          type: string
+        job_id:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: uuid
+          type: string
+        parts:
+          items:
+            $ref: "#/components/schemas/upload.MultipartPart"
+          type: array
+          uniqueItems: false
+        total_chunks:
+          example: 1
+          type: integer
+        upload_id:
+          example: 550e8400-e29b-41d4-a716-446655440000
+          type: string
+        upload_type:
+          example: multipart
+          type: string
+    upload.InitiateDirectUploadRequest:
+      properties:
+        content_type:
+          example: application/pdf
+          type: string
+        file_name:
+          example: document.pdf
+          maxLength: 255
+          minLength: 1
+          type: string
+        file_size:
+          example: 1048576
+          maximum: 104857600
+          minimum: 1
+          type: integer
+        format:
+          description: "Option 2: Direct specification (will create template on-the-fly)"
+          enum:
+          - markdown
+          - structured
+          - per_page_structured
+          example: markdown
+          type: string
+        instructions:
+          example: Extract key information
+          maxLength: 100
+          type: string
+        model:
+          example: standard-v1
+          type: string
+        schema:
+          additionalProperties: {}
+        template_id:
+          description: "Option 1: Use existing template"
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: uuid
+          type: string
+      required:
+      - content_type
+      - file_name
+    upload.MultipartPart:
+      example:
+        start_byte: 0
+        part_number: 1
+        upload_url: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
+        end_byte: 5242879
+      properties:
+        end_byte:
+          example: 5242879
+          type: integer
+        part_number:
+          example: 1
+          type: integer
+        start_byte:
+          example: 0
+          type: integer
+        upload_url:
+          example: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
+          type: string
+    upload.RemoteURLUploadRequest:
+      properties:
+        file_name:
+          example: document.pdf
+          maxLength: 255
+          minLength: 1
+          type: string
+        format:
+          description: "Option 2: Direct specification (will create template on-the-fly)"
+          enum:
+          - markdown
+          - structured
+          - per_page_structured
+          example: markdown
+          type: string
+        instructions:
+          example: Extract key information
+          maxLength: 100
+          type: string
+        model:
+          example: standard-v1
+          type: string
+        schema:
+          additionalProperties: {}
+        template_id:
+          description: "Option 1: Use existing template"
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: uuid
+          type: string
+        url:
+          example: https://example.com/document.pdf
+          maxLength: 2000
+          type: string
+      required:
+      - url
+    upload.RemoteURLUploadResponse:
+      example:
+        job_id: 123e4567-e89b-12d3-a456-426614174000
+        created_at: 2023-12-25T10:30:00Z
+        source_url: https://example.com/document.pdf
+        status: pending
+      properties:
+        created_at:
+          example: 2023-12-25T10:30:00Z
+          format: date-time
+          type: string
+        job_id:
+          example: 123e4567-e89b-12d3-a456-426614174000
+          format: uuid
+          type: string
+        source_url:
+          example: https://example.com/document.pdf
+          type: string
+        status:
+          example: pending
+          type: string
+          x-enum-varnames:
+          - JobStatusPending
+          - JobStatusProcessing
+          - JobStatusCompleted
+          - JobStatusPartiallyDone
+          - JobStatusFailed
+    webhooks.R2UploadNotification:
+      properties:
+        object_key:
+          example: uploads/document.pdf
+          maxLength: 255
+          minLength: 1
+          type: string
+        size:
+          example: 1024
+          minimum: 1
+          type: integer
+        timestamp:
+          example: 2024-01-01T00:00:00Z
+          type: string
+      required:
+      - object_key
+      - size
+      - timestamp
+    _analytics_jobs_timeseries_get_200_response:
+      example:
+        timeseries:
+        - bucket: bucket
+          total_jobs: 7
+          avg_completion_seconds: 6.027456183070403
+          failed_jobs: 5
+          processed_pages: 2
+          completed_jobs: 1
+          credits_consumed: 5
+          total_pages: 9
+          active_jobs: 0
+        - bucket: bucket
+          total_jobs: 7
+          avg_completion_seconds: 6.027456183070403
+          failed_jobs: 5
+          processed_pages: 2
+          completed_jobs: 1
+          credits_consumed: 5
+          total_pages: 9
+          active_jobs: 0
+        range:
+          bucket: bucket
+          requested_range: requested_range
+          start: start
+          end: end
+          team_id: team_id
+      properties:
+        range:
+          $ref: "#/components/schemas/analytics.Range"
+        timeseries:
+          items:
+            $ref: "#/components/schemas/analytics.JobTimeseriesPoint"
+          type: array
+    _analytics_pages_timeseries_get_200_response:
+      example:
+        timeseries:
+        - bucket: bucket
+          hard_failure_pages: 5
+          completed_pages: 0
+          total_tokens: 2
+          failed_pages: 1
+          total_pages: 5
+          empty_pages: 6
+        - bucket: bucket
+          hard_failure_pages: 5
+          completed_pages: 0
+          total_tokens: 2
+          failed_pages: 1
+          total_pages: 5
+          empty_pages: 6
+        range:
+          bucket: bucket
+          requested_range: requested_range
+          start: start
+          end: end
+          team_id: team_id
+      properties:
+        range:
+          $ref: "#/components/schemas/analytics.Range"
+        timeseries:
+          items:
+            $ref: "#/components/schemas/analytics.PageTimeseriesPoint"
+          type: array
+  securitySchemes:
+    ? ""
+    : description: "Provide your LeapOCR API key via the `X-API-KEY` header. Example:\
+        \ X-API-KEY: YOUR_API_KEY"
+      in: header
+      name: X-API-KEY
+      type: apiKey
+    bearerauth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http

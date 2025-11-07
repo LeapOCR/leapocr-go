@@ -77,14 +77,21 @@ func ValidateURL(fileURL string) error {
 		return NewValidationError("url", "URL must include a host")
 	}
 
-	// Validate file extension from URL path
-	if err := ValidateFileExtension(parsedURL.Path); err != nil {
-		// Re-wrap with URL context
-		if validationErr, ok := err.(*ValidationError); ok {
-			return NewValidationError("url", fmt.Sprintf("URL path validation failed: %s", validationErr.Message))
+	// Validate file extension from URL path if present
+	// Note: Not all URLs have file extensions in the path (e.g., download links with query parameters)
+	// So we only validate if an extension is present
+	ext := strings.ToLower(filepath.Ext(parsedURL.Path))
+	if ext != "" {
+		// Extension is present, validate it
+		if err := ValidateFileExtension(parsedURL.Path); err != nil {
+			// Re-wrap with URL context
+			if validationErr, ok := err.(*ValidationError); ok {
+				return NewValidationError("url", fmt.Sprintf("URL path validation failed: %s", validationErr.Message))
+			}
+			return NewValidationError("url", fmt.Sprintf("URL path validation failed: %v", err))
 		}
-		return NewValidationError("url", fmt.Sprintf("URL path validation failed: %v", err))
 	}
+	// If no extension is present, we allow it - the server will determine the content type
 
 	return nil
 }
@@ -102,17 +109,21 @@ func ValidateFormat(format Format) error {
 	}
 }
 
-// ValidateTier validates the processing tier
-func ValidateTier(tier Tier) error {
-	switch tier {
-	case TierSwift, TierCore, TierIntelli:
+// ValidateModel validates the OCR model name
+// Model is optional, but if provided, it should be a non-empty string
+// Any model name is allowed (not restricted to predefined constants)
+func ValidateModel(model string) error {
+	// Model is optional, so empty string is allowed
+	if model == "" {
 		return nil
-	case "":
-		return NewValidationError("tier", "tier cannot be empty")
-	default:
-		return NewValidationError("tier", fmt.Sprintf("invalid tier '%s'. Valid tiers are: %s, %s, %s",
-			tier, TierSwift, TierCore, TierIntelli))
 	}
+
+	// Basic validation: model name should be reasonable length
+	if len(model) > 100 {
+		return NewValidationError("model", "model name too long. Maximum allowed is 100 characters")
+	}
+
+	return nil
 }
 
 // ValidateInstructions validates custom processing instructions
@@ -179,8 +190,8 @@ func ValidateProcessingConfig(config *processingConfig) error {
 		return err
 	}
 
-	// Validate tier
-	if err := ValidateTier(config.tier); err != nil {
+	// Validate model (optional)
+	if err := ValidateModel(config.model); err != nil {
 		return err
 	}
 

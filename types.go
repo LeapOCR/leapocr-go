@@ -16,16 +16,19 @@ const (
 	FormatPerPageStructured Format = "per_page_structured"
 )
 
-// Tier represents the processing tier
-type Tier string
+// Model represents the OCR model to use for processing
+type Model string
 
 const (
-	// TierSwift provides fast processing with basic accuracy
-	TierSwift Tier = "swift"
-	// TierCore provides balanced speed and accuracy
-	TierCore Tier = "core"
-	// TierIntelli provides highest accuracy with advanced processing
-	TierIntelli Tier = "intelli"
+	// ModelStandardV1 is the baseline model that handles all cases
+	// Credits per page: 1, Priority: 1
+	ModelStandardV1 Model = "standard-v1"
+	// ModelEnglishProV1 is premium quality for English documents only
+	// Credits per page: 2, Priority: 4
+	ModelEnglishProV1 Model = "english-pro-v1"
+	// ModelProV1 is the highest quality model that handles all cases
+	// Credits per page: 5, Priority: 5
+	ModelProV1 Model = "pro-v1"
 )
 
 // OCRResult represents the final result of OCR processing
@@ -44,7 +47,6 @@ type PageResult struct {
 	PageNumber int                    `json:"page_number"`
 	Text       string                 `json:"text"`
 	Data       map[string]interface{} `json:"data"`
-	Confidence float64                `json:"confidence"`
 }
 
 // ProcessingOption configures OCR processing
@@ -53,7 +55,7 @@ type ProcessingOption func(*processingConfig)
 // processingConfig holds all processing configuration
 type processingConfig struct {
 	format       Format
-	tier         Tier
+	model        string // Can be a Model constant or any custom model string
 	schema       map[string]interface{}
 	instructions string
 	categoryID   string
@@ -66,10 +68,20 @@ func WithFormat(format Format) ProcessingOption {
 	}
 }
 
-// WithTier sets the processing tier
-func WithTier(tier Tier) ProcessingOption {
+// WithModel sets the OCR model to use for processing
+// You can use one of the predefined constants (ModelStandardV1, ModelEnglishProV1, ModelProV1)
+// or pass any custom model name as a string
+func WithModel(model Model) ProcessingOption {
 	return func(c *processingConfig) {
-		c.tier = tier
+		c.model = string(model)
+	}
+}
+
+// WithModelString sets a custom model name as a string
+// This allows using any model name not defined as a constant
+func WithModelString(model string) ProcessingOption {
+	return func(c *processingConfig) {
+		c.model = model
 	}
 }
 
@@ -97,8 +109,8 @@ func WithCategoryID(categoryID string) ProcessingOption {
 // applyProcessingOptions applies all options to a config
 func applyProcessingOptions(opts []ProcessingOption) *processingConfig {
 	config := &processingConfig{
-		format: FormatStructured, // default format
-		tier:   TierCore,         // default tier
+		format: FormatStructured,        // default format
+		model:  string(ModelStandardV1), // default model
 	}
 
 	for _, opt := range opts {

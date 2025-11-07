@@ -109,7 +109,7 @@ make release-check
 
 The SDK follows a sophisticated generation process:
 
-1. **Fetch OpenAPI Spec**: Downloads from `http://localhost:8080/api/v1/swagger.json`
+1. **Fetch OpenAPI Spec**: Downloads from `http://localhost:8080/api/v1/docs/openapi.json`
 2. **Filter Endpoints**: Uses `scripts/filter-sdk-endpoints.sh` to keep only SDK-tagged endpoints
 3. **Generate Code**: Uses `openapi-generator-cli` to create Go client
 4. **Create Wrapper**: Runs `scripts/create-sdk-wrapper.sh` to add convenience layer
@@ -140,7 +140,7 @@ client := ocrsdk.New("api-key")
 // Processing options
 result, err := client.OCR.ProcessFileFromPath(ctx, "file.pdf",
     ocrsdk.WithFormat(ocrsdk.FormatStructured),
-    ocrsdk.WithTier(ocrsdk.TierCore),
+    ocrsdk.WithModel(ocrsdk.ModelStandardV1),
 )
 
 // Response types
@@ -194,7 +194,7 @@ OCR_BASE_URL=http://localhost:8080      # API base URL (optional)
 
 ```bash
 # For code generation
-OPENAPI_URL=http://localhost:8080/api/v1/swagger.json
+OPENAPI_URL=http://localhost:8080/api/v1/docs/openapi.json
 GENERATOR_VERSION=7.9.0
 ```
 
