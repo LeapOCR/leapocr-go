@@ -100,7 +100,7 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 		return nil, NewSDKError(ErrorTypeValidationError,
 			fmt.Sprintf("file size (%d bytes) exceeds API limit (%d bytes)", fileSize, maxInt32), nil)
 	}
-	fileSize32 := int32(fileSize)
+	fileSize32 := int32(fileSize) // #nosec G115 - validated above
 
 	uploadRequest := gen.UploadInitiateDirectUploadRequest{
 		FileName:    filename,
