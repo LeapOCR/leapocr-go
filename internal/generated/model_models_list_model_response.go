@@ -20,11 +20,12 @@ var _ MappedNullable = &ModelsListModelResponse{}
 
 // ModelsListModelResponse struct for ModelsListModelResponse
 type ModelsListModelResponse struct {
-	CreditsPerPage *int32  `json:"credits_per_page,omitempty"`
-	Description    *string `json:"description,omitempty"`
-	DisplayName    *string `json:"display_name,omitempty"`
-	Name           *string `json:"name,omitempty"`
-	Priority       *int32  `json:"priority,omitempty"`
+	CreditsPerPage   *int32  `json:"credits_per_page,omitempty"`
+	Description      *string `json:"description,omitempty"`
+	DisplayName      *string `json:"display_name,omitempty"`
+	Name             *string `json:"name,omitempty"`
+	Priority         *int32  `json:"priority,omitempty"`
+	SurchargePerPage *int32  `json:"surcharge_per_page,omitempty"`
 }
 
 // NewModelsListModelResponse instantiates a new ModelsListModelResponse object
@@ -204,6 +205,38 @@ func (o *ModelsListModelResponse) SetPriority(v int32) {
 	o.Priority = &v
 }
 
+// GetSurchargePerPage returns the SurchargePerPage field value if set, zero value otherwise.
+func (o *ModelsListModelResponse) GetSurchargePerPage() int32 {
+	if o == nil || IsNil(o.SurchargePerPage) {
+		var ret int32
+		return ret
+	}
+	return *o.SurchargePerPage
+}
+
+// GetSurchargePerPageOk returns a tuple with the SurchargePerPage field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelsListModelResponse) GetSurchargePerPageOk() (*int32, bool) {
+	if o == nil || IsNil(o.SurchargePerPage) {
+		return nil, false
+	}
+	return o.SurchargePerPage, true
+}
+
+// HasSurchargePerPage returns a boolean if a field has been set.
+func (o *ModelsListModelResponse) HasSurchargePerPage() bool {
+	if o != nil && !IsNil(o.SurchargePerPage) {
+		return true
+	}
+
+	return false
+}
+
+// SetSurchargePerPage gets a reference to the given int32 and assigns it to the SurchargePerPage field.
+func (o *ModelsListModelResponse) SetSurchargePerPage(v int32) {
+	o.SurchargePerPage = &v
+}
+
 func (o ModelsListModelResponse) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -228,6 +261,9 @@ func (o ModelsListModelResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Priority) {
 		toSerialize["priority"] = o.Priority
+	}
+	if !IsNil(o.SurchargePerPage) {
+		toSerialize["surcharge_per_page"] = o.SurchargePerPage
 	}
 	return toSerialize, nil
 }

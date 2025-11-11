@@ -91,7 +91,7 @@ type CreditsAPIGetCreditTransactionsByOrganizationIDRequest struct {
 	page           *int32
 	limit          *int32
 	search         *string
-	tier           *string
+	model          *string
 	sortBy         *string
 	createdFrom    *string
 	createdTo      *string
@@ -109,15 +109,15 @@ func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Limit(limit int3
 	return r
 }
 
-// Search in description, file name, tier, or project name
+// Search in description, file name, model, or project name
 func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Search(search string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
 	r.search = &search
 	return r
 }
 
-// Filter by tier
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Tier(tier string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.tier = &tier
+// Filter by model
+func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Model(model string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
+	r.model = &model
 	return r
 }
 
@@ -192,8 +192,8 @@ func (a *CreditsAPIService) GetCreditTransactionsByOrganizationIDExecute(r Credi
 	if r.search != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
 	}
-	if r.tier != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "tier", r.tier, "form", "")
+	if r.model != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
 	}
 	if r.sortBy != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", r.sortBy, "form", "")
@@ -300,7 +300,7 @@ type CreditsAPIGetCreditTransactionsByTeamIDRequest struct {
 	page        *int32
 	limit       *int32
 	search      *string
-	tier        *string
+	model       *string
 	sortBy      *string
 	createdFrom *string
 	createdTo   *string
@@ -318,15 +318,15 @@ func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Limit(limit int32) Credi
 	return r
 }
 
-// Search in description, file name, or tier
+// Search in description, file name, or model
 func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Search(search string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
 	r.search = &search
 	return r
 }
 
-// Filter by tier
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Tier(tier string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.tier = &tier
+// Filter by model
+func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Model(model string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
+	r.model = &model
 	return r
 }
 
@@ -401,8 +401,8 @@ func (a *CreditsAPIService) GetCreditTransactionsByTeamIDExecute(r CreditsAPIGet
 	if r.search != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
 	}
-	if r.tier != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "tier", r.tier, "form", "")
+	if r.model != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
 	}
 	if r.sortBy != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", r.sortBy, "form", "")

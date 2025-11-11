@@ -42,7 +42,7 @@ paths:
   /analytics/credits/usage:
     get:
       description: "Returns comprehensive credit analytics including snapshot data,\
-        \ timeseries trends, and tier usage breakdown"
+        \ timeseries trends, and model usage breakdown"
       parameters:
       - description: Time range preset
         explode: true
@@ -136,12 +136,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
           description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Analytics not available for your plan
         "500":
           content:
             application/json:
@@ -251,12 +245,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
           description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Analytics not available for your plan
         "500":
           content:
             application/json:
@@ -340,12 +328,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
           description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Analytics not available for your plan
         "500":
           content:
             application/json:
@@ -454,12 +436,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
           description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Analytics not available for your plan
         "500":
           content:
             application/json:
@@ -550,12 +526,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
           description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Analytics not available for your plan
         "500":
           content:
             application/json:
@@ -667,7 +637,7 @@ paths:
           minimum: 1
           type: integer
         style: form
-      - description: "Search in description, file name, tier, or project name"
+      - description: "Search in description, file name, model, or project name"
         explode: true
         in: query
         name: search
@@ -675,15 +645,12 @@ paths:
         schema:
           type: string
         style: form
-      - description: Filter by tier
+      - description: Filter by model
         explode: true
         in: query
-        name: tier
+        name: model
         required: false
         schema:
-          enum:
-          - standard
-          - pro
           type: string
         style: form
       - description: Sort by field
@@ -810,7 +777,7 @@ paths:
           minimum: 1
           type: integer
         style: form
-      - description: "Search in description, file name, or tier"
+      - description: "Search in description, file name, or model"
         explode: true
         in: query
         name: search
@@ -818,15 +785,12 @@ paths:
         schema:
           type: string
         style: form
-      - description: Filter by tier
+      - description: Filter by model
         explode: true
         in: query
-        name: tier
+        name: model
         required: false
         schema:
-          enum:
-          - standard
-          - pro
           type: string
         style: form
       - description: Sort by field
@@ -1049,6 +1013,16 @@ paths:
           format: date-time
           type: string
         style: form
+      - description: Include soft-deleted jobs in results
+        example: false
+        explode: true
+        in: query
+        name: include_deleted
+        required: false
+        schema:
+          default: false
+          type: boolean
+        style: form
       responses:
         "200":
           content:
@@ -1075,6 +1049,62 @@ paths:
                 $ref: "#/components/schemas/response.ErrorResponse"
           description: Internal server error
       summary: Get jobs list
+      tags:
+      - Jobs
+  /jobs/{job_id}:
+    delete:
+      description: "Soft delete an OCR job by redacting all page content to [REDACTED],\
+        \ deleting associated files from storage, and marking the job as deleted.\
+        \ The job will no longer be accessible via normal fetch endpoints but will\
+        \ appear in job listings with a deleted flag."
+      operationId: deleteJob
+      parameters:
+      - description: OCR job ID to delete
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jobs.JobResponse"
+          description: Job deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist or already deleted
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Delete OCR job
       tags:
       - Jobs
   /jobs/{job_id}/cancel:
@@ -1493,10 +1523,10 @@ paths:
       description: |-
         Create a job and generate presigned URLs for direct file upload to S3. Uses multipart upload for all files (1 part for small files, multiple parts for large files ≥50MB).
         **Output Types:**
-        - `structured`: Structured data extraction. Requires one of: category_id (with schema & instructions)
+        - `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
         - `markdown`: Page-by-page OCR. All configuration fields are optional
         - `per_page_structured`: Per-page structured extraction (future or hybrid mode)
-        **Note:** Only one of category_id, schema, or instruction can be provided per request
+        **Note:** Only one of template_slug or format can be provided per request
       operationId: directUpload
       requestBody:
         content:
@@ -1546,10 +1576,10 @@ paths:
       description: |-
         Create a job and start processing from a remote URL. Supported format: PDF (.pdf) only.
         **Output Types:**
-        - `structured`: Structured data extraction. Requires one of: category_id (with schema & instructions)
+        - `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
         - `markdown`: Page-by-page OCR. All configuration fields are optional
         - `per_page_structured`: Per-page structured extraction (future or hybrid mode)
-        **Note:** Only one of category_id, schema, or instruction can be provided per request
+        **Note:** Only one of template_slug or format can be provided per request
       operationId: uploadFromRemoteURL
       requestBody:
         content:
@@ -2217,11 +2247,13 @@ components:
           granted: 7
           net_change: 1
         model_breakdown:
-        - jobs_processed: 6
+        - user_id: user_id
+          jobs_processed: 6
           model: model
           credits_consumed: 0
           transactions: 1
-        - jobs_processed: 6
+        - user_id: user_id
+          jobs_processed: 6
           model: model
           credits_consumed: 0
           transactions: 1
@@ -2324,6 +2356,7 @@ components:
           type: integer
     analytics.ModelUsageStat:
       example:
+        user_id: user_id
         jobs_processed: 6
         model: model
         credits_consumed: 0
@@ -2337,6 +2370,8 @@ components:
           type: string
         transactions:
           type: integer
+        user_id:
+          type: string
     analytics.OverviewResponse:
       example:
         pages:
@@ -2680,7 +2715,7 @@ components:
             key: ""
         team_id: 550e8400-e29b-41d4-a716-446655440000
         trial_active: true
-        trial_credits_remaining: 250
+        trial_credits_remaining: 50
         plan_name: Free
         active_subscriptions:
         - metadata:
@@ -2707,7 +2742,7 @@ components:
           meters:
           - ""
           - ""
-        trial_credits_granted: 500
+        trial_credits_granted: 100
         active_meters:
         - balance: 111111
           consumed_units: 0
@@ -2760,10 +2795,10 @@ components:
           example: true
           type: boolean
         trial_credits_granted:
-          example: 500
+          example: 100
           type: integer
         trial_credits_remaining:
-          example: 250
+          example: 50
           type: integer
         trial_days_remaining:
           example: 14
@@ -3145,8 +3180,10 @@ components:
         created_at: created_at
         result_format: result_format
         total_pages: 5
+        deleted_at: deleted_at
         completed_at: completed_at
         template_name: template_name
+        is_deleted: true
         stage: stage
         template_id: template_id
         id: id
@@ -3162,12 +3199,17 @@ components:
           type: string
         credits_used:
           type: integer
+        deleted_at:
+          type: string
         duration_seconds:
           type: number
         file_name:
           type: string
         id:
           type: string
+        is_deleted:
+          description: "Computed field for API convenience: true if DeletedAt != nil"
+          type: boolean
         processed_pages:
           type: integer
         processing_time:
@@ -3197,6 +3239,7 @@ components:
           created_at: created_at
           team_id: team_id
           total_pages: 5
+          deleted_at: deleted_at
           file_size: 6
           completed_at: completed_at
           template_name: template_name
@@ -3229,6 +3272,7 @@ components:
         created_at: created_at
         team_id: team_id
         total_pages: 5
+        deleted_at: deleted_at
         file_size: 6
         completed_at: completed_at
         template_name: template_name
@@ -3245,6 +3289,8 @@ components:
           type: string
         credits_used:
           type: integer
+        deleted_at:
+          type: string
         error_message:
           type: string
         file_name:
@@ -3308,6 +3354,7 @@ components:
           created_at: created_at
           team_id: team_id
           total_pages: 5
+          deleted_at: deleted_at
           file_size: 6
           completed_at: completed_at
           template_name: template_name
@@ -3349,8 +3396,10 @@ components:
           created_at: created_at
           result_format: result_format
           total_pages: 5
+          deleted_at: deleted_at
           completed_at: completed_at
           template_name: template_name
+          is_deleted: true
           stage: stage
           template_id: template_id
           id: id
@@ -3364,8 +3413,10 @@ components:
           created_at: created_at
           result_format: result_format
           total_pages: 5
+          deleted_at: deleted_at
           completed_at: completed_at
           template_name: template_name
+          is_deleted: true
           stage: stage
           template_id: template_id
           id: id
@@ -3667,6 +3718,7 @@ components:
           type: integer
     models_list.ModelResponse:
       example:
+        surcharge_per_page: 5
         credits_per_page: 6
         name: name
         description: description
@@ -3683,15 +3735,19 @@ components:
           type: string
         priority:
           type: integer
+        surcharge_per_page:
+          type: integer
     models_list.ModelsListResponse:
       example:
         models:
-        - credits_per_page: 6
+        - surcharge_per_page: 5
+          credits_per_page: 6
           name: name
           description: description
           display_name: display_name
           priority: 1
-        - credits_per_page: 6
+        - surcharge_per_page: 5
+          credits_per_page: 6
           name: name
           description: description
           display_name: display_name
@@ -3888,6 +3944,7 @@ components:
           name: Invoice Template
           id: 123e4567-e89b-12d3-a456-426614174000
           favorite: true
+          slug: invoice-template
         - schema: "{}"
           instructions: Extract key financial information from invoices
           color: "#FF5733"
@@ -3908,6 +3965,7 @@ components:
           name: Invoice Template
           id: 123e4567-e89b-12d3-a456-426614174000
           favorite: true
+          slug: invoice-template
         limit: 10
         page: 1
         total_pages: 3
@@ -3956,6 +4014,7 @@ components:
         name: Invoice Template
         id: 123e4567-e89b-12d3-a456-426614174000
         favorite: true
+        slug: invoice-template
       properties:
         checksum:
           example: abc123def456
@@ -4000,6 +4059,9 @@ components:
         schema:
           description: JSON schema definition
           type: object
+        slug:
+          example: invoice-template
+          type: string
         tags:
           example:
           - financial
@@ -4233,10 +4295,9 @@ components:
           type: string
         schema:
           additionalProperties: {}
-        template_id:
-          description: "Option 1: Use existing template"
-          example: 123e4567-e89b-12d3-a456-426614174000
-          format: uuid
+        template_slug:
+          description: "Option 1: Use existing template by slug"
+          example: invoice-template
           type: string
       required:
       - content_type
@@ -4284,10 +4345,9 @@ components:
           type: string
         schema:
           additionalProperties: {}
-        template_id:
-          description: "Option 1: Use existing template"
-          example: 123e4567-e89b-12d3-a456-426614174000
-          format: uuid
+        template_slug:
+          description: "Option 1: Use existing template by slug"
+          example: invoice-template
           type: string
         url:
           example: https://example.com/document.pdf

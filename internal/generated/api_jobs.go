@@ -39,6 +39,21 @@ type JobsAPI interface {
 	CancelJobExecute(r JobsAPICancelJobRequest) (*JobsJobResponse, *http.Response, error)
 
 	/*
+		DeleteJob Delete OCR job
+
+		Soft delete an OCR job by redacting all page content to [REDACTED], deleting associated files from storage, and marking the job as deleted. The job will no longer be accessible via normal fetch endpoints but will appear in job listings with a deleted flag.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param jobId OCR job ID to delete
+		@return JobsAPIDeleteJobRequest
+	*/
+	DeleteJob(ctx context.Context, jobId string) JobsAPIDeleteJobRequest
+
+	// DeleteJobExecute executes the request
+	//  @return JobsJobResponse
+	DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobResponse, *http.Response, error)
+
+	/*
 		GetJobStatusSimple Get job status with workflow details
 
 		Get comprehensive job status including database state and Temporal workflow progress information
@@ -267,6 +282,161 @@ func (a *JobsAPIService) CancelJobExecute(r JobsAPICancelJobRequest) (*JobsJobRe
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type JobsAPIDeleteJobRequest struct {
+	ctx        context.Context
+	ApiService JobsAPI
+	jobId      string
+	body       *map[string]interface{}
+}
+
+func (r JobsAPIDeleteJobRequest) Body(body map[string]interface{}) JobsAPIDeleteJobRequest {
+	r.body = &body
+	return r
+}
+
+func (r JobsAPIDeleteJobRequest) Execute() (*JobsJobResponse, *http.Response, error) {
+	return r.ApiService.DeleteJobExecute(r)
+}
+
+/*
+DeleteJob Delete OCR job
+
+Soft delete an OCR job by redacting all page content to [REDACTED], deleting associated files from storage, and marking the job as deleted. The job will no longer be accessible via normal fetch endpoints but will appear in job listings with a deleted flag.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param jobId OCR job ID to delete
+	@return JobsAPIDeleteJobRequest
+*/
+func (a *JobsAPIService) DeleteJob(ctx context.Context, jobId string) JobsAPIDeleteJobRequest {
+	return JobsAPIDeleteJobRequest{
+		ApiService: a,
+		ctx:        ctx,
+		jobId:      jobId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return JobsJobResponse
+func (a *JobsAPIService) DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodDelete
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *JobsJobResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "JobsAPIService.DeleteJob")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/jobs/{job_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.body
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type JobsAPIGetJobStatusSimpleRequest struct {
 	ctx             context.Context
 	ApiService      JobsAPI
@@ -428,19 +598,20 @@ func (a *JobsAPIService) GetJobStatusSimpleExecute(r JobsAPIGetJobStatusSimpleRe
 }
 
 type JobsAPIGetJobsListRequest struct {
-	ctx           context.Context
-	ApiService    JobsAPI
-	teamId        *string
-	page          *int32
-	limit         *int32
-	search        *string
-	status        *string
-	templateId    *string
-	model         *string
-	resultFormat  *string
-	sortBy        *string
-	createdAfter  *time.Time
-	createdBefore *time.Time
+	ctx            context.Context
+	ApiService     JobsAPI
+	teamId         *string
+	page           *int32
+	limit          *int32
+	search         *string
+	status         *string
+	templateId     *string
+	model          *string
+	resultFormat   *string
+	sortBy         *string
+	createdAfter   *time.Time
+	createdBefore  *time.Time
+	includeDeleted *bool
 }
 
 // Team ID to filter jobs by
@@ -506,6 +677,12 @@ func (r JobsAPIGetJobsListRequest) CreatedAfter(createdAfter time.Time) JobsAPIG
 // Filter jobs created before this date
 func (r JobsAPIGetJobsListRequest) CreatedBefore(createdBefore time.Time) JobsAPIGetJobsListRequest {
 	r.createdBefore = &createdBefore
+	return r
+}
+
+// Include soft-deleted jobs in results
+func (r JobsAPIGetJobsListRequest) IncludeDeleted(includeDeleted bool) JobsAPIGetJobsListRequest {
+	r.includeDeleted = &includeDeleted
 	return r
 }
 
@@ -592,6 +769,12 @@ func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJ
 	}
 	if r.createdBefore != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "created_before", r.createdBefore, "form", "")
+	}
+	if r.includeDeleted != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_deleted", r.includeDeleted, "form", "")
+	} else {
+		var defaultValue bool = false
+		r.includeDeleted = &defaultValue
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

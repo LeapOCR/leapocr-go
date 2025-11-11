@@ -30,8 +30,8 @@ type UploadInitiateDirectUploadRequest struct {
 	Instructions *string                `json:"instructions,omitempty"`
 	Model        *string                `json:"model,omitempty"`
 	Schema       map[string]interface{} `json:"schema,omitempty"`
-	// Option 1: Use existing template
-	TemplateId *string `json:"template_id,omitempty"`
+	// Option 1: Use existing template by slug
+	TemplateSlug *string `json:"template_slug,omitempty"`
 }
 
 type _UploadInitiateDirectUploadRequest UploadInitiateDirectUploadRequest
@@ -263,36 +263,36 @@ func (o *UploadInitiateDirectUploadRequest) SetSchema(v map[string]interface{}) 
 	o.Schema = v
 }
 
-// GetTemplateId returns the TemplateId field value if set, zero value otherwise.
-func (o *UploadInitiateDirectUploadRequest) GetTemplateId() string {
-	if o == nil || IsNil(o.TemplateId) {
+// GetTemplateSlug returns the TemplateSlug field value if set, zero value otherwise.
+func (o *UploadInitiateDirectUploadRequest) GetTemplateSlug() string {
+	if o == nil || IsNil(o.TemplateSlug) {
 		var ret string
 		return ret
 	}
-	return *o.TemplateId
+	return *o.TemplateSlug
 }
 
-// GetTemplateIdOk returns a tuple with the TemplateId field value if set, nil otherwise
+// GetTemplateSlugOk returns a tuple with the TemplateSlug field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UploadInitiateDirectUploadRequest) GetTemplateIdOk() (*string, bool) {
-	if o == nil || IsNil(o.TemplateId) {
+func (o *UploadInitiateDirectUploadRequest) GetTemplateSlugOk() (*string, bool) {
+	if o == nil || IsNil(o.TemplateSlug) {
 		return nil, false
 	}
-	return o.TemplateId, true
+	return o.TemplateSlug, true
 }
 
-// HasTemplateId returns a boolean if a field has been set.
-func (o *UploadInitiateDirectUploadRequest) HasTemplateId() bool {
-	if o != nil && !IsNil(o.TemplateId) {
+// HasTemplateSlug returns a boolean if a field has been set.
+func (o *UploadInitiateDirectUploadRequest) HasTemplateSlug() bool {
+	if o != nil && !IsNil(o.TemplateSlug) {
 		return true
 	}
 
 	return false
 }
 
-// SetTemplateId gets a reference to the given string and assigns it to the TemplateId field.
-func (o *UploadInitiateDirectUploadRequest) SetTemplateId(v string) {
-	o.TemplateId = &v
+// SetTemplateSlug gets a reference to the given string and assigns it to the TemplateSlug field.
+func (o *UploadInitiateDirectUploadRequest) SetTemplateSlug(v string) {
+	o.TemplateSlug = &v
 }
 
 func (o UploadInitiateDirectUploadRequest) MarshalJSON() ([]byte, error) {
@@ -322,8 +322,8 @@ func (o UploadInitiateDirectUploadRequest) ToMap() (map[string]interface{}, erro
 	if !IsNil(o.Schema) {
 		toSerialize["schema"] = o.Schema
 	}
-	if !IsNil(o.TemplateId) {
-		toSerialize["template_id"] = o.TemplateId
+	if !IsNil(o.TemplateSlug) {
+		toSerialize["template_slug"] = o.TemplateSlug
 	}
 	return toSerialize, nil
 }

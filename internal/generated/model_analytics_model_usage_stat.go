@@ -24,6 +24,7 @@ type AnalyticsModelUsageStat struct {
 	JobsProcessed   *int32  `json:"jobs_processed,omitempty"`
 	Model           *string `json:"model,omitempty"`
 	Transactions    *int32  `json:"transactions,omitempty"`
+	UserId          *string `json:"user_id,omitempty"`
 }
 
 // NewAnalyticsModelUsageStat instantiates a new AnalyticsModelUsageStat object
@@ -171,6 +172,38 @@ func (o *AnalyticsModelUsageStat) SetTransactions(v int32) {
 	o.Transactions = &v
 }
 
+// GetUserId returns the UserId field value if set, zero value otherwise.
+func (o *AnalyticsModelUsageStat) GetUserId() string {
+	if o == nil || IsNil(o.UserId) {
+		var ret string
+		return ret
+	}
+	return *o.UserId
+}
+
+// GetUserIdOk returns a tuple with the UserId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *AnalyticsModelUsageStat) GetUserIdOk() (*string, bool) {
+	if o == nil || IsNil(o.UserId) {
+		return nil, false
+	}
+	return o.UserId, true
+}
+
+// HasUserId returns a boolean if a field has been set.
+func (o *AnalyticsModelUsageStat) HasUserId() bool {
+	if o != nil && !IsNil(o.UserId) {
+		return true
+	}
+
+	return false
+}
+
+// SetUserId gets a reference to the given string and assigns it to the UserId field.
+func (o *AnalyticsModelUsageStat) SetUserId(v string) {
+	o.UserId = &v
+}
+
 func (o AnalyticsModelUsageStat) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -192,6 +225,9 @@ func (o AnalyticsModelUsageStat) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Transactions) {
 		toSerialize["transactions"] = o.Transactions
+	}
+	if !IsNil(o.UserId) {
+		toSerialize["user_id"] = o.UserId
 	}
 	return toSerialize, nil
 }

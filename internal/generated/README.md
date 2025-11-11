@@ -91,6 +91,7 @@ Class | Method | HTTP request | Description
 *CreditsAPI* | [**GetPolarProductsCatalog**](docs/CreditsAPI.md#getpolarproductscatalog) | **Get** /credits/polar/products/catalog | Get Polar products catalog
 *HealthAPI* | [**GetHealthStatus**](docs/HealthAPI.md#gethealthstatus) | **Get** /health | Get system health status
 *JobsAPI* | [**CancelJob**](docs/JobsAPI.md#canceljob) | **Post** /jobs/{job_id}/cancel | Cancel OCR job
+*JobsAPI* | [**DeleteJob**](docs/JobsAPI.md#deletejob) | **Delete** /jobs/{job_id} | Delete OCR job
 *JobsAPI* | [**GetJobStatusSimple**](docs/JobsAPI.md#getjobstatussimple) | **Get** /jobs/{job_id}/status | Get job status with workflow details
 *JobsAPI* | [**GetJobsList**](docs/JobsAPI.md#getjobslist) | **Get** /jobs/list | Get jobs list
 *JobsAPI* | [**RestartJob**](docs/JobsAPI.md#restartjob) | **Post** /jobs/{job_id}/restart | Restart OCR job

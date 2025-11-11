@@ -24,17 +24,20 @@ type JobsJobListItem struct {
 	CompletedAt     *string  `json:"completed_at,omitempty"`
 	CreatedAt       *string  `json:"created_at,omitempty"`
 	CreditsUsed     *int32   `json:"credits_used,omitempty"`
+	DeletedAt       *string  `json:"deleted_at,omitempty"`
 	DurationSeconds *float32 `json:"duration_seconds,omitempty"`
 	FileName        *string  `json:"file_name,omitempty"`
 	Id              *string  `json:"id,omitempty"`
-	ProcessedPages  *int32   `json:"processed_pages,omitempty"`
-	ProcessingTime  *float32 `json:"processing_time,omitempty"`
-	ResultFormat    *string  `json:"result_format,omitempty"`
-	Stage           *string  `json:"stage,omitempty"`
-	Status          *string  `json:"status,omitempty"`
-	TemplateId      *string  `json:"template_id,omitempty"`
-	TemplateName    *string  `json:"template_name,omitempty"`
-	TotalPages      *int32   `json:"total_pages,omitempty"`
+	// Computed field for API convenience: true if DeletedAt != nil
+	IsDeleted      *bool    `json:"is_deleted,omitempty"`
+	ProcessedPages *int32   `json:"processed_pages,omitempty"`
+	ProcessingTime *float32 `json:"processing_time,omitempty"`
+	ResultFormat   *string  `json:"result_format,omitempty"`
+	Stage          *string  `json:"stage,omitempty"`
+	Status         *string  `json:"status,omitempty"`
+	TemplateId     *string  `json:"template_id,omitempty"`
+	TemplateName   *string  `json:"template_name,omitempty"`
+	TotalPages     *int32   `json:"total_pages,omitempty"`
 }
 
 // NewJobsJobListItem instantiates a new JobsJobListItem object
@@ -182,6 +185,38 @@ func (o *JobsJobListItem) SetCreditsUsed(v int32) {
 	o.CreditsUsed = &v
 }
 
+// GetDeletedAt returns the DeletedAt field value if set, zero value otherwise.
+func (o *JobsJobListItem) GetDeletedAt() string {
+	if o == nil || IsNil(o.DeletedAt) {
+		var ret string
+		return ret
+	}
+	return *o.DeletedAt
+}
+
+// GetDeletedAtOk returns a tuple with the DeletedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *JobsJobListItem) GetDeletedAtOk() (*string, bool) {
+	if o == nil || IsNil(o.DeletedAt) {
+		return nil, false
+	}
+	return o.DeletedAt, true
+}
+
+// HasDeletedAt returns a boolean if a field has been set.
+func (o *JobsJobListItem) HasDeletedAt() bool {
+	if o != nil && !IsNil(o.DeletedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetDeletedAt gets a reference to the given string and assigns it to the DeletedAt field.
+func (o *JobsJobListItem) SetDeletedAt(v string) {
+	o.DeletedAt = &v
+}
+
 // GetDurationSeconds returns the DurationSeconds field value if set, zero value otherwise.
 func (o *JobsJobListItem) GetDurationSeconds() float32 {
 	if o == nil || IsNil(o.DurationSeconds) {
@@ -276,6 +311,38 @@ func (o *JobsJobListItem) HasId() bool {
 // SetId gets a reference to the given string and assigns it to the Id field.
 func (o *JobsJobListItem) SetId(v string) {
 	o.Id = &v
+}
+
+// GetIsDeleted returns the IsDeleted field value if set, zero value otherwise.
+func (o *JobsJobListItem) GetIsDeleted() bool {
+	if o == nil || IsNil(o.IsDeleted) {
+		var ret bool
+		return ret
+	}
+	return *o.IsDeleted
+}
+
+// GetIsDeletedOk returns a tuple with the IsDeleted field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *JobsJobListItem) GetIsDeletedOk() (*bool, bool) {
+	if o == nil || IsNil(o.IsDeleted) {
+		return nil, false
+	}
+	return o.IsDeleted, true
+}
+
+// HasIsDeleted returns a boolean if a field has been set.
+func (o *JobsJobListItem) HasIsDeleted() bool {
+	if o != nil && !IsNil(o.IsDeleted) {
+		return true
+	}
+
+	return false
+}
+
+// SetIsDeleted gets a reference to the given bool and assigns it to the IsDeleted field.
+func (o *JobsJobListItem) SetIsDeleted(v bool) {
+	o.IsDeleted = &v
 }
 
 // GetProcessedPages returns the ProcessedPages field value if set, zero value otherwise.
@@ -556,6 +623,9 @@ func (o JobsJobListItem) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.CreditsUsed) {
 		toSerialize["credits_used"] = o.CreditsUsed
 	}
+	if !IsNil(o.DeletedAt) {
+		toSerialize["deleted_at"] = o.DeletedAt
+	}
 	if !IsNil(o.DurationSeconds) {
 		toSerialize["duration_seconds"] = o.DurationSeconds
 	}
@@ -564,6 +634,9 @@ func (o JobsJobListItem) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.IsDeleted) {
+		toSerialize["is_deleted"] = o.IsDeleted
 	}
 	if !IsNil(o.ProcessedPages) {
 		toSerialize["processed_pages"] = o.ProcessedPages

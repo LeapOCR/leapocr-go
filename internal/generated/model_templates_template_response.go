@@ -34,6 +34,7 @@ type TemplatesTemplateResponse struct {
 	Name         *string    `json:"name,omitempty"`
 	// JSON schema definition
 	Schema     map[string]interface{} `json:"schema,omitempty"`
+	Slug       *string                `json:"slug,omitempty"`
 	Tags       []string               `json:"tags,omitempty"`
 	TeamId     *string                `json:"team_id,omitempty"`
 	UpdatedAt  *time.Time             `json:"updated_at,omitempty"`
@@ -442,6 +443,38 @@ func (o *TemplatesTemplateResponse) SetSchema(v map[string]interface{}) {
 	o.Schema = v
 }
 
+// GetSlug returns the Slug field value if set, zero value otherwise.
+func (o *TemplatesTemplateResponse) GetSlug() string {
+	if o == nil || IsNil(o.Slug) {
+		var ret string
+		return ret
+	}
+	return *o.Slug
+}
+
+// GetSlugOk returns a tuple with the Slug field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *TemplatesTemplateResponse) GetSlugOk() (*string, bool) {
+	if o == nil || IsNil(o.Slug) {
+		return nil, false
+	}
+	return o.Slug, true
+}
+
+// HasSlug returns a boolean if a field has been set.
+func (o *TemplatesTemplateResponse) HasSlug() bool {
+	if o != nil && !IsNil(o.Slug) {
+		return true
+	}
+
+	return false
+}
+
+// SetSlug gets a reference to the given string and assigns it to the Slug field.
+func (o *TemplatesTemplateResponse) SetSlug(v string) {
+	o.Slug = &v
+}
+
 // GetTags returns the Tags field value if set, zero value otherwise.
 func (o *TemplatesTemplateResponse) GetTags() []string {
 	if o == nil || IsNil(o.Tags) {
@@ -647,6 +680,9 @@ func (o TemplatesTemplateResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Schema) {
 		toSerialize["schema"] = o.Schema
+	}
+	if !IsNil(o.Slug) {
+		toSerialize["slug"] = o.Slug
 	}
 	if !IsNil(o.Tags) {
 		toSerialize["tags"] = o.Tags

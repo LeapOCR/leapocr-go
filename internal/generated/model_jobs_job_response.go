@@ -23,6 +23,7 @@ type JobsJobResponse struct {
 	CompletedAt    *string                `json:"completed_at,omitempty"`
 	CreatedAt      *string                `json:"created_at,omitempty"`
 	CreditsUsed    *int32                 `json:"credits_used,omitempty"`
+	DeletedAt      *string                `json:"deleted_at,omitempty"`
 	ErrorMessage   *string                `json:"error_message,omitempty"`
 	FileName       *string                `json:"file_name,omitempty"`
 	FileSize       *int32                 `json:"file_size,omitempty"`
@@ -149,6 +150,38 @@ func (o *JobsJobResponse) HasCreditsUsed() bool {
 // SetCreditsUsed gets a reference to the given int32 and assigns it to the CreditsUsed field.
 func (o *JobsJobResponse) SetCreditsUsed(v int32) {
 	o.CreditsUsed = &v
+}
+
+// GetDeletedAt returns the DeletedAt field value if set, zero value otherwise.
+func (o *JobsJobResponse) GetDeletedAt() string {
+	if o == nil || IsNil(o.DeletedAt) {
+		var ret string
+		return ret
+	}
+	return *o.DeletedAt
+}
+
+// GetDeletedAtOk returns a tuple with the DeletedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *JobsJobResponse) GetDeletedAtOk() (*string, bool) {
+	if o == nil || IsNil(o.DeletedAt) {
+		return nil, false
+	}
+	return o.DeletedAt, true
+}
+
+// HasDeletedAt returns a boolean if a field has been set.
+func (o *JobsJobResponse) HasDeletedAt() bool {
+	if o != nil && !IsNil(o.DeletedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetDeletedAt gets a reference to the given string and assigns it to the DeletedAt field.
+func (o *JobsJobResponse) SetDeletedAt(v string) {
+	o.DeletedAt = &v
 }
 
 // GetErrorMessage returns the ErrorMessage field value if set, zero value otherwise.
@@ -585,6 +618,9 @@ func (o JobsJobResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.CreditsUsed) {
 		toSerialize["credits_used"] = o.CreditsUsed
+	}
+	if !IsNil(o.DeletedAt) {
+		toSerialize["deleted_at"] = o.DeletedAt
 	}
 	if !IsNil(o.ErrorMessage) {
 		toSerialize["error_message"] = o.ErrorMessage
