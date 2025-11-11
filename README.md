@@ -75,19 +75,13 @@ func main() {
 
 - **Idiomatic Go API** - Clean, type-safe interface following Go best practices
 - **Multiple Processing Formats** - Structured data extraction, markdown output, or per-page processing
-- **Flexible Model Selection** - Choose from standard, pro, or custom AI models
+- **Flexible Model Selection** - Choose from standard, english pro, or custom AI models
 - **Custom Schema Support** - Define extraction schemas for your specific use case
 - **Built-in Retry Logic** - Automatic handling of transient failures
 - **Context Support** - Full context.Context integration for timeouts and cancellation
 - **Direct File Upload** - Efficient multipart uploads for local files
 
 ## Processing Models
-
-| Model               | Use Case                           | Credits/Page | Priority |
-| ------------------- | ---------------------------------- | ------------ | -------- |
-| `ModelStandardV1`   | General purpose (default)          | 1            | 1        |
-| `ModelEnglishProV1` | English documents, premium quality | 2            | 4        |
-| `ModelProV1`        | Highest quality, all languages     | 5            | 5        |
 
 Use `WithModel()` to specify a model, or `WithModelString()` for custom models. Defaults to `ModelStandardV1`.
 
@@ -393,4 +387,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Version**: 0.0.3
+**Version**: 0.0.4

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2025-11-11
+
+### Breaking Changes
+
+- **Template Parameter Update**: Replaced `template_id` with `template_slug` in processing options
+  - Use `WithTemplateSlug()` instead of template ID references
+  - Template slugs provide more readable and stable identifiers
+
+### Added
+
+- `DeleteJob()` method to soft delete OCR jobs and redact sensitive content
+- `WithTemplateSlug()` option for using pre-configured templates
+- Enhanced validation for template slug parameter
+- Automatic cleanup examples for sensitive data handling
+
+### Changed
+
+- Updated processing options to use template slugs for structured extraction
+- Enhanced API validation functions to support template slug functionality
+- Updated README and examples with DeleteJob usage patterns
+
+## [0.0.3] - 2025-11-07
+
 ### Breaking Changes
 
 - **Tier → Model Migration**: Replaced `WithTier()` option with `WithModel()` for OCR model selection
