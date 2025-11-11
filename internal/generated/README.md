@@ -91,19 +91,21 @@ Class | Method | HTTP request | Description
 *CreditsAPI* | [**GetPolarProductsCatalog**](docs/CreditsAPI.md#getpolarproductscatalog) | **Get** /credits/polar/products/catalog | Get Polar products catalog
 *HealthAPI* | [**GetHealthStatus**](docs/HealthAPI.md#gethealthstatus) | **Get** /health | Get system health status
 *JobsAPI* | [**CancelJob**](docs/JobsAPI.md#canceljob) | **Post** /jobs/{job_id}/cancel | Cancel OCR job
-*JobsAPI* | [**DeleteJob**](docs/JobsAPI.md#deletejob) | **Delete** /jobs/{job_id} | Delete OCR job
+*JobsAPI* | [**DeleteJob**](docs/JobsAPI.md#deletejob) | **Delete** /ocr/delete/{job_id} | Delete OCR job
 *JobsAPI* | [**GetJobStatusSimple**](docs/JobsAPI.md#getjobstatussimple) | **Get** /jobs/{job_id}/status | Get job status with workflow details
 *JobsAPI* | [**GetJobsList**](docs/JobsAPI.md#getjobslist) | **Get** /jobs/list | Get jobs list
 *JobsAPI* | [**RestartJob**](docs/JobsAPI.md#restartjob) | **Post** /jobs/{job_id}/restart | Restart OCR job
 *JobsAPI* | [**RetryJob**](docs/JobsAPI.md#retryjob) | **Post** /jobs/{job_id}/retry | Retry OCR job
 *ModelsAPI* | [**ListOCRModels**](docs/ModelsAPI.md#listocrmodels) | **Get** /ocr/models | List available OCR models
 *OCRAPI* | [**CompleteDirectUpload**](docs/OCRAPI.md#completedirectupload) | **Post** /ocr/uploads/{job_id}/complete | Complete direct upload
+*OCRAPI* | [**DeleteJob**](docs/OCRAPI.md#deletejob) | **Delete** /ocr/delete/{job_id} | Delete OCR job
 *OCRAPI* | [**DirectUpload**](docs/OCRAPI.md#directupload) | **Post** /ocr/uploads/direct | Direct upload
 *OCRAPI* | [**GetJobResult**](docs/OCRAPI.md#getjobresult) | **Get** /ocr/result/{job_id} | Get OCR job result
 *OCRAPI* | [**GetJobStatus**](docs/OCRAPI.md#getjobstatus) | **Get** /ocr/status/{job_id} | Get OCR job status
 *OCRAPI* | [**ListOCRModels**](docs/OCRAPI.md#listocrmodels) | **Get** /ocr/models | List available OCR models
 *OCRAPI* | [**UploadFromRemoteURL**](docs/OCRAPI.md#uploadfromremoteurl) | **Post** /ocr/uploads/url | Remote URL upload
 *SDKAPI* | [**CompleteDirectUpload**](docs/SDKAPI.md#completedirectupload) | **Post** /ocr/uploads/{job_id}/complete | Complete direct upload
+*SDKAPI* | [**DeleteJob**](docs/SDKAPI.md#deletejob) | **Delete** /ocr/delete/{job_id} | Delete OCR job
 *SDKAPI* | [**DirectUpload**](docs/SDKAPI.md#directupload) | **Post** /ocr/uploads/direct | Direct upload
 *SDKAPI* | [**GetJobResult**](docs/SDKAPI.md#getjobresult) | **Get** /ocr/result/{job_id} | Get OCR job result
 *SDKAPI* | [**GetJobStatus**](docs/SDKAPI.md#getjobstatus) | **Get** /ocr/status/{job_id} | Get OCR job status

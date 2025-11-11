@@ -95,6 +95,12 @@ func TestIntegration_ProcessFile(t *testing.T) {
 		t.Logf("First page text length: %d characters", len(result.Pages[0].Text))
 		// Confidence is no longer returned by the API
 	}
+
+	// Test deletion
+	t.Logf("Step 4: Deleting job to test cleanup...")
+	err = sdk.DeleteJob(ctx, job.ID)
+	require.NoError(t, err)
+	t.Logf("Job deleted successfully!")
 }
 
 // findRepoRoot finds the repository root by looking for go.mod file
@@ -230,6 +236,78 @@ func TestIntegration_CustomWaitOptions(t *testing.T) {
 
 	require.Error(t, err)
 	t.Logf("Wait with custom options failed after %v: %v", duration, err)
+}
+
+func TestIntegration_DeleteJob(t *testing.T) {
+	sdk := createTestSDK(t)
+
+	// Find repo root and test file
+	repoRoot := findRepoRoot(t)
+	sampleDir := filepath.Join(repoRoot, "sample")
+	testFiles := []string{
+		filepath.Join(sampleDir, "test.pdf"),
+		filepath.Join(sampleDir, "A129of19_14.01.22.pdf"),
+	}
+
+	var testFile string
+	for _, file := range testFiles {
+		if _, err := os.Stat(file); err == nil {
+			testFile = file
+			break
+		}
+	}
+
+	if testFile == "" {
+		t.Skip("No test files found in sample/ folder. Add sample PDF files to run this test.")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Process a file
+	file, err := os.Open(testFile)
+	require.NoError(t, err)
+	defer file.Close()
+
+	t.Logf("Processing file for deletion test: %s", filepath.Base(testFile))
+	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile),
+		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithModel(ocr.ModelStandardV1),
+	)
+	require.NoError(t, err)
+	t.Logf("Job created: %s", job.ID)
+
+	// Wait for completion
+	result, err := sdk.WaitUntilDone(ctx, job.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "completed", result.Status)
+	t.Logf("Job completed successfully")
+
+	// Delete the job
+	t.Logf("Deleting job: %s", job.ID)
+	err = sdk.DeleteJob(ctx, job.ID)
+	require.NoError(t, err)
+	t.Logf("Job deleted successfully!")
+
+	// Try to delete again - should fail or succeed (depending on API behavior)
+	err = sdk.DeleteJob(ctx, job.ID)
+	if err != nil {
+		t.Logf("Second delete attempt returned error (expected): %v", err)
+	} else {
+		t.Logf("Second delete attempt succeeded (idempotent)")
+	}
+}
+
+func TestIntegration_DeleteNonExistentJob(t *testing.T) {
+	sdk := createTestSDK(t)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Try to delete a non-existent job
+	err := sdk.DeleteJob(ctx, "non-existent-job-id-12345")
+	require.Error(t, err)
+	t.Logf("Correctly handled deletion of non-existent job: %v", err)
 }
 
 func createTestSDK(t *testing.T) *ocr.SDK {

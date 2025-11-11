@@ -94,6 +94,13 @@ func processLocalFile(sdk *ocr.SDK) error {
 		fmt.Printf("First page text: %s\n", text)
 	}
 
+	// Optional: Delete the job after processing
+	fmt.Println("Deleting job...")
+	if err := sdk.DeleteJob(ctx, job.ID); err != nil {
+		return fmt.Errorf("failed to delete job: %w", err)
+	}
+	fmt.Println("Job deleted successfully")
+
 	fmt.Println()
 	return nil
 }

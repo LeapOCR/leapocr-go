@@ -58,7 +58,7 @@ type processingConfig struct {
 	model        string // Can be a Model constant or any custom model string
 	schema       map[string]interface{}
 	instructions string
-	categoryID   string
+	templateSlug string
 }
 
 // WithFormat sets the output format
@@ -99,10 +99,10 @@ func WithInstructions(instructions string) ProcessingOption {
 	}
 }
 
-// WithCategoryID sets the document category ID
-func WithCategoryID(categoryID string) ProcessingOption {
+// WithTemplateSlug sets the template slug for structured extraction
+func WithTemplateSlug(templateSlug string) ProcessingOption {
 	return func(c *processingConfig) {
-		c.categoryID = categoryID
+		c.templateSlug = templateSlug
 	}
 }
 

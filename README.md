@@ -63,6 +63,11 @@ func main() {
     }
 
     fmt.Printf("Extracted data: %+v\n", result.Data)
+
+    // Optional: Delete the job to remove sensitive data
+    if err := client.DeleteJob(ctx, job.ID); err != nil {
+        log.Printf("Failed to delete job: %v", err)
+    }
 }
 ```
 
@@ -134,7 +139,21 @@ job, err := client.ProcessFile(ctx, file, "invoice.pdf",
 )
 ```
 
+### Using Templates
+
+Use pre-configured templates for common document types:
+
+```go
+// Use an existing template by slug
+job, err := client.ProcessFile(ctx, file, "invoice.pdf",
+    ocr.WithFormat(ocr.FormatStructured),
+    ocr.WithTemplateSlug("invoice-template"),
+)
+```
+
 ### Custom Schema Extraction
+
+Define custom extraction schemas for specific use cases:
 
 ```go
 schema := map[string]interface{}{
@@ -191,6 +210,27 @@ for {
     }
 
     <-ticker.C
+}
+```
+
+### Deleting Jobs
+
+Delete jobs to remove sensitive data and free up storage. Jobs and their associated files are automatically deleted after 7 days, but you can delete them immediately after processing:
+
+```go
+// Process and delete immediately after retrieving results
+result, err := client.WaitUntilDone(ctx, job.ID)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Use the result
+fmt.Printf("Extracted data: %+v\n", result.Data)
+
+// Delete the job (redacts content and marks as deleted)
+err = client.DeleteJob(ctx, job.ID)
+if err != nil {
+    log.Printf("Failed to delete job: %v", err)
 }
 ```
 
@@ -271,17 +311,18 @@ ProcessFile(ctx context.Context, file io.Reader, filename string, opts ...Proces
 GetJobStatus(ctx context.Context, jobID string) (*JobStatus, error)
 GetJobResult(ctx context.Context, jobID string) (*OCRResult, error)
 WaitUntilDone(ctx context.Context, jobID string) (*OCRResult, error)
+DeleteJob(ctx context.Context, jobID string) error
 ```
 
 ### Processing Options
 
 ```go
-WithFormat(format Format)              // Set output format
-WithModel(model Model)                  // Set OCR model
-WithModelString(model string)           // Set custom model
+WithFormat(format Format)                 // Set output format
+WithModel(model Model)                    // Set OCR model
+WithModelString(model string)             // Set custom model
 WithSchema(schema map[string]interface{}) // Define extraction schema
-WithInstructions(instructions string)   // Add processing instructions
-WithCategoryID(categoryID string)       // Set document category
+WithInstructions(instructions string)     // Add processing instructions
+WithTemplateSlug(templateSlug string)     // Use existing template
 ```
 
 ## Development

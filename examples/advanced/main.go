@@ -125,6 +125,12 @@ func batchProcessingExample(apiKey string) error {
 			}
 
 			fmt.Printf("Completed processing file %d (Job ID: %s)\n", idx+1, job.ID)
+
+			// Optional: Delete the job after processing
+			if err := sdk.DeleteJob(ctx, job.ID); err != nil {
+				fmt.Printf("Warning: Failed to delete job %s: %v\n", job.ID, err)
+			}
+
 			results <- result
 		}(i, fileURL)
 	}
@@ -254,6 +260,14 @@ func schemaExtractionExample(apiKey string) error {
 	fmt.Printf("Schema-based extraction completed!\n")
 	fmt.Printf("Credits used: %d\n", result.Credits)
 	fmt.Printf("Extracted data: %+v\n", result.Data)
+
+	// Optional: Delete the job after processing
+	if err := sdk.DeleteJob(ctx, job.ID); err != nil {
+		fmt.Printf("Warning: Failed to delete job: %v\n", err)
+	} else {
+		fmt.Println("Job deleted successfully")
+	}
+
 	fmt.Println()
 
 	return nil

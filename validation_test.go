@@ -225,7 +225,7 @@ func TestValidateSchema(t *testing.T) {
 	}
 }
 
-func TestValidateCategoryID(t *testing.T) {
+func TestValidateTemplateSlug(t *testing.T) {
 	tests := []struct {
 		name        string
 		categoryID  string
@@ -244,7 +244,7 @@ func TestValidateCategoryID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateCategoryID(tt.categoryID)
+			err := ValidateTemplateSlug(tt.categoryID)
 			if tt.expectError && err == nil {
 				t.Errorf("expected error for category ID %q, got none", tt.categoryID)
 			}
@@ -268,7 +268,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 				model:        string(ModelStandardV1),
 				schema:       map[string]interface{}{"title": "string"},
 				instructions: "Extract the title",
-				categoryID:   "invoice",
+				templateSlug: "invoice",
 			},
 			expectError: false,
 		},
@@ -318,9 +318,9 @@ func TestValidateProcessingConfig(t *testing.T) {
 		{
 			name: "invalid category ID",
 			config: &processingConfig{
-				format:     FormatStructured,
-				model:      string(ModelStandardV1),
-				categoryID: "invalid category",
+				format:       FormatStructured,
+				model:        string(ModelStandardV1),
+				templateSlug: "invalid category",
 			},
 			expectError: true,
 		},

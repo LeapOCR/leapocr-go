@@ -40,6 +40,9 @@ func (s *SDK) ProcessURL(ctx context.Context, fileURL string, opts ...Processing
 	if config.schema != nil {
 		request.Schema = config.schema
 	}
+	if config.templateSlug != "" {
+		request.TemplateSlug = &config.templateSlug
+	}
 
 	// Make the API call using the generated client
 	apiRequest := s.client.SDKAPI.UploadFromRemoteURL(ctx)
@@ -118,6 +121,9 @@ func (s *SDK) ProcessFile(ctx context.Context, file io.Reader, filename string, 
 	}
 	if config.schema != nil {
 		uploadRequest.Schema = config.schema
+	}
+	if config.templateSlug != "" {
+		uploadRequest.TemplateSlug = &config.templateSlug
 	}
 
 	// Make the API call to get presigned URLs

@@ -73,9 +73,9 @@ func TestProcessURL_Validation(t *testing.T) {
 			name: "invalid category ID",
 			url:  "https://example.com/document.pdf",
 			opts: []ProcessingOption{
-				WithCategoryID("invalid category"),
+				WithTemplateSlug("invalid category"),
 			},
-			expectError: "category ID can only contain letters, numbers, hyphens, and underscores",
+			expectError: "template slug can only contain letters, numbers, hyphens, and underscores",
 		},
 	}
 
@@ -191,7 +191,7 @@ func TestProcessingOptions_Validation(t *testing.T) {
 					"amount": "number",
 				}),
 				WithInstructions("Extract title and amount"),
-				WithCategoryID("invoice"),
+				WithTemplateSlug("invoice"),
 			},
 			expectError: "",
 		},

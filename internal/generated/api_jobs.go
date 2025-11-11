@@ -41,7 +41,7 @@ type JobsAPI interface {
 	/*
 		DeleteJob Delete OCR job
 
-		Soft delete an OCR job by redacting all page content to [REDACTED], deleting associated files from storage, and marking the job as deleted. The job will no longer be accessible via normal fetch endpoints but will appear in job listings with a deleted flag.
+		Delets a job
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param jobId OCR job ID to delete
@@ -301,7 +301,7 @@ func (r JobsAPIDeleteJobRequest) Execute() (*JobsJobResponse, *http.Response, er
 /*
 DeleteJob Delete OCR job
 
-Soft delete an OCR job by redacting all page content to [REDACTED], deleting associated files from storage, and marking the job as deleted. The job will no longer be accessible via normal fetch endpoints but will appear in job listings with a deleted flag.
+Delets a job
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param jobId OCR job ID to delete
@@ -331,7 +331,7 @@ func (a *JobsAPIService) DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobRe
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/jobs/{job_id}"
+	localVarPath := localBasePath + "/ocr/delete/{job_id}"
 	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
 
 	localVarHeaderParams := make(map[string]string)

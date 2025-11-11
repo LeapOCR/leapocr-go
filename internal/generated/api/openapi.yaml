@@ -1051,62 +1051,6 @@ paths:
       summary: Get jobs list
       tags:
       - Jobs
-  /jobs/{job_id}:
-    delete:
-      description: "Soft delete an OCR job by redacting all page content to [REDACTED],\
-        \ deleting associated files from storage, and marking the job as deleted.\
-        \ The job will no longer be accessible via normal fetch endpoints but will\
-        \ appear in job listings with a deleted flag."
-      operationId: deleteJob
-      parameters:
-      - description: OCR job ID to delete
-        explode: false
-        in: path
-        name: job_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/jobs.JobResponse"
-          description: Job deleted successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Bad request - invalid job ID
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Unauthorized - authentication required
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Not found - job does not exist or already deleted
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Internal server error
-      summary: Delete OCR job
-      tags:
-      - Jobs
   /jobs/{job_id}/cancel:
     post:
       description: "Cancel an OCR processing job that is currently in pending or processing\
@@ -1347,6 +1291,61 @@ paths:
       summary: Get job status with workflow details
       tags:
       - Jobs
+  /ocr/delete/{job_id}:
+    delete:
+      description: Delets a job
+      operationId: deleteJob
+      parameters:
+      - description: OCR job ID to delete
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jobs.JobResponse"
+          description: Job deleted successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad request - invalid job ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Unauthorized - authentication required
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not found - job does not exist or already deleted
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal server error
+      summary: Delete OCR job
+      tags:
+      - Jobs
+      - OCR
+      - SDK
   /ocr/models:
     get:
       description: "Retrieve a list of all enabled OCR models with their configurations,\

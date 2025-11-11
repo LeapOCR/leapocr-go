@@ -159,24 +159,24 @@ func ValidateSchema(schema map[string]interface{}, format Format) error {
 	return nil
 }
 
-// ValidateCategoryID validates document category ID
-func ValidateCategoryID(categoryID string) error {
-	if categoryID == "" {
-		return nil // Category ID is optional
+// ValidateTemplateSlug validates template slug
+func ValidateTemplateSlug(templateSlug string) error {
+	if templateSlug == "" {
+		return nil // Template slug is optional
 	}
 
-	// Category ID should be a reasonable length and contain valid characters
-	if len(categoryID) > 100 {
-		return NewValidationError("categoryID", "category ID too long. Maximum allowed is 100 characters")
+	// Template slug should be a reasonable length and contain valid characters
+	if len(templateSlug) > 100 {
+		return NewValidationError("templateSlug", "template slug too long. Maximum allowed is 100 characters")
 	}
 
 	// Basic character validation - only allow alphanumeric, hyphens, and underscores
-	for _, char := range categoryID {
+	for _, char := range templateSlug {
 		if (char < 'a' || char > 'z') &&
 			(char < 'A' || char > 'Z') &&
 			(char < '0' || char > '9') &&
 			char != '-' && char != '_' {
-			return NewValidationError("categoryID", "category ID can only contain letters, numbers, hyphens, and underscores")
+			return NewValidationError("templateSlug", "template slug can only contain letters, numbers, hyphens, and underscores")
 		}
 	}
 
@@ -205,8 +205,8 @@ func ValidateProcessingConfig(config *processingConfig) error {
 		return err
 	}
 
-	// Validate category ID
-	if err := ValidateCategoryID(config.categoryID); err != nil {
+	// Validate template slug
+	if err := ValidateTemplateSlug(config.templateSlug); err != nil {
 		return err
 	}
 
