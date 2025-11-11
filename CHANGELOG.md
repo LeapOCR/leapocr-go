@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.4] - 2025-11-11
 
+- Add Apache License 2.0
+- add DeleteJob function and update processing options
+
+
+
+
+
+
+## [0.0.4] - 2025-11-11
+
 ### Breaking Changes
 
 - **Template Parameter Update**: Replaced `template_id` with `template_slug` in processing options
