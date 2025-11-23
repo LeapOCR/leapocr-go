@@ -17,7 +17,7 @@ import (
 
 // Integration tests require:
 // 1. LEAPOCR_API_KEY environment variable
-// 2. OCR API server running (default: http://localhost:8080/api/v1)
+// 2. OCR API server running (default: http://localhost:8443/api/v1)
 // 3. Sample test files in sample/ folder (e.g., test.pdf, A129of19_14.01.22.pdf)
 
 func TestIntegration_ProcessFile(t *testing.T) {
@@ -318,7 +318,7 @@ func createTestSDK(t *testing.T) *ocr.SDK {
 
 	baseURL := os.Getenv("OCR_BASE_URL")
 	if baseURL == "" {
-		baseURL = "http://localhost:8080/api/v1"
+		baseURL = "http://localhost:8443/api/v1"
 	}
 
 	// Create custom config for testing

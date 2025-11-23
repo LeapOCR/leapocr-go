@@ -109,7 +109,7 @@ make release-check
 
 The SDK follows a sophisticated generation process:
 
-1. **Fetch OpenAPI Spec**: Downloads from `http://localhost:8080/api/v1/docs/openapi.json`
+1. **Fetch OpenAPI Spec**: Downloads from `http://localhost:8443/api/v1/docs/openapi.json`
 2. **Filter Endpoints**: Uses `scripts/filter-sdk-endpoints.sh` to keep only SDK-tagged endpoints
 3. **Generate Code**: Uses `openapi-generator-cli` to create Go client
 4. **Create Wrapper**: Runs `scripts/create-sdk-wrapper.sh` to add convenience layer
@@ -187,14 +187,14 @@ make test-coverage
 
 ```bash
 LEAPOCR_API_KEY=your_api_key_here          # API authentication
-OCR_BASE_URL=http://localhost:8080      # API base URL (optional)
+OCR_BASE_URL=http://localhost:8443      # API base URL (optional)
 ```
 
 ### Build Dependencies
 
 ```bash
 # For code generation
-OPENAPI_URL=http://localhost:8080/api/v1/docs/openapi.json
+OPENAPI_URL=http://localhost:8443/api/v1/docs/openapi.json
 GENERATOR_VERSION=7.9.0
 ```
 

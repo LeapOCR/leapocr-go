@@ -228,19 +228,21 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 			}
 
 			// Extract page fields if available
-			if page.Text != nil {
-				pageResult.Text = *page.Text
-				allText += *page.Text + "\n"
-			}
-			// Extract data from metadata.Extra if available
-			if page.Metadata != nil && page.Metadata.Extra != nil {
-				pageResult.Data = page.Metadata.Extra
-				if result.Data == nil {
-					result.Data = make(map[string]interface{})
-				}
-				// Merge page data into result data
-				for k, v := range page.Metadata.Extra {
-					result.Data[k] = v
+			if page.Result != nil {
+				// Result can be string (markdown) or object (structured/per-page)
+				switch v := page.Result.(type) {
+				case string:
+					pageResult.Text = v
+					allText += v + "\n"
+				case map[string]any:
+					pageResult.Data = v
+					if result.Data == nil {
+						result.Data = make(map[string]any)
+					}
+					// Merge page data into result data
+					for k, val := range v {
+						result.Data[k] = val
+					}
 				}
 			}
 			if page.PageNumber != nil {
@@ -252,13 +254,9 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 		result.Text = allText
 	}
 
-	// Extract credits and duration if available
+	// Extract credits if available
 	if resp.CreditsUsed != nil {
 		result.Credits = int(*resp.CreditsUsed)
-	}
-	if resp.ProcessingTimeSeconds != nil {
-		// ProcessingTimeSeconds is float32, convert to time.Duration
-		result.Duration = time.Duration(float64(*resp.ProcessingTimeSeconds) * float64(time.Second))
 	}
 
 	return result, nil

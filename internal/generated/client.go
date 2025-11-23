@@ -63,6 +63,8 @@ type APIClient struct {
 
 	OCRAPI OCRAPI
 
+	OnboardingAPI OnboardingAPI
+
 	SDKAPI SDKAPI
 
 	TemplatesAPI TemplatesAPI
@@ -95,6 +97,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.JobsAPI = (*JobsAPIService)(&c.common)
 	c.ModelsAPI = (*ModelsAPIService)(&c.common)
 	c.OCRAPI = (*OCRAPIService)(&c.common)
+	c.OnboardingAPI = (*OnboardingAPIService)(&c.common)
 	c.SDKAPI = (*SDKAPIService)(&c.common)
 	c.TemplatesAPI = (*TemplatesAPIService)(&c.common)
 	c.UploadAPI = (*UploadAPIService)(&c.common)

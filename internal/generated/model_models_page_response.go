@@ -20,11 +20,9 @@ var _ MappedNullable = &ModelsPageResponse{}
 
 // ModelsPageResponse struct for ModelsPageResponse
 type ModelsPageResponse struct {
-	Id          *string             `json:"id,omitempty"`
-	Metadata    *ModelsPageMetadata `json:"metadata,omitempty"`
-	PageNumber  *int32              `json:"page_number,omitempty"`
-	ProcessedAt *string             `json:"processed_at,omitempty"`
-	Text        *string             `json:"text,omitempty"`
+	Id         *string     `json:"id,omitempty"`
+	PageNumber *int32      `json:"page_number,omitempty"`
+	Result     interface{} `json:"result,omitempty"`
 }
 
 // NewModelsPageResponse instantiates a new ModelsPageResponse object
@@ -76,38 +74,6 @@ func (o *ModelsPageResponse) SetId(v string) {
 	o.Id = &v
 }
 
-// GetMetadata returns the Metadata field value if set, zero value otherwise.
-func (o *ModelsPageResponse) GetMetadata() ModelsPageMetadata {
-	if o == nil || IsNil(o.Metadata) {
-		var ret ModelsPageMetadata
-		return ret
-	}
-	return *o.Metadata
-}
-
-// GetMetadataOk returns a tuple with the Metadata field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelsPageResponse) GetMetadataOk() (*ModelsPageMetadata, bool) {
-	if o == nil || IsNil(o.Metadata) {
-		return nil, false
-	}
-	return o.Metadata, true
-}
-
-// HasMetadata returns a boolean if a field has been set.
-func (o *ModelsPageResponse) HasMetadata() bool {
-	if o != nil && !IsNil(o.Metadata) {
-		return true
-	}
-
-	return false
-}
-
-// SetMetadata gets a reference to the given ModelsPageMetadata and assigns it to the Metadata field.
-func (o *ModelsPageResponse) SetMetadata(v ModelsPageMetadata) {
-	o.Metadata = &v
-}
-
 // GetPageNumber returns the PageNumber field value if set, zero value otherwise.
 func (o *ModelsPageResponse) GetPageNumber() int32 {
 	if o == nil || IsNil(o.PageNumber) {
@@ -140,68 +106,37 @@ func (o *ModelsPageResponse) SetPageNumber(v int32) {
 	o.PageNumber = &v
 }
 
-// GetProcessedAt returns the ProcessedAt field value if set, zero value otherwise.
-func (o *ModelsPageResponse) GetProcessedAt() string {
-	if o == nil || IsNil(o.ProcessedAt) {
-		var ret string
+// GetResult returns the Result field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *ModelsPageResponse) GetResult() interface{} {
+	if o == nil {
+		var ret interface{}
 		return ret
 	}
-	return *o.ProcessedAt
+	return o.Result
 }
 
-// GetProcessedAtOk returns a tuple with the ProcessedAt field value if set, nil otherwise
+// GetResultOk returns a tuple with the Result field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelsPageResponse) GetProcessedAtOk() (*string, bool) {
-	if o == nil || IsNil(o.ProcessedAt) {
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *ModelsPageResponse) GetResultOk() (*interface{}, bool) {
+	if o == nil || IsNil(o.Result) {
 		return nil, false
 	}
-	return o.ProcessedAt, true
+	return &o.Result, true
 }
 
-// HasProcessedAt returns a boolean if a field has been set.
-func (o *ModelsPageResponse) HasProcessedAt() bool {
-	if o != nil && !IsNil(o.ProcessedAt) {
+// HasResult returns a boolean if a field has been set.
+func (o *ModelsPageResponse) HasResult() bool {
+	if o != nil && !IsNil(o.Result) {
 		return true
 	}
 
 	return false
 }
 
-// SetProcessedAt gets a reference to the given string and assigns it to the ProcessedAt field.
-func (o *ModelsPageResponse) SetProcessedAt(v string) {
-	o.ProcessedAt = &v
-}
-
-// GetText returns the Text field value if set, zero value otherwise.
-func (o *ModelsPageResponse) GetText() string {
-	if o == nil || IsNil(o.Text) {
-		var ret string
-		return ret
-	}
-	return *o.Text
-}
-
-// GetTextOk returns a tuple with the Text field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelsPageResponse) GetTextOk() (*string, bool) {
-	if o == nil || IsNil(o.Text) {
-		return nil, false
-	}
-	return o.Text, true
-}
-
-// HasText returns a boolean if a field has been set.
-func (o *ModelsPageResponse) HasText() bool {
-	if o != nil && !IsNil(o.Text) {
-		return true
-	}
-
-	return false
-}
-
-// SetText gets a reference to the given string and assigns it to the Text field.
-func (o *ModelsPageResponse) SetText(v string) {
-	o.Text = &v
+// SetResult gets a reference to the given interface{} and assigns it to the Result field.
+func (o *ModelsPageResponse) SetResult(v interface{}) {
+	o.Result = v
 }
 
 func (o ModelsPageResponse) MarshalJSON() ([]byte, error) {
@@ -217,17 +152,11 @@ func (o ModelsPageResponse) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}
-	if !IsNil(o.Metadata) {
-		toSerialize["metadata"] = o.Metadata
-	}
 	if !IsNil(o.PageNumber) {
 		toSerialize["page_number"] = o.PageNumber
 	}
-	if !IsNil(o.ProcessedAt) {
-		toSerialize["processed_at"] = o.ProcessedAt
-	}
-	if !IsNil(o.Text) {
-		toSerialize["text"] = o.Text
+	if o.Result != nil {
+		toSerialize["result"] = o.Result
 	}
 	return toSerialize, nil
 }

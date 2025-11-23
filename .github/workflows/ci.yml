@@ -64,7 +64,7 @@ jobs:
   #     # ocr-api:
   #     #   image: your-org/ocr-api:latest
   #     #   ports:
-  #     #     - 8080:8080
+  #     #     - 8443:8443
   #     #   env:
   #     #     DATABASE_URL: postgres://test:test@postgres:5432/ocr_test
   #   steps:
@@ -80,7 +80,7 @@ jobs:
   #       run: go test -tags=integration -v ./test/integration/...
   #       env:
   #         LEAPOCR_API_KEY: ${{ secrets.TEST_LEAPOCR_API_KEY }}
-  #         OCR_BASE_URL: http://localhost:8080
+  #         OCR_BASE_URL: http://localhost:8443
 
   security:
     name: Security & Examples

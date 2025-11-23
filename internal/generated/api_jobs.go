@@ -24,21 +24,6 @@ import (
 type JobsAPI interface {
 
 	/*
-		CancelJob Cancel OCR job
-
-		Cancel an OCR processing job that is currently in pending or processing status. Cannot cancel completed, failed, or already cancelled jobs
-
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param jobId OCR job ID to cancel
-		@return JobsAPICancelJobRequest
-	*/
-	CancelJob(ctx context.Context, jobId string) JobsAPICancelJobRequest
-
-	// CancelJobExecute executes the request
-	//  @return JobsJobResponse
-	CancelJobExecute(r JobsAPICancelJobRequest) (*JobsJobResponse, *http.Response, error)
-
-	/*
 		DeleteJob Delete OCR job
 
 		Delets a job
@@ -83,24 +68,9 @@ type JobsAPI interface {
 	GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJobsListResponse, *http.Response, error)
 
 	/*
-		RestartJob Restart OCR job
+		RetryJob Retry failed OCR job
 
-		Restart an OCR job by canceling the current workflow (if running) and starting fresh. This is a more aggressive action than retry.
-
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param jobId OCR job ID to restart
-		@return JobsAPIRestartJobRequest
-	*/
-	RestartJob(ctx context.Context, jobId string) JobsAPIRestartJobRequest
-
-	// RestartJobExecute executes the request
-	//  @return JobsJobManagementResponse
-	RestartJobExecute(r JobsAPIRestartJobRequest) (*JobsJobManagementResponse, *http.Response, error)
-
-	/*
-		RetryJob Retry OCR job
-
-		Retry a failed OCR job or restart a stuck job that has been pending/processing for over 1 hour. Checks Temporal workflow status before retrying.
+		Retry a failed OCR job. Only jobs with status 'failed' can be retried.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param jobId OCR job ID to retry
@@ -115,172 +85,6 @@ type JobsAPI interface {
 
 // JobsAPIService JobsAPI service
 type JobsAPIService service
-
-type JobsAPICancelJobRequest struct {
-	ctx        context.Context
-	ApiService JobsAPI
-	jobId      string
-	body       *map[string]interface{}
-}
-
-func (r JobsAPICancelJobRequest) Body(body map[string]interface{}) JobsAPICancelJobRequest {
-	r.body = &body
-	return r
-}
-
-func (r JobsAPICancelJobRequest) Execute() (*JobsJobResponse, *http.Response, error) {
-	return r.ApiService.CancelJobExecute(r)
-}
-
-/*
-CancelJob Cancel OCR job
-
-Cancel an OCR processing job that is currently in pending or processing status. Cannot cancel completed, failed, or already cancelled jobs
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId OCR job ID to cancel
-	@return JobsAPICancelJobRequest
-*/
-func (a *JobsAPIService) CancelJob(ctx context.Context, jobId string) JobsAPICancelJobRequest {
-	return JobsAPICancelJobRequest{
-		ApiService: a,
-		ctx:        ctx,
-		jobId:      jobId,
-	}
-}
-
-// Execute executes the request
-//
-//	@return JobsJobResponse
-func (a *JobsAPIService) CancelJobExecute(r JobsAPICancelJobRequest) (*JobsJobResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *JobsJobResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "JobsAPIService.CancelJob")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/jobs/{job_id}/cancel"
-	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	// body params
-	localVarPostBody = r.body
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 401 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 404 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 409 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
 
 type JobsAPIDeleteJobRequest struct {
 	ctx        context.Context
@@ -862,183 +666,15 @@ func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJ
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type JobsAPIRestartJobRequest struct {
-	ctx                   context.Context
-	ApiService            JobsAPI
-	jobId                 string
-	jobsRestartJobRequest *JobsRestartJobRequest
-}
-
-// Restart options
-func (r JobsAPIRestartJobRequest) JobsRestartJobRequest(jobsRestartJobRequest JobsRestartJobRequest) JobsAPIRestartJobRequest {
-	r.jobsRestartJobRequest = &jobsRestartJobRequest
-	return r
-}
-
-func (r JobsAPIRestartJobRequest) Execute() (*JobsJobManagementResponse, *http.Response, error) {
-	return r.ApiService.RestartJobExecute(r)
-}
-
-/*
-RestartJob Restart OCR job
-
-Restart an OCR job by canceling the current workflow (if running) and starting fresh. This is a more aggressive action than retry.
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId OCR job ID to restart
-	@return JobsAPIRestartJobRequest
-*/
-func (a *JobsAPIService) RestartJob(ctx context.Context, jobId string) JobsAPIRestartJobRequest {
-	return JobsAPIRestartJobRequest{
-		ApiService: a,
-		ctx:        ctx,
-		jobId:      jobId,
-	}
-}
-
-// Execute executes the request
-//
-//	@return JobsJobManagementResponse
-func (a *JobsAPIService) RestartJobExecute(r JobsAPIRestartJobRequest) (*JobsJobManagementResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *JobsJobManagementResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "JobsAPIService.RestartJob")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/jobs/{job_id}/restart"
-	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	// body params
-	localVarPostBody = r.jobsRestartJobRequest
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 401 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 404 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 409 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
 type JobsAPIRetryJobRequest struct {
-	ctx                 context.Context
-	ApiService          JobsAPI
-	jobId               string
-	jobsRetryJobRequest *JobsRetryJobRequest
+	ctx        context.Context
+	ApiService JobsAPI
+	jobId      string
+	body       *map[string]interface{}
 }
 
-// Retry options
-func (r JobsAPIRetryJobRequest) JobsRetryJobRequest(jobsRetryJobRequest JobsRetryJobRequest) JobsAPIRetryJobRequest {
-	r.jobsRetryJobRequest = &jobsRetryJobRequest
+func (r JobsAPIRetryJobRequest) Body(body map[string]interface{}) JobsAPIRetryJobRequest {
+	r.body = &body
 	return r
 }
 
@@ -1047,9 +683,9 @@ func (r JobsAPIRetryJobRequest) Execute() (*JobsJobManagementResponse, *http.Res
 }
 
 /*
-RetryJob Retry OCR job
+RetryJob Retry failed OCR job
 
-Retry a failed OCR job or restart a stuck job that has been pending/processing for over 1 hour. Checks Temporal workflow status before retrying.
+Retry a failed OCR job. Only jobs with status 'failed' can be retried.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param jobId OCR job ID to retry
@@ -1104,7 +740,7 @@ func (a *JobsAPIService) RetryJobExecute(r JobsAPIRetryJobRequest) (*JobsJobMana
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.jobsRetryJobRequest
+	localVarPostBody = r.body
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

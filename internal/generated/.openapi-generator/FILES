@@ -9,6 +9,7 @@ api_health.go
 api_jobs.go
 api_models.go
 api_ocr.go
+api_onboarding.go
 api_sdk.go
 api_templates.go
 api_upload.go
@@ -56,8 +57,6 @@ model_jobs_job_response.go
 model_jobs_job_status_response.go
 model_jobs_jobs_list_response.go
 model_jobs_pagination_info.go
-model_jobs_restart_job_request.go
-model_jobs_retry_job_request.go
 model_jobs_workflow_job_status_info.go
 model_jobs_workflow_progress_info.go
 model_jobs_workflow_status_info.go
@@ -65,9 +64,11 @@ model_models_list_model_response.go
 model_models_list_models_list_response.go
 model_models_ocr_result_response.go
 model_models_ocr_status_response.go
-model_models_page_metadata.go
 model_models_page_response.go
 model_models_pagination_response.go
+model_onboarding_create_onboarding_request.go
+model_onboarding_onboarding_status.go
+model_onboarding_update_onboarding_request.go
 model_response_error_message.go
 model_response_error_response.go
 model_status_response.go

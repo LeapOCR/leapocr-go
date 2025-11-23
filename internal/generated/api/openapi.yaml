@@ -18,7 +18,7 @@ externalDocs:
 servers:
 - url: api.leapocr.com/api/v1
 - description: Local development server
-  url: http://localhost:8080/api/v1
+  url: http://localhost:8443/api/v1
 - description: Production server
   url: https://api.leapocr.com/api/v1
 tags:
@@ -1051,13 +1051,12 @@ paths:
       summary: Get jobs list
       tags:
       - Jobs
-  /jobs/{job_id}/cancel:
+  /jobs/{job_id}/retry:
     post:
-      description: "Cancel an OCR processing job that is currently in pending or processing\
-        \ status. Cannot cancel completed, failed, or already cancelled jobs"
-      operationId: cancelJob
+      description: Retry a failed OCR job. Only jobs with status 'failed' can be retried.
+      operationId: retryJob
       parameters:
-      - description: OCR job ID to cancel
+      - description: OCR job ID to retry
         explode: false
         in: path
         name: job_id
@@ -1076,128 +1075,6 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/jobs.JobResponse"
-          description: Job cancelled successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Bad request - invalid job ID
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Unauthorized - authentication required
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Not found - job does not exist
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Conflict - job cannot be cancelled (already completed/failed/cancelled)
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Internal server error
-      summary: Cancel OCR job
-      tags:
-      - Jobs
-  /jobs/{job_id}/restart:
-    post:
-      description: Restart an OCR job by canceling the current workflow (if running)
-        and starting fresh. This is a more aggressive action than retry.
-      operationId: restartJob
-      parameters:
-      - description: OCR job ID to restart
-        explode: false
-        in: path
-        name: job_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/jobs.RestartJobRequest"
-        description: Restart options
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/jobs.JobManagementResponse"
-          description: Job restart initiated successfully
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Bad request - invalid job ID
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Unauthorized - authentication required
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Not found - job does not exist
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Conflict - job cannot be restarted
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Internal server error
-      summary: Restart OCR job
-      tags:
-      - Jobs
-  /jobs/{job_id}/retry:
-    post:
-      description: Retry a failed OCR job or restart a stuck job that has been pending/processing
-        for over 1 hour. Checks Temporal workflow status before retrying.
-      operationId: retryJob
-      parameters:
-      - description: OCR job ID to retry
-        explode: false
-        in: path
-        name: job_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/jobs.RetryJobRequest"
-        description: Retry options
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
                 $ref: "#/components/schemas/jobs.JobManagementResponse"
           description: Job retry initiated successfully
         "400":
@@ -1205,7 +1082,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
-          description: Bad request - invalid job ID or job not retryable
+          description: Bad request - invalid job ID
         "401":
           content:
             application/json:
@@ -1223,14 +1100,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
-          description: Conflict - job is not in a retryable state
+          description: Conflict - job is not in failed state
         "500":
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response.ErrorResponse"
           description: Internal server error
-      summary: Retry OCR job
+      summary: Retry failed OCR job
       tags:
       - Jobs
   /jobs/{job_id}/status:
@@ -1686,6 +1563,171 @@ paths:
       - OCR
       - Upload
       - SDK
+  /onboarding:
+    post:
+      description: Create onboarding status for an entity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/onboarding.CreateOnboardingRequest"
+        description: Onboarding request
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/onboarding.OnboardingStatus"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad Request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Create onboarding status
+      tags:
+      - onboarding
+  /onboarding/{external_id}:
+    delete:
+      description: Delete onboarding status for an entity
+      parameters:
+      - description: External ID
+        explode: false
+        in: path
+        name: external_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "204":
+          description: No Content
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Delete onboarding status
+      tags:
+      - onboarding
+    get:
+      description: Get onboarding status for an entity by external ID
+      parameters:
+      - description: External ID
+        explode: false
+        in: path
+        name: external_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/onboarding.OnboardingStatus"
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Get onboarding status
+      tags:
+      - onboarding
+    put:
+      description: Update onboarding steps and metadata for an entity
+      parameters:
+      - description: External ID
+        explode: false
+        in: path
+        name: external_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/onboarding.UpdateOnboardingRequest"
+        description: Update request
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/onboarding.OnboardingStatus"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.ErrorResponse"
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: Update onboarding status
+      tags:
+      - onboarding
   /templates:
     get:
       description: Retrieve a paginated list of templates for a specific project with
@@ -3172,24 +3214,29 @@ components:
           type: integer
     jobs.JobListItem:
       example:
-        duration_seconds: 6.027456183070403
-        processing_time: 5.962133916683182
+        duration_seconds: 1.4658129805029452
+        processing_time: 5.637376656633329
         file_name: file_name
-        processed_pages: 1
+        processed_pages: 5
         created_at: created_at
+        base_credits: 0
         result_format: result_format
-        total_pages: 5
+        total_pages: 7
         deleted_at: deleted_at
         completed_at: completed_at
         template_name: template_name
         is_deleted: true
         stage: stage
+        model: model
         template_id: template_id
         id: id
         category: category
-        credits_used: 0
+        credits_used: 6
         status: status
+        surcharge_credits: 2
       properties:
+        base_credits:
+          type: integer
         category:
           type: string
         completed_at:
@@ -3209,6 +3256,8 @@ components:
         is_deleted:
           description: "Computed field for API convenience: true if DeletedAt != nil"
           type: boolean
+        model:
+          type: string
         processed_pages:
           type: integer
         processing_time:
@@ -3219,6 +3268,8 @@ components:
           type: string
         status:
           type: string
+        surcharge_credits:
+          type: integer
         template_id:
           type: string
         template_name:
@@ -3383,45 +3434,51 @@ components:
     jobs.JobsListResponse:
       example:
         pagination:
-          total: 9
-          limit: 2
-          page: 7
-          total_pages: 3
+          total: 2
+          limit: 9
+          page: 3
+          total_pages: 4
         jobs:
-        - duration_seconds: 6.027456183070403
-          processing_time: 5.962133916683182
+        - duration_seconds: 1.4658129805029452
+          processing_time: 5.637376656633329
           file_name: file_name
-          processed_pages: 1
+          processed_pages: 5
           created_at: created_at
+          base_credits: 0
           result_format: result_format
-          total_pages: 5
+          total_pages: 7
           deleted_at: deleted_at
           completed_at: completed_at
           template_name: template_name
           is_deleted: true
           stage: stage
+          model: model
           template_id: template_id
           id: id
           category: category
-          credits_used: 0
+          credits_used: 6
           status: status
-        - duration_seconds: 6.027456183070403
-          processing_time: 5.962133916683182
+          surcharge_credits: 2
+        - duration_seconds: 1.4658129805029452
+          processing_time: 5.637376656633329
           file_name: file_name
-          processed_pages: 1
+          processed_pages: 5
           created_at: created_at
+          base_credits: 0
           result_format: result_format
-          total_pages: 5
+          total_pages: 7
           deleted_at: deleted_at
           completed_at: completed_at
           template_name: template_name
           is_deleted: true
           stage: stage
+          model: model
           template_id: template_id
           id: id
           category: category
-          credits_used: 0
+          credits_used: 6
           status: status
+          surcharge_credits: 2
       properties:
         jobs:
           items:
@@ -3432,10 +3489,10 @@ components:
           $ref: "#/components/schemas/jobs.PaginationInfo"
     jobs.PaginationInfo:
       example:
-        total: 9
-        limit: 2
-        page: 7
-        total_pages: 3
+        total: 2
+        limit: 9
+        page: 3
+        total_pages: 4
       properties:
         limit:
           type: integer
@@ -3445,26 +3502,6 @@ components:
           type: integer
         total_pages:
           type: integer
-    jobs.RestartJobRequest:
-      properties:
-        force:
-          description: Force restart even for completed jobs
-          example: false
-          type: boolean
-        preserve_progress:
-          description: Keep existing progress when restarting
-          example: false
-          type: boolean
-    jobs.RetryJobRequest:
-      properties:
-        force:
-          description: Force retry even if job appears active
-          example: false
-          type: boolean
-        reset_pages:
-          description: Reset page processing status
-          example: false
-          type: boolean
     jobs.WorkflowJobStatusInfo:
       example:
         job_id: job_id
@@ -3572,34 +3609,23 @@ components:
       example:
         completed_at: completed_at
         pages:
-        - metadata:
-            extra: "{}"
-            retry_count: 1
-            processing_ms: 6
-          page_number: 5
-          processed_at: processed_at
+        - result: ""
+          page_number: 6
           id: id
-          text: text
-        - metadata:
-            extra: "{}"
-            retry_count: 1
-            processing_ms: 6
-          page_number: 5
-          processed_at: processed_at
+        - result: ""
+          page_number: 6
           id: id
-          text: text
         pagination:
-          total: 9
-          limit: 2
-          page: 7
-          total_pages: 3
-        processing_time_seconds: 2.3021358869347655
+          total: 2
+          limit: 9
+          page: 3
+          total_pages: 4
         file_name: file_name
         job_id: job_id
-        processed_pages: 5
+        processed_pages: 1
         model: model
         result_format: result_format
-        total_pages: 7
+        total_pages: 5
         credits_used: 0
         status: status
       properties:
@@ -3622,8 +3648,6 @@ components:
           $ref: "#/components/schemas/models.PaginationResponse"
         processed_pages:
           type: integer
-        processing_time_seconds:
-          type: number
         result_format:
           type: string
         status:
@@ -3641,9 +3665,9 @@ components:
         error_message: error_message
         completed_at: completed_at
         job_id: job_id
-        processed_pages: 9
+        processed_pages: 5
         result_format: result_format
-        total_pages: 3
+        total_pages: 2
         status: status
       properties:
         completed_at:
@@ -3666,46 +3690,23 @@ components:
           - JobStatusFailed
         total_pages:
           type: integer
-    models.PageMetadata:
-      example:
-        extra: "{}"
-        retry_count: 1
-        processing_ms: 6
-      properties:
-        extra:
-          description: Additional page metadata
-          type: object
-        processing_ms:
-          type: integer
-        retry_count:
-          type: integer
     models.PageResponse:
       example:
-        metadata:
-          extra: "{}"
-          retry_count: 1
-          processing_ms: 6
-        page_number: 5
-        processed_at: processed_at
+        result: ""
+        page_number: 6
         id: id
-        text: text
       properties:
         id:
           type: string
-        metadata:
-          $ref: "#/components/schemas/models.PageMetadata"
         page_number:
           type: integer
-        processed_at:
-          type: string
-        text:
-          type: string
+        result: {}
     models.PaginationResponse:
       example:
-        total: 9
-        limit: 2
-        page: 7
-        total_pages: 3
+        total: 2
+        limit: 9
+        page: 3
+        total_pages: 4
       properties:
         limit:
           type: integer
@@ -3758,6 +3759,56 @@ components:
         models:
           items:
             $ref: "#/components/schemas/models_list.ModelResponse"
+          type: array
+          uniqueItems: false
+    onboarding.CreateOnboardingRequest:
+      properties:
+        entity_type:
+          type: string
+        external_id:
+          type: string
+        metadata: {}
+        steps_completed:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+    onboarding.OnboardingStatus:
+      example:
+        completed_at: completed_at
+        metadata: ""
+        entity_type: entity_type
+        updated_at: updated_at
+        created_at: created_at
+        external_id: external_id
+        steps_completed:
+        - steps_completed
+        - steps_completed
+      properties:
+        completed_at:
+          type: string
+        created_at:
+          type: string
+        entity_type:
+          type: string
+        external_id:
+          type: string
+        metadata: {}
+        steps_completed:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+        updated_at:
+          type: string
+    onboarding.UpdateOnboardingRequest:
+      properties:
+        completed_at:
+          type: string
+        metadata: {}
+        steps_completed:
+          items:
+            type: string
           type: array
           uniqueItems: false
     response.ErrorCode:

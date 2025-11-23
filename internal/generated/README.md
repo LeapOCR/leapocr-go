@@ -90,12 +90,10 @@ Class | Method | HTTP request | Description
 *CreditsAPI* | [**GetOrganizationCreditsBalance**](docs/CreditsAPI.md#getorganizationcreditsbalance) | **Get** /credits/organizations/balance | Get organization credits balance
 *CreditsAPI* | [**GetPolarProductsCatalog**](docs/CreditsAPI.md#getpolarproductscatalog) | **Get** /credits/polar/products/catalog | Get Polar products catalog
 *HealthAPI* | [**GetHealthStatus**](docs/HealthAPI.md#gethealthstatus) | **Get** /health | Get system health status
-*JobsAPI* | [**CancelJob**](docs/JobsAPI.md#canceljob) | **Post** /jobs/{job_id}/cancel | Cancel OCR job
 *JobsAPI* | [**DeleteJob**](docs/JobsAPI.md#deletejob) | **Delete** /ocr/delete/{job_id} | Delete OCR job
 *JobsAPI* | [**GetJobStatusSimple**](docs/JobsAPI.md#getjobstatussimple) | **Get** /jobs/{job_id}/status | Get job status with workflow details
 *JobsAPI* | [**GetJobsList**](docs/JobsAPI.md#getjobslist) | **Get** /jobs/list | Get jobs list
-*JobsAPI* | [**RestartJob**](docs/JobsAPI.md#restartjob) | **Post** /jobs/{job_id}/restart | Restart OCR job
-*JobsAPI* | [**RetryJob**](docs/JobsAPI.md#retryjob) | **Post** /jobs/{job_id}/retry | Retry OCR job
+*JobsAPI* | [**RetryJob**](docs/JobsAPI.md#retryjob) | **Post** /jobs/{job_id}/retry | Retry failed OCR job
 *ModelsAPI* | [**ListOCRModels**](docs/ModelsAPI.md#listocrmodels) | **Get** /ocr/models | List available OCR models
 *OCRAPI* | [**CompleteDirectUpload**](docs/OCRAPI.md#completedirectupload) | **Post** /ocr/uploads/{job_id}/complete | Complete direct upload
 *OCRAPI* | [**DeleteJob**](docs/OCRAPI.md#deletejob) | **Delete** /ocr/delete/{job_id} | Delete OCR job
@@ -104,6 +102,10 @@ Class | Method | HTTP request | Description
 *OCRAPI* | [**GetJobStatus**](docs/OCRAPI.md#getjobstatus) | **Get** /ocr/status/{job_id} | Get OCR job status
 *OCRAPI* | [**ListOCRModels**](docs/OCRAPI.md#listocrmodels) | **Get** /ocr/models | List available OCR models
 *OCRAPI* | [**UploadFromRemoteURL**](docs/OCRAPI.md#uploadfromremoteurl) | **Post** /ocr/uploads/url | Remote URL upload
+*OnboardingAPI* | [**OnboardingExternalIdDelete**](docs/OnboardingAPI.md#onboardingexternaliddelete) | **Delete** /onboarding/{external_id} | Delete onboarding status
+*OnboardingAPI* | [**OnboardingExternalIdGet**](docs/OnboardingAPI.md#onboardingexternalidget) | **Get** /onboarding/{external_id} | Get onboarding status
+*OnboardingAPI* | [**OnboardingExternalIdPut**](docs/OnboardingAPI.md#onboardingexternalidput) | **Put** /onboarding/{external_id} | Update onboarding status
+*OnboardingAPI* | [**OnboardingPost**](docs/OnboardingAPI.md#onboardingpost) | **Post** /onboarding | Create onboarding status
 *SDKAPI* | [**CompleteDirectUpload**](docs/SDKAPI.md#completedirectupload) | **Post** /ocr/uploads/{job_id}/complete | Complete direct upload
 *SDKAPI* | [**DeleteJob**](docs/SDKAPI.md#deletejob) | **Delete** /ocr/delete/{job_id} | Delete OCR job
 *SDKAPI* | [**DirectUpload**](docs/SDKAPI.md#directupload) | **Post** /ocr/uploads/direct | Direct upload
@@ -164,8 +166,6 @@ Class | Method | HTTP request | Description
  - [JobsJobStatusResponse](docs/JobsJobStatusResponse.md)
  - [JobsJobsListResponse](docs/JobsJobsListResponse.md)
  - [JobsPaginationInfo](docs/JobsPaginationInfo.md)
- - [JobsRestartJobRequest](docs/JobsRestartJobRequest.md)
- - [JobsRetryJobRequest](docs/JobsRetryJobRequest.md)
  - [JobsWorkflowJobStatusInfo](docs/JobsWorkflowJobStatusInfo.md)
  - [JobsWorkflowProgressInfo](docs/JobsWorkflowProgressInfo.md)
  - [JobsWorkflowStatusInfo](docs/JobsWorkflowStatusInfo.md)
@@ -173,9 +173,11 @@ Class | Method | HTTP request | Description
  - [ModelsListModelsListResponse](docs/ModelsListModelsListResponse.md)
  - [ModelsOCRResultResponse](docs/ModelsOCRResultResponse.md)
  - [ModelsOCRStatusResponse](docs/ModelsOCRStatusResponse.md)
- - [ModelsPageMetadata](docs/ModelsPageMetadata.md)
  - [ModelsPageResponse](docs/ModelsPageResponse.md)
  - [ModelsPaginationResponse](docs/ModelsPaginationResponse.md)
+ - [OnboardingCreateOnboardingRequest](docs/OnboardingCreateOnboardingRequest.md)
+ - [OnboardingOnboardingStatus](docs/OnboardingOnboardingStatus.md)
+ - [OnboardingUpdateOnboardingRequest](docs/OnboardingUpdateOnboardingRequest.md)
  - [ResponseErrorMessage](docs/ResponseErrorMessage.md)
  - [ResponseErrorResponse](docs/ResponseErrorResponse.md)
  - [StatusResponse](docs/StatusResponse.md)

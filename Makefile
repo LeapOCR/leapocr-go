@@ -1,6 +1,6 @@
 .PHONY: help generate generate-full build test lint clean install format test-coverage test-integration examples examples-run dev-setup dev-reset ci-test ci-test-full release-check tidy
 
-OPENAPI_URL := http://localhost:8080/api/v1/docs/openapi.json
+OPENAPI_URL := http://localhost:8443/api/v1/docs/openapi.json
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'

@@ -20,18 +20,17 @@ var _ MappedNullable = &ModelsOCRResultResponse{}
 
 // ModelsOCRResultResponse struct for ModelsOCRResultResponse
 type ModelsOCRResultResponse struct {
-	CompletedAt           *string                   `json:"completed_at,omitempty"`
-	CreditsUsed           *int32                    `json:"credits_used,omitempty"`
-	FileName              *string                   `json:"file_name,omitempty"`
-	JobId                 *string                   `json:"job_id,omitempty"`
-	Model                 *string                   `json:"model,omitempty"`
-	Pages                 []ModelsPageResponse      `json:"pages,omitempty"`
-	Pagination            *ModelsPaginationResponse `json:"pagination,omitempty"`
-	ProcessedPages        *int32                    `json:"processed_pages,omitempty"`
-	ProcessingTimeSeconds *float32                  `json:"processing_time_seconds,omitempty"`
-	ResultFormat          *string                   `json:"result_format,omitempty"`
-	Status                *string                   `json:"status,omitempty"`
-	TotalPages            *int32                    `json:"total_pages,omitempty"`
+	CompletedAt    *string                   `json:"completed_at,omitempty"`
+	CreditsUsed    *int32                    `json:"credits_used,omitempty"`
+	FileName       *string                   `json:"file_name,omitempty"`
+	JobId          *string                   `json:"job_id,omitempty"`
+	Model          *string                   `json:"model,omitempty"`
+	Pages          []ModelsPageResponse      `json:"pages,omitempty"`
+	Pagination     *ModelsPaginationResponse `json:"pagination,omitempty"`
+	ProcessedPages *int32                    `json:"processed_pages,omitempty"`
+	ResultFormat   *string                   `json:"result_format,omitempty"`
+	Status         *string                   `json:"status,omitempty"`
+	TotalPages     *int32                    `json:"total_pages,omitempty"`
 }
 
 // NewModelsOCRResultResponse instantiates a new ModelsOCRResultResponse object
@@ -307,38 +306,6 @@ func (o *ModelsOCRResultResponse) SetProcessedPages(v int32) {
 	o.ProcessedPages = &v
 }
 
-// GetProcessingTimeSeconds returns the ProcessingTimeSeconds field value if set, zero value otherwise.
-func (o *ModelsOCRResultResponse) GetProcessingTimeSeconds() float32 {
-	if o == nil || IsNil(o.ProcessingTimeSeconds) {
-		var ret float32
-		return ret
-	}
-	return *o.ProcessingTimeSeconds
-}
-
-// GetProcessingTimeSecondsOk returns a tuple with the ProcessingTimeSeconds field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ModelsOCRResultResponse) GetProcessingTimeSecondsOk() (*float32, bool) {
-	if o == nil || IsNil(o.ProcessingTimeSeconds) {
-		return nil, false
-	}
-	return o.ProcessingTimeSeconds, true
-}
-
-// HasProcessingTimeSeconds returns a boolean if a field has been set.
-func (o *ModelsOCRResultResponse) HasProcessingTimeSeconds() bool {
-	if o != nil && !IsNil(o.ProcessingTimeSeconds) {
-		return true
-	}
-
-	return false
-}
-
-// SetProcessingTimeSeconds gets a reference to the given float32 and assigns it to the ProcessingTimeSeconds field.
-func (o *ModelsOCRResultResponse) SetProcessingTimeSeconds(v float32) {
-	o.ProcessingTimeSeconds = &v
-}
-
 // GetResultFormat returns the ResultFormat field value if set, zero value otherwise.
 func (o *ModelsOCRResultResponse) GetResultFormat() string {
 	if o == nil || IsNil(o.ResultFormat) {
@@ -468,9 +435,6 @@ func (o ModelsOCRResultResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.ProcessedPages) {
 		toSerialize["processed_pages"] = o.ProcessedPages
-	}
-	if !IsNil(o.ProcessingTimeSeconds) {
-		toSerialize["processing_time_seconds"] = o.ProcessingTimeSeconds
 	}
 	if !IsNil(o.ResultFormat) {
 		toSerialize["result_format"] = o.ResultFormat

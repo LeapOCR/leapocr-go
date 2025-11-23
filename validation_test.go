@@ -45,7 +45,7 @@ func TestValidateURL(t *testing.T) {
 	}{
 		{"valid https PDF", "https://example.com/document.pdf", false},
 		{"valid http PDF", "http://example.com/document.pdf", false},
-		{"valid with port", "https://example.com:8080/document.pdf", false},
+		{"valid with port", "https://example.com:8443/document.pdf", false},
 		{"valid with path", "https://example.com/path/to/document.pdf", false},
 		{"valid with query", "https://example.com/document.pdf?version=1", false},
 		{"valid without extension", "https://example.com/document", false},      // URLs without extensions are allowed

@@ -20,6 +20,7 @@ var _ MappedNullable = &JobsJobListItem{}
 
 // JobsJobListItem struct for JobsJobListItem
 type JobsJobListItem struct {
+	BaseCredits     *int32   `json:"base_credits,omitempty"`
 	Category        *string  `json:"category,omitempty"`
 	CompletedAt     *string  `json:"completed_at,omitempty"`
 	CreatedAt       *string  `json:"created_at,omitempty"`
@@ -29,15 +30,17 @@ type JobsJobListItem struct {
 	FileName        *string  `json:"file_name,omitempty"`
 	Id              *string  `json:"id,omitempty"`
 	// Computed field for API convenience: true if DeletedAt != nil
-	IsDeleted      *bool    `json:"is_deleted,omitempty"`
-	ProcessedPages *int32   `json:"processed_pages,omitempty"`
-	ProcessingTime *float32 `json:"processing_time,omitempty"`
-	ResultFormat   *string  `json:"result_format,omitempty"`
-	Stage          *string  `json:"stage,omitempty"`
-	Status         *string  `json:"status,omitempty"`
-	TemplateId     *string  `json:"template_id,omitempty"`
-	TemplateName   *string  `json:"template_name,omitempty"`
-	TotalPages     *int32   `json:"total_pages,omitempty"`
+	IsDeleted        *bool    `json:"is_deleted,omitempty"`
+	Model            *string  `json:"model,omitempty"`
+	ProcessedPages   *int32   `json:"processed_pages,omitempty"`
+	ProcessingTime   *float32 `json:"processing_time,omitempty"`
+	ResultFormat     *string  `json:"result_format,omitempty"`
+	Stage            *string  `json:"stage,omitempty"`
+	Status           *string  `json:"status,omitempty"`
+	SurchargeCredits *int32   `json:"surcharge_credits,omitempty"`
+	TemplateId       *string  `json:"template_id,omitempty"`
+	TemplateName     *string  `json:"template_name,omitempty"`
+	TotalPages       *int32   `json:"total_pages,omitempty"`
 }
 
 // NewJobsJobListItem instantiates a new JobsJobListItem object
@@ -55,6 +58,38 @@ func NewJobsJobListItem() *JobsJobListItem {
 func NewJobsJobListItemWithDefaults() *JobsJobListItem {
 	this := JobsJobListItem{}
 	return &this
+}
+
+// GetBaseCredits returns the BaseCredits field value if set, zero value otherwise.
+func (o *JobsJobListItem) GetBaseCredits() int32 {
+	if o == nil || IsNil(o.BaseCredits) {
+		var ret int32
+		return ret
+	}
+	return *o.BaseCredits
+}
+
+// GetBaseCreditsOk returns a tuple with the BaseCredits field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *JobsJobListItem) GetBaseCreditsOk() (*int32, bool) {
+	if o == nil || IsNil(o.BaseCredits) {
+		return nil, false
+	}
+	return o.BaseCredits, true
+}
+
+// HasBaseCredits returns a boolean if a field has been set.
+func (o *JobsJobListItem) HasBaseCredits() bool {
+	if o != nil && !IsNil(o.BaseCredits) {
+		return true
+	}
+
+	return false
+}
+
+// SetBaseCredits gets a reference to the given int32 and assigns it to the BaseCredits field.
+func (o *JobsJobListItem) SetBaseCredits(v int32) {
+	o.BaseCredits = &v
 }
 
 // GetCategory returns the Category field value if set, zero value otherwise.
@@ -345,6 +380,38 @@ func (o *JobsJobListItem) SetIsDeleted(v bool) {
 	o.IsDeleted = &v
 }
 
+// GetModel returns the Model field value if set, zero value otherwise.
+func (o *JobsJobListItem) GetModel() string {
+	if o == nil || IsNil(o.Model) {
+		var ret string
+		return ret
+	}
+	return *o.Model
+}
+
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *JobsJobListItem) GetModelOk() (*string, bool) {
+	if o == nil || IsNil(o.Model) {
+		return nil, false
+	}
+	return o.Model, true
+}
+
+// HasModel returns a boolean if a field has been set.
+func (o *JobsJobListItem) HasModel() bool {
+	if o != nil && !IsNil(o.Model) {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given string and assigns it to the Model field.
+func (o *JobsJobListItem) SetModel(v string) {
+	o.Model = &v
+}
+
 // GetProcessedPages returns the ProcessedPages field value if set, zero value otherwise.
 func (o *JobsJobListItem) GetProcessedPages() int32 {
 	if o == nil || IsNil(o.ProcessedPages) {
@@ -505,6 +572,38 @@ func (o *JobsJobListItem) SetStatus(v string) {
 	o.Status = &v
 }
 
+// GetSurchargeCredits returns the SurchargeCredits field value if set, zero value otherwise.
+func (o *JobsJobListItem) GetSurchargeCredits() int32 {
+	if o == nil || IsNil(o.SurchargeCredits) {
+		var ret int32
+		return ret
+	}
+	return *o.SurchargeCredits
+}
+
+// GetSurchargeCreditsOk returns a tuple with the SurchargeCredits field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *JobsJobListItem) GetSurchargeCreditsOk() (*int32, bool) {
+	if o == nil || IsNil(o.SurchargeCredits) {
+		return nil, false
+	}
+	return o.SurchargeCredits, true
+}
+
+// HasSurchargeCredits returns a boolean if a field has been set.
+func (o *JobsJobListItem) HasSurchargeCredits() bool {
+	if o != nil && !IsNil(o.SurchargeCredits) {
+		return true
+	}
+
+	return false
+}
+
+// SetSurchargeCredits gets a reference to the given int32 and assigns it to the SurchargeCredits field.
+func (o *JobsJobListItem) SetSurchargeCredits(v int32) {
+	o.SurchargeCredits = &v
+}
+
 // GetTemplateId returns the TemplateId field value if set, zero value otherwise.
 func (o *JobsJobListItem) GetTemplateId() string {
 	if o == nil || IsNil(o.TemplateId) {
@@ -611,6 +710,9 @@ func (o JobsJobListItem) MarshalJSON() ([]byte, error) {
 
 func (o JobsJobListItem) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.BaseCredits) {
+		toSerialize["base_credits"] = o.BaseCredits
+	}
 	if !IsNil(o.Category) {
 		toSerialize["category"] = o.Category
 	}
@@ -638,6 +740,9 @@ func (o JobsJobListItem) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.IsDeleted) {
 		toSerialize["is_deleted"] = o.IsDeleted
 	}
+	if !IsNil(o.Model) {
+		toSerialize["model"] = o.Model
+	}
 	if !IsNil(o.ProcessedPages) {
 		toSerialize["processed_pages"] = o.ProcessedPages
 	}
@@ -652,6 +757,9 @@ func (o JobsJobListItem) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Status) {
 		toSerialize["status"] = o.Status
+	}
+	if !IsNil(o.SurchargeCredits) {
+		toSerialize["surcharge_credits"] = o.SurchargeCredits
 	}
 	if !IsNil(o.TemplateId) {
 		toSerialize["template_id"] = o.TemplateId
