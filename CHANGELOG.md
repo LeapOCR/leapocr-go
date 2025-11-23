@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2025-11-23
+
+### Changed
+
+- Updated local development server URL from `http://localhost:8080` to `http://localhost:8443`
+- Refactored Jobs API to remove deprecated methods and improve RetryJob functionality
+- Enhanced validation tests to accommodate changes in API responses and structures
+
+### Added
+
+- New Onboarding API endpoints for managing onboarding status (creation, retrieval, and updates)
+
+### Fixed
+
+- License file formatting
+
 ## [0.0.4] - 2025-11-11
 
 - Add Apache License 2.0
