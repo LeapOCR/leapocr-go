@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.5] - 2025-11-23
 
+
+
+- Update API endpoints and configurations for local development
+
+- fixing license
+
+
+## [0.0.5] - 2025-11-23
+
 ### Changed
 
 - Updated local development server URL from `http://localhost:8080` to `http://localhost:8443`
