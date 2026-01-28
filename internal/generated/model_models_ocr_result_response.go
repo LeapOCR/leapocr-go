@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -29,7 +29,7 @@ type ModelsOCRResultResponse struct {
 	Pagination     *ModelsPaginationResponse `json:"pagination,omitempty"`
 	ProcessedPages *int32                    `json:"processed_pages,omitempty"`
 	ResultFormat   *string                   `json:"result_format,omitempty"`
-	Status         *string                   `json:"status,omitempty"`
+	Status         *ModelsJobStatus          `json:"status,omitempty"`
 	TotalPages     *int32                    `json:"total_pages,omitempty"`
 }
 
@@ -339,9 +339,9 @@ func (o *ModelsOCRResultResponse) SetResultFormat(v string) {
 }
 
 // GetStatus returns the Status field value if set, zero value otherwise.
-func (o *ModelsOCRResultResponse) GetStatus() string {
+func (o *ModelsOCRResultResponse) GetStatus() ModelsJobStatus {
 	if o == nil || IsNil(o.Status) {
-		var ret string
+		var ret ModelsJobStatus
 		return ret
 	}
 	return *o.Status
@@ -349,7 +349,7 @@ func (o *ModelsOCRResultResponse) GetStatus() string {
 
 // GetStatusOk returns a tuple with the Status field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelsOCRResultResponse) GetStatusOk() (*string, bool) {
+func (o *ModelsOCRResultResponse) GetStatusOk() (*ModelsJobStatus, bool) {
 	if o == nil || IsNil(o.Status) {
 		return nil, false
 	}
@@ -365,8 +365,8 @@ func (o *ModelsOCRResultResponse) HasStatus() bool {
 	return false
 }
 
-// SetStatus gets a reference to the given string and assigns it to the Status field.
-func (o *ModelsOCRResultResponse) SetStatus(v string) {
+// SetStatus gets a reference to the given ModelsJobStatus and assigns it to the Status field.
+func (o *ModelsOCRResultResponse) SetStatus(v ModelsJobStatus) {
 	o.Status = &v
 }
 

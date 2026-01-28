@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -22,7 +22,6 @@ var _ MappedNullable = &JobsJobStatusResponse{}
 // JobsJobStatusResponse struct for JobsJobStatusResponse
 type JobsJobStatusResponse struct {
 	EstimatedStuck *bool                   `json:"estimated_stuck,omitempty"`
-	IsRestartable  *bool                   `json:"is_restartable,omitempty"`
 	IsRetryable    *bool                   `json:"is_retryable,omitempty"`
 	Job            *JobsJobResponse        `json:"job,omitempty"`
 	LastActivity   *time.Time              `json:"last_activity,omitempty"`
@@ -76,38 +75,6 @@ func (o *JobsJobStatusResponse) HasEstimatedStuck() bool {
 // SetEstimatedStuck gets a reference to the given bool and assigns it to the EstimatedStuck field.
 func (o *JobsJobStatusResponse) SetEstimatedStuck(v bool) {
 	o.EstimatedStuck = &v
-}
-
-// GetIsRestartable returns the IsRestartable field value if set, zero value otherwise.
-func (o *JobsJobStatusResponse) GetIsRestartable() bool {
-	if o == nil || IsNil(o.IsRestartable) {
-		var ret bool
-		return ret
-	}
-	return *o.IsRestartable
-}
-
-// GetIsRestartableOk returns a tuple with the IsRestartable field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *JobsJobStatusResponse) GetIsRestartableOk() (*bool, bool) {
-	if o == nil || IsNil(o.IsRestartable) {
-		return nil, false
-	}
-	return o.IsRestartable, true
-}
-
-// HasIsRestartable returns a boolean if a field has been set.
-func (o *JobsJobStatusResponse) HasIsRestartable() bool {
-	if o != nil && !IsNil(o.IsRestartable) {
-		return true
-	}
-
-	return false
-}
-
-// SetIsRestartable gets a reference to the given bool and assigns it to the IsRestartable field.
-func (o *JobsJobStatusResponse) SetIsRestartable(v bool) {
-	o.IsRestartable = &v
 }
 
 // GetIsRetryable returns the IsRetryable field value if set, zero value otherwise.
@@ -250,9 +217,6 @@ func (o JobsJobStatusResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.EstimatedStuck) {
 		toSerialize["estimated_stuck"] = o.EstimatedStuck
-	}
-	if !IsNil(o.IsRestartable) {
-		toSerialize["is_restartable"] = o.IsRestartable
 	}
 	if !IsNil(o.IsRetryable) {
 		toSerialize["is_retryable"] = o.IsRetryable

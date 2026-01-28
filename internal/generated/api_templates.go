@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -28,9 +28,11 @@ type TemplatesAPI interface {
 		Create a new template for OCR processing with format, instructions, and schema configuration. Templates provide reusable configurations for document processing with consistent output formatting and validation rules
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@return TemplatesAPICreateTemplateRequest
 	*/
-	CreateTemplate(ctx context.Context) TemplatesAPICreateTemplateRequest
+	CreateTemplate(ctx context.Context, organizationId string, teamId string) TemplatesAPICreateTemplateRequest
 
 	// CreateTemplateExecute executes the request
 	//  @return TemplatesTemplateResponse
@@ -42,10 +44,12 @@ type TemplatesAPI interface {
 		Permanently delete a template by its unique identifier
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@param id Unique template identifier
 		@return TemplatesAPIDeleteTemplateRequest
 	*/
-	DeleteTemplate(ctx context.Context, id string) TemplatesAPIDeleteTemplateRequest
+	DeleteTemplate(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIDeleteTemplateRequest
 
 	// DeleteTemplateExecute executes the request
 	DeleteTemplateExecute(r TemplatesAPIDeleteTemplateRequest) (*http.Response, error)
@@ -56,10 +60,12 @@ type TemplatesAPI interface {
 		Retrieve a specific template by its unique identifier with complete configuration details
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@param id Unique template identifier
 		@return TemplatesAPIGetTemplateRequest
 	*/
-	GetTemplate(ctx context.Context, id string) TemplatesAPIGetTemplateRequest
+	GetTemplate(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIGetTemplateRequest
 
 	// GetTemplateExecute executes the request
 	//  @return TemplatesTemplateResponse
@@ -71,38 +77,44 @@ type TemplatesAPI interface {
 		Retrieve usage statistics for templates in a specific project
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@return TemplatesAPIGetTemplateStatsRequest
 	*/
-	GetTemplateStats(ctx context.Context) TemplatesAPIGetTemplateStatsRequest
+	GetTemplateStats(ctx context.Context, organizationId string, teamId string) TemplatesAPIGetTemplateStatsRequest
 
 	// GetTemplateStatsExecute executes the request
 	//  @return TemplatesTemplateStatsResponse
 	GetTemplateStatsExecute(r TemplatesAPIGetTemplateStatsRequest) (*TemplatesTemplateStatsResponse, *http.Response, error)
 
 	/*
-		ListTemplates List OCR processing templates
+		ListTemplatesCursor List templates with cursor-based pagination
 
-		Retrieve a paginated list of templates for a specific project with filtering and sorting capabilities
+		Retrieve a paginated list of templates using cursor-based pagination with filtering support
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return TemplatesAPIListTemplatesRequest
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return TemplatesAPIListTemplatesCursorRequest
 	*/
-	ListTemplates(ctx context.Context) TemplatesAPIListTemplatesRequest
+	ListTemplatesCursor(ctx context.Context, organizationId string, teamId string) TemplatesAPIListTemplatesCursorRequest
 
-	// ListTemplatesExecute executes the request
-	//  @return TemplatesListTemplatesResponse
-	ListTemplatesExecute(r TemplatesAPIListTemplatesRequest) (*TemplatesListTemplatesResponse, *http.Response, error)
+	// ListTemplatesCursorExecute executes the request
+	//  @return TemplatesTemplatesListCursorResponse
+	ListTemplatesCursorExecute(r TemplatesAPIListTemplatesCursorRequest) (*TemplatesTemplatesListCursorResponse, *http.Response, error)
 
 	/*
 		ToggleTemplateFavorite Toggle template favorite status
 
-		Toggle the favorite status of a template
+		Add or remove a template from favorites. Toggles the current favorite status
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@param id Unique template identifier
 		@return TemplatesAPIToggleTemplateFavoriteRequest
 	*/
-	ToggleTemplateFavorite(ctx context.Context, id string) TemplatesAPIToggleTemplateFavoriteRequest
+	ToggleTemplateFavorite(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIToggleTemplateFavoriteRequest
 
 	// ToggleTemplateFavoriteExecute executes the request
 	//  @return TemplatesTemplateResponse
@@ -114,10 +126,12 @@ type TemplatesAPI interface {
 		Update an existing template configuration including format, instructions, and schema
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@param id Unique template identifier
 		@return TemplatesAPIUpdateTemplateRequest
 	*/
-	UpdateTemplate(ctx context.Context, id string) TemplatesAPIUpdateTemplateRequest
+	UpdateTemplate(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIUpdateTemplateRequest
 
 	// UpdateTemplateExecute executes the request
 	//  @return TemplatesTemplateResponse
@@ -128,14 +142,16 @@ type TemplatesAPI interface {
 type TemplatesAPIService service
 
 type TemplatesAPICreateTemplateRequest struct {
-	ctx                            context.Context
-	ApiService                     TemplatesAPI
-	templatesCreateTemplateRequest *TemplatesCreateTemplateRequest
+	ctx                   context.Context
+	ApiService            TemplatesAPI
+	organizationId        string
+	teamId                string
+	createTemplateRequest *CreateTemplateRequest
 }
 
 // Template creation details including name, format, instructions, and schema
-func (r TemplatesAPICreateTemplateRequest) TemplatesCreateTemplateRequest(templatesCreateTemplateRequest TemplatesCreateTemplateRequest) TemplatesAPICreateTemplateRequest {
-	r.templatesCreateTemplateRequest = &templatesCreateTemplateRequest
+func (r TemplatesAPICreateTemplateRequest) CreateTemplateRequest(createTemplateRequest CreateTemplateRequest) TemplatesAPICreateTemplateRequest {
+	r.createTemplateRequest = &createTemplateRequest
 	return r
 }
 
@@ -149,12 +165,16 @@ CreateTemplate Create OCR processing template
 Create a new template for OCR processing with format, instructions, and schema configuration. Templates provide reusable configurations for document processing with consistent output formatting and validation rules
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@return TemplatesAPICreateTemplateRequest
 */
-func (a *TemplatesAPIService) CreateTemplate(ctx context.Context) TemplatesAPICreateTemplateRequest {
+func (a *TemplatesAPIService) CreateTemplate(ctx context.Context, organizationId string, teamId string) TemplatesAPICreateTemplateRequest {
 	return TemplatesAPICreateTemplateRequest{
-		ApiService: a,
-		ctx:        ctx,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
 	}
 }
 
@@ -174,13 +194,15 @@ func (a *TemplatesAPIService) CreateTemplateExecute(r TemplatesAPICreateTemplate
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/templates"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/templates"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.templatesCreateTemplateRequest == nil {
-		return localVarReturnValue, nil, reportError("templatesCreateTemplateRequest is required and must be specified")
+	if r.createTemplateRequest == nil {
+		return localVarReturnValue, nil, reportError("createTemplateRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -201,7 +223,21 @@ func (a *TemplatesAPIService) CreateTemplateExecute(r TemplatesAPICreateTemplate
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.templatesCreateTemplateRequest
+	localVarPostBody = r.createTemplateRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -283,9 +319,17 @@ func (a *TemplatesAPIService) CreateTemplateExecute(r TemplatesAPICreateTemplate
 }
 
 type TemplatesAPIDeleteTemplateRequest struct {
-	ctx        context.Context
-	ApiService TemplatesAPI
-	id         string
+	ctx            context.Context
+	ApiService     TemplatesAPI
+	organizationId string
+	teamId         string
+	id             string
+	body           *map[string]interface{}
+}
+
+func (r TemplatesAPIDeleteTemplateRequest) Body(body map[string]interface{}) TemplatesAPIDeleteTemplateRequest {
+	r.body = &body
+	return r
 }
 
 func (r TemplatesAPIDeleteTemplateRequest) Execute() (*http.Response, error) {
@@ -298,14 +342,18 @@ DeleteTemplate Delete OCR processing template
 Permanently delete a template by its unique identifier
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@param id Unique template identifier
 	@return TemplatesAPIDeleteTemplateRequest
 */
-func (a *TemplatesAPIService) DeleteTemplate(ctx context.Context, id string) TemplatesAPIDeleteTemplateRequest {
+func (a *TemplatesAPIService) DeleteTemplate(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIDeleteTemplateRequest {
 	return TemplatesAPIDeleteTemplateRequest{
-		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
 	}
 }
 
@@ -322,7 +370,9 @@ func (a *TemplatesAPIService) DeleteTemplateExecute(r TemplatesAPIDeleteTemplate
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/templates/{id}"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/templates/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -330,7 +380,7 @@ func (a *TemplatesAPIService) DeleteTemplateExecute(r TemplatesAPIDeleteTemplate
 	localVarFormParams := url.Values{}
 
 	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
+	localVarHTTPContentTypes := []string{"application/json"}
 
 	// set Content-Type header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
@@ -345,6 +395,22 @@ func (a *TemplatesAPIService) DeleteTemplateExecute(r TemplatesAPIDeleteTemplate
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.body
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -429,9 +495,11 @@ func (a *TemplatesAPIService) DeleteTemplateExecute(r TemplatesAPIDeleteTemplate
 }
 
 type TemplatesAPIGetTemplateRequest struct {
-	ctx        context.Context
-	ApiService TemplatesAPI
-	id         string
+	ctx            context.Context
+	ApiService     TemplatesAPI
+	organizationId string
+	teamId         string
+	id             string
 }
 
 func (r TemplatesAPIGetTemplateRequest) Execute() (*TemplatesTemplateResponse, *http.Response, error) {
@@ -444,14 +512,18 @@ GetTemplate Get OCR processing template
 Retrieve a specific template by its unique identifier with complete configuration details
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@param id Unique template identifier
 	@return TemplatesAPIGetTemplateRequest
 */
-func (a *TemplatesAPIService) GetTemplate(ctx context.Context, id string) TemplatesAPIGetTemplateRequest {
+func (a *TemplatesAPIService) GetTemplate(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIGetTemplateRequest {
 	return TemplatesAPIGetTemplateRequest{
-		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
 	}
 }
 
@@ -471,7 +543,9 @@ func (a *TemplatesAPIService) GetTemplateExecute(r TemplatesAPIGetTemplateReques
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/templates/{id}"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/templates/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -494,6 +568,20 @@ func (a *TemplatesAPIService) GetTemplateExecute(r TemplatesAPIGetTemplateReques
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -576,15 +664,10 @@ func (a *TemplatesAPIService) GetTemplateExecute(r TemplatesAPIGetTemplateReques
 }
 
 type TemplatesAPIGetTemplateStatsRequest struct {
-	ctx        context.Context
-	ApiService TemplatesAPI
-	teamId     *string
-}
-
-// Team ID to get template statistics for
-func (r TemplatesAPIGetTemplateStatsRequest) TeamId(teamId string) TemplatesAPIGetTemplateStatsRequest {
-	r.teamId = &teamId
-	return r
+	ctx            context.Context
+	ApiService     TemplatesAPI
+	organizationId string
+	teamId         string
 }
 
 func (r TemplatesAPIGetTemplateStatsRequest) Execute() (*TemplatesTemplateStatsResponse, *http.Response, error) {
@@ -597,12 +680,16 @@ GetTemplateStats Get template statistics
 Retrieve usage statistics for templates in a specific project
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@return TemplatesAPIGetTemplateStatsRequest
 */
-func (a *TemplatesAPIService) GetTemplateStats(ctx context.Context) TemplatesAPIGetTemplateStatsRequest {
+func (a *TemplatesAPIService) GetTemplateStats(ctx context.Context, organizationId string, teamId string) TemplatesAPIGetTemplateStatsRequest {
 	return TemplatesAPIGetTemplateStatsRequest{
-		ApiService: a,
-		ctx:        ctx,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
 	}
 }
 
@@ -622,16 +709,14 @@ func (a *TemplatesAPIService) GetTemplateStatsExecute(r TemplatesAPIGetTemplateS
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/templates/stats"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/templates/stats"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.teamId == nil {
-		return localVarReturnValue, nil, reportError("teamId is required and must be specified")
-	}
 
-	parameterAddToHeaderOrQuery(localVarQueryParams, "team_id", r.teamId, "form", "")
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -648,6 +733,20 @@ func (a *TemplatesAPIService) GetTemplateStatsExecute(r TemplatesAPIGetTemplateS
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -729,108 +828,102 @@ func (a *TemplatesAPIService) GetTemplateStatsExecute(r TemplatesAPIGetTemplateS
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type TemplatesAPIListTemplatesRequest struct {
-	ctx        context.Context
-	ApiService TemplatesAPI
-	teamId     *string
-	page       *int32
-	limit      *int32
-	format     *string
-	favorite   *bool
-	search     *string
+type TemplatesAPIListTemplatesCursorRequest struct {
+	ctx            context.Context
+	ApiService     TemplatesAPI
+	organizationId string
+	teamId         string
+	cursor         *string
+	limit          *int32
+	format         *string
+	favorite       *bool
+	search         *string
 }
 
-// Team ID to filter templates by
-func (r TemplatesAPIListTemplatesRequest) TeamId(teamId string) TemplatesAPIListTemplatesRequest {
-	r.teamId = &teamId
-	return r
-}
-
-// Page number for pagination
-func (r TemplatesAPIListTemplatesRequest) Page(page int32) TemplatesAPIListTemplatesRequest {
-	r.page = &page
+// Cursor for pagination
+func (r TemplatesAPIListTemplatesCursorRequest) Cursor(cursor string) TemplatesAPIListTemplatesCursorRequest {
+	r.cursor = &cursor
 	return r
 }
 
 // Number of items per page
-func (r TemplatesAPIListTemplatesRequest) Limit(limit int32) TemplatesAPIListTemplatesRequest {
+func (r TemplatesAPIListTemplatesCursorRequest) Limit(limit int32) TemplatesAPIListTemplatesCursorRequest {
 	r.limit = &limit
 	return r
 }
 
-// Filter by format type
-func (r TemplatesAPIListTemplatesRequest) Format(format string) TemplatesAPIListTemplatesRequest {
+// Filter by template format
+func (r TemplatesAPIListTemplatesCursorRequest) Format(format string) TemplatesAPIListTemplatesCursorRequest {
 	r.format = &format
 	return r
 }
 
 // Filter by favorite status
-func (r TemplatesAPIListTemplatesRequest) Favorite(favorite bool) TemplatesAPIListTemplatesRequest {
+func (r TemplatesAPIListTemplatesCursorRequest) Favorite(favorite bool) TemplatesAPIListTemplatesCursorRequest {
 	r.favorite = &favorite
 	return r
 }
 
-// Search term for template names
-func (r TemplatesAPIListTemplatesRequest) Search(search string) TemplatesAPIListTemplatesRequest {
+// Search by template name
+func (r TemplatesAPIListTemplatesCursorRequest) Search(search string) TemplatesAPIListTemplatesCursorRequest {
 	r.search = &search
 	return r
 }
 
-func (r TemplatesAPIListTemplatesRequest) Execute() (*TemplatesListTemplatesResponse, *http.Response, error) {
-	return r.ApiService.ListTemplatesExecute(r)
+func (r TemplatesAPIListTemplatesCursorRequest) Execute() (*TemplatesTemplatesListCursorResponse, *http.Response, error) {
+	return r.ApiService.ListTemplatesCursorExecute(r)
 }
 
 /*
-ListTemplates List OCR processing templates
+ListTemplatesCursor List templates with cursor-based pagination
 
-Retrieve a paginated list of templates for a specific project with filtering and sorting capabilities
+Retrieve a paginated list of templates using cursor-based pagination with filtering support
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return TemplatesAPIListTemplatesRequest
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return TemplatesAPIListTemplatesCursorRequest
 */
-func (a *TemplatesAPIService) ListTemplates(ctx context.Context) TemplatesAPIListTemplatesRequest {
-	return TemplatesAPIListTemplatesRequest{
-		ApiService: a,
-		ctx:        ctx,
+func (a *TemplatesAPIService) ListTemplatesCursor(ctx context.Context, organizationId string, teamId string) TemplatesAPIListTemplatesCursorRequest {
+	return TemplatesAPIListTemplatesCursorRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
 	}
 }
 
 // Execute executes the request
 //
-//	@return TemplatesListTemplatesResponse
-func (a *TemplatesAPIService) ListTemplatesExecute(r TemplatesAPIListTemplatesRequest) (*TemplatesListTemplatesResponse, *http.Response, error) {
+//	@return TemplatesTemplatesListCursorResponse
+func (a *TemplatesAPIService) ListTemplatesCursorExecute(r TemplatesAPIListTemplatesCursorRequest) (*TemplatesTemplatesListCursorResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *TemplatesListTemplatesResponse
+		localVarReturnValue *TemplatesTemplatesListCursorResponse
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "TemplatesAPIService.ListTemplates")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "TemplatesAPIService.ListTemplatesCursor")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/templates"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/templates"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.teamId == nil {
-		return localVarReturnValue, nil, reportError("teamId is required and must be specified")
-	}
 
-	parameterAddToHeaderOrQuery(localVarQueryParams, "team_id", r.teamId, "form", "")
-	if r.page != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
-	} else {
-		var defaultValue int32 = 1
-		r.page = &defaultValue
+	if r.cursor != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "cursor", r.cursor, "form", "")
 	}
 	if r.limit != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
 	} else {
-		var defaultValue int32 = 10
+		var defaultValue int32 = 20
 		r.limit = &defaultValue
 	}
 	if r.format != nil {
@@ -858,6 +951,20 @@ func (a *TemplatesAPIService) ListTemplatesExecute(r TemplatesAPIListTemplatesRe
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -940,9 +1047,11 @@ func (a *TemplatesAPIService) ListTemplatesExecute(r TemplatesAPIListTemplatesRe
 }
 
 type TemplatesAPIToggleTemplateFavoriteRequest struct {
-	ctx        context.Context
-	ApiService TemplatesAPI
-	id         string
+	ctx            context.Context
+	ApiService     TemplatesAPI
+	organizationId string
+	teamId         string
+	id             string
 }
 
 func (r TemplatesAPIToggleTemplateFavoriteRequest) Execute() (*TemplatesTemplateResponse, *http.Response, error) {
@@ -952,17 +1061,21 @@ func (r TemplatesAPIToggleTemplateFavoriteRequest) Execute() (*TemplatesTemplate
 /*
 ToggleTemplateFavorite Toggle template favorite status
 
-Toggle the favorite status of a template
+Add or remove a template from favorites. Toggles the current favorite status
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@param id Unique template identifier
 	@return TemplatesAPIToggleTemplateFavoriteRequest
 */
-func (a *TemplatesAPIService) ToggleTemplateFavorite(ctx context.Context, id string) TemplatesAPIToggleTemplateFavoriteRequest {
+func (a *TemplatesAPIService) ToggleTemplateFavorite(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIToggleTemplateFavoriteRequest {
 	return TemplatesAPIToggleTemplateFavoriteRequest{
-		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
 	}
 }
 
@@ -982,7 +1095,9 @@ func (a *TemplatesAPIService) ToggleTemplateFavoriteExecute(r TemplatesAPIToggle
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/templates/{id}/favorite"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/templates/{id}/favorite"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -1005,6 +1120,20 @@ func (a *TemplatesAPIService) ToggleTemplateFavoriteExecute(r TemplatesAPIToggle
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -1098,15 +1227,17 @@ func (a *TemplatesAPIService) ToggleTemplateFavoriteExecute(r TemplatesAPIToggle
 }
 
 type TemplatesAPIUpdateTemplateRequest struct {
-	ctx                            context.Context
-	ApiService                     TemplatesAPI
-	id                             string
-	templatesUpdateTemplateRequest *TemplatesUpdateTemplateRequest
+	ctx                   context.Context
+	ApiService            TemplatesAPI
+	organizationId        string
+	teamId                string
+	id                    string
+	updateTemplateRequest *UpdateTemplateRequest
 }
 
 // Updated template configuration
-func (r TemplatesAPIUpdateTemplateRequest) TemplatesUpdateTemplateRequest(templatesUpdateTemplateRequest TemplatesUpdateTemplateRequest) TemplatesAPIUpdateTemplateRequest {
-	r.templatesUpdateTemplateRequest = &templatesUpdateTemplateRequest
+func (r TemplatesAPIUpdateTemplateRequest) UpdateTemplateRequest(updateTemplateRequest UpdateTemplateRequest) TemplatesAPIUpdateTemplateRequest {
+	r.updateTemplateRequest = &updateTemplateRequest
 	return r
 }
 
@@ -1120,14 +1251,18 @@ UpdateTemplate Update OCR processing template
 Update an existing template configuration including format, instructions, and schema
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@param id Unique template identifier
 	@return TemplatesAPIUpdateTemplateRequest
 */
-func (a *TemplatesAPIService) UpdateTemplate(ctx context.Context, id string) TemplatesAPIUpdateTemplateRequest {
+func (a *TemplatesAPIService) UpdateTemplate(ctx context.Context, organizationId string, teamId string, id string) TemplatesAPIUpdateTemplateRequest {
 	return TemplatesAPIUpdateTemplateRequest{
-		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
 	}
 }
 
@@ -1147,14 +1282,16 @@ func (a *TemplatesAPIService) UpdateTemplateExecute(r TemplatesAPIUpdateTemplate
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/templates/{id}"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/templates/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.templatesUpdateTemplateRequest == nil {
-		return localVarReturnValue, nil, reportError("templatesUpdateTemplateRequest is required and must be specified")
+	if r.updateTemplateRequest == nil {
+		return localVarReturnValue, nil, reportError("updateTemplateRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -1175,7 +1312,21 @@ func (a *TemplatesAPIService) UpdateTemplateExecute(r TemplatesAPIUpdateTemplate
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.templatesUpdateTemplateRequest
+	localVarPostBody = r.updateTemplateRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -20,9 +20,16 @@ var _ MappedNullable = &ModelsPageResponse{}
 
 // ModelsPageResponse struct for ModelsPageResponse
 type ModelsPageResponse struct {
-	Id         *string     `json:"id,omitempty"`
-	PageNumber *int32      `json:"page_number,omitempty"`
-	Result     interface{} `json:"result,omitempty"`
+	// Semantic blocks with locations. Automatically included when available.
+	BoundingBoxes []ModelsBoundingBox `json:"bounding_boxes,omitempty"`
+	// Confidence score from quality check (0.0-1.0). Present when quality assessment is enabled.
+	Confidence *float32        `json:"confidence,omitempty"`
+	Dimensions *ModelsPageDims `json:"dimensions,omitempty"`
+	// Whether bounding box data is available. True if bbox extraction was performed.
+	HasBoundingBoxesFlag *bool       `json:"has_bounding_boxes,omitempty"`
+	Id                   *string     `json:"id,omitempty"`
+	PageNumber           *int32      `json:"page_number,omitempty"`
+	Result               interface{} `json:"result,omitempty"`
 }
 
 // NewModelsPageResponse instantiates a new ModelsPageResponse object
@@ -40,6 +47,134 @@ func NewModelsPageResponse() *ModelsPageResponse {
 func NewModelsPageResponseWithDefaults() *ModelsPageResponse {
 	this := ModelsPageResponse{}
 	return &this
+}
+
+// GetBoundingBoxes returns the BoundingBoxes field value if set, zero value otherwise.
+func (o *ModelsPageResponse) GetBoundingBoxes() []ModelsBoundingBox {
+	if o == nil || IsNil(o.BoundingBoxes) {
+		var ret []ModelsBoundingBox
+		return ret
+	}
+	return o.BoundingBoxes
+}
+
+// GetBoundingBoxesOk returns a tuple with the BoundingBoxes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelsPageResponse) GetBoundingBoxesOk() ([]ModelsBoundingBox, bool) {
+	if o == nil || IsNil(o.BoundingBoxes) {
+		return nil, false
+	}
+	return o.BoundingBoxes, true
+}
+
+// HasBoundingBoxes returns a boolean if a field has been set.
+func (o *ModelsPageResponse) HasBoundingBoxes() bool {
+	if o != nil && !IsNil(o.BoundingBoxes) {
+		return true
+	}
+
+	return false
+}
+
+// SetBoundingBoxes gets a reference to the given []ModelsBoundingBox and assigns it to the BoundingBoxes field.
+func (o *ModelsPageResponse) SetBoundingBoxes(v []ModelsBoundingBox) {
+	o.BoundingBoxes = v
+}
+
+// GetConfidence returns the Confidence field value if set, zero value otherwise.
+func (o *ModelsPageResponse) GetConfidence() float32 {
+	if o == nil || IsNil(o.Confidence) {
+		var ret float32
+		return ret
+	}
+	return *o.Confidence
+}
+
+// GetConfidenceOk returns a tuple with the Confidence field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelsPageResponse) GetConfidenceOk() (*float32, bool) {
+	if o == nil || IsNil(o.Confidence) {
+		return nil, false
+	}
+	return o.Confidence, true
+}
+
+// HasConfidence returns a boolean if a field has been set.
+func (o *ModelsPageResponse) HasConfidence() bool {
+	if o != nil && !IsNil(o.Confidence) {
+		return true
+	}
+
+	return false
+}
+
+// SetConfidence gets a reference to the given float32 and assigns it to the Confidence field.
+func (o *ModelsPageResponse) SetConfidence(v float32) {
+	o.Confidence = &v
+}
+
+// GetDimensions returns the Dimensions field value if set, zero value otherwise.
+func (o *ModelsPageResponse) GetDimensions() ModelsPageDims {
+	if o == nil || IsNil(o.Dimensions) {
+		var ret ModelsPageDims
+		return ret
+	}
+	return *o.Dimensions
+}
+
+// GetDimensionsOk returns a tuple with the Dimensions field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelsPageResponse) GetDimensionsOk() (*ModelsPageDims, bool) {
+	if o == nil || IsNil(o.Dimensions) {
+		return nil, false
+	}
+	return o.Dimensions, true
+}
+
+// HasDimensions returns a boolean if a field has been set.
+func (o *ModelsPageResponse) HasDimensions() bool {
+	if o != nil && !IsNil(o.Dimensions) {
+		return true
+	}
+
+	return false
+}
+
+// SetDimensions gets a reference to the given ModelsPageDims and assigns it to the Dimensions field.
+func (o *ModelsPageResponse) SetDimensions(v ModelsPageDims) {
+	o.Dimensions = &v
+}
+
+// GetHasBoundingBoxes returns the HasBoundingBoxes field value if set, zero value otherwise.
+func (o *ModelsPageResponse) GetHasBoundingBoxes() bool {
+	if o == nil || IsNil(o.HasBoundingBoxesFlag) {
+		var ret bool
+		return ret
+	}
+	return *o.HasBoundingBoxesFlag
+}
+
+// GetHasBoundingBoxesOk returns a tuple with the HasBoundingBoxes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelsPageResponse) GetHasBoundingBoxesOk() (*bool, bool) {
+	if o == nil || IsNil(o.HasBoundingBoxesFlag) {
+		return nil, false
+	}
+	return o.HasBoundingBoxesFlag, true
+}
+
+// HasHasBoundingBoxes returns a boolean if a field has been set.
+func (o *ModelsPageResponse) HasHasBoundingBoxes() bool {
+	if o != nil && !IsNil(o.HasBoundingBoxesFlag) {
+		return true
+	}
+
+	return false
+}
+
+// SetHasBoundingBoxes gets a reference to the given bool and assigns it to the HasBoundingBoxes field.
+func (o *ModelsPageResponse) SetHasBoundingBoxes(v bool) {
+	o.HasBoundingBoxesFlag = &v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -149,6 +284,18 @@ func (o ModelsPageResponse) MarshalJSON() ([]byte, error) {
 
 func (o ModelsPageResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.BoundingBoxes) {
+		toSerialize["bounding_boxes"] = o.BoundingBoxes
+	}
+	if !IsNil(o.Confidence) {
+		toSerialize["confidence"] = o.Confidence
+	}
+	if !IsNil(o.Dimensions) {
+		toSerialize["dimensions"] = o.Dimensions
+	}
+	if !IsNil(o.HasBoundingBoxesFlag) {
+		toSerialize["has_bounding_boxes"] = o.HasBoundingBoxesFlag
+	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
 	}

@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -21,10 +21,10 @@ var _ MappedNullable = &UploadRemoteURLUploadResponse{}
 
 // UploadRemoteURLUploadResponse struct for UploadRemoteURLUploadResponse
 type UploadRemoteURLUploadResponse struct {
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	JobId     *string    `json:"job_id,omitempty"`
-	SourceUrl *string    `json:"source_url,omitempty"`
-	Status    *string    `json:"status,omitempty"`
+	CreatedAt *time.Time       `json:"created_at,omitempty"`
+	JobId     *string          `json:"job_id,omitempty"`
+	SourceUrl *string          `json:"source_url,omitempty"`
+	Status    *ModelsJobStatus `json:"status,omitempty"`
 }
 
 // NewUploadRemoteURLUploadResponse instantiates a new UploadRemoteURLUploadResponse object
@@ -141,9 +141,9 @@ func (o *UploadRemoteURLUploadResponse) SetSourceUrl(v string) {
 }
 
 // GetStatus returns the Status field value if set, zero value otherwise.
-func (o *UploadRemoteURLUploadResponse) GetStatus() string {
+func (o *UploadRemoteURLUploadResponse) GetStatus() ModelsJobStatus {
 	if o == nil || IsNil(o.Status) {
-		var ret string
+		var ret ModelsJobStatus
 		return ret
 	}
 	return *o.Status
@@ -151,7 +151,7 @@ func (o *UploadRemoteURLUploadResponse) GetStatus() string {
 
 // GetStatusOk returns a tuple with the Status field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UploadRemoteURLUploadResponse) GetStatusOk() (*string, bool) {
+func (o *UploadRemoteURLUploadResponse) GetStatusOk() (*ModelsJobStatus, bool) {
 	if o == nil || IsNil(o.Status) {
 		return nil, false
 	}
@@ -167,8 +167,8 @@ func (o *UploadRemoteURLUploadResponse) HasStatus() bool {
 	return false
 }
 
-// SetStatus gets a reference to the given string and assigns it to the Status field.
-func (o *UploadRemoteURLUploadResponse) SetStatus(v string) {
+// SetStatus gets a reference to the given ModelsJobStatus and assigns it to the Status field.
+func (o *UploadRemoteURLUploadResponse) SetStatus(v ModelsJobStatus) {
 	o.Status = &v
 }
 

@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -38,28 +38,12 @@ type OCRAPI interface {
 	CompleteDirectUploadExecute(r OCRAPICompleteDirectUploadRequest) (*UploadDirectUploadCompleteResponse, *http.Response, error)
 
 	/*
-		DeleteJob Delete OCR job
-
-		Delets a job
-
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param jobId OCR job ID to delete
-		@return OCRAPIDeleteJobRequest
-	*/
-	DeleteJob(ctx context.Context, jobId string) OCRAPIDeleteJobRequest
-
-	// DeleteJobExecute executes the request
-	//  @return JobsJobResponse
-	DeleteJobExecute(r OCRAPIDeleteJobRequest) (*JobsJobResponse, *http.Response, error)
-
-	/*
 			DirectUpload Direct upload
 
 			Create a job and generate presigned URLs for direct file upload to S3. Uses multipart upload for all files (1 part for small files, multiple parts for large files ≥50MB).
 		**Output Types:**
-		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 		- `markdown`: Page-by-page OCR. All configuration fields are optional
-		- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 		**Note:** Only one of template_slug or format can be provided per request
 
 			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -120,9 +104,8 @@ type OCRAPI interface {
 
 			Create a job and start processing from a remote URL. Supported format: PDF (.pdf) only.
 		**Output Types:**
-		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 		- `markdown`: Page-by-page OCR. All configuration fields are optional
-		- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 		**Note:** Only one of template_slug or format can be provided per request
 
 			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -139,15 +122,15 @@ type OCRAPI interface {
 type OCRAPIService service
 
 type OCRAPICompleteDirectUploadRequest struct {
-	ctx                               context.Context
-	ApiService                        OCRAPI
-	jobId                             string
-	uploadDirectUploadCompleteRequest *UploadDirectUploadCompleteRequest
+	ctx                         context.Context
+	ApiService                  OCRAPI
+	jobId                       string
+	completeDirectUploadRequest *CompleteDirectUploadRequest
 }
 
 // Completion request with part ETags
-func (r OCRAPICompleteDirectUploadRequest) UploadDirectUploadCompleteRequest(uploadDirectUploadCompleteRequest UploadDirectUploadCompleteRequest) OCRAPICompleteDirectUploadRequest {
-	r.uploadDirectUploadCompleteRequest = &uploadDirectUploadCompleteRequest
+func (r OCRAPICompleteDirectUploadRequest) CompleteDirectUploadRequest(completeDirectUploadRequest CompleteDirectUploadRequest) OCRAPICompleteDirectUploadRequest {
+	r.completeDirectUploadRequest = &completeDirectUploadRequest
 	return r
 }
 
@@ -194,8 +177,8 @@ func (a *OCRAPIService) CompleteDirectUploadExecute(r OCRAPICompleteDirectUpload
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.uploadDirectUploadCompleteRequest == nil {
-		return localVarReturnValue, nil, reportError("uploadDirectUploadCompleteRequest is required and must be specified")
+	if r.completeDirectUploadRequest == nil {
+		return localVarReturnValue, nil, reportError("completeDirectUploadRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -216,7 +199,21 @@ func (a *OCRAPIService) CompleteDirectUploadExecute(r OCRAPICompleteDirectUpload
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.uploadDirectUploadCompleteRequest
+	localVarPostBody = r.completeDirectUploadRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -308,170 +305,15 @@ func (a *OCRAPIService) CompleteDirectUploadExecute(r OCRAPICompleteDirectUpload
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type OCRAPIDeleteJobRequest struct {
-	ctx        context.Context
-	ApiService OCRAPI
-	jobId      string
-	body       *map[string]interface{}
-}
-
-func (r OCRAPIDeleteJobRequest) Body(body map[string]interface{}) OCRAPIDeleteJobRequest {
-	r.body = &body
-	return r
-}
-
-func (r OCRAPIDeleteJobRequest) Execute() (*JobsJobResponse, *http.Response, error) {
-	return r.ApiService.DeleteJobExecute(r)
-}
-
-/*
-DeleteJob Delete OCR job
-
-Delets a job
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param jobId OCR job ID to delete
-	@return OCRAPIDeleteJobRequest
-*/
-func (a *OCRAPIService) DeleteJob(ctx context.Context, jobId string) OCRAPIDeleteJobRequest {
-	return OCRAPIDeleteJobRequest{
-		ApiService: a,
-		ctx:        ctx,
-		jobId:      jobId,
-	}
-}
-
-// Execute executes the request
-//
-//	@return JobsJobResponse
-func (a *OCRAPIService) DeleteJobExecute(r OCRAPIDeleteJobRequest) (*JobsJobResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodDelete
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *JobsJobResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OCRAPIService.DeleteJob")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/ocr/delete/{job_id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	// body params
-	localVarPostBody = r.body
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 401 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 404 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
 type OCRAPIDirectUploadRequest struct {
-	ctx                               context.Context
-	ApiService                        OCRAPI
-	uploadInitiateDirectUploadRequest *UploadInitiateDirectUploadRequest
+	ctx                 context.Context
+	ApiService          OCRAPI
+	directUploadRequest *DirectUploadRequest
 }
 
 // Upload initiation request
-func (r OCRAPIDirectUploadRequest) UploadInitiateDirectUploadRequest(uploadInitiateDirectUploadRequest UploadInitiateDirectUploadRequest) OCRAPIDirectUploadRequest {
-	r.uploadInitiateDirectUploadRequest = &uploadInitiateDirectUploadRequest
+func (r OCRAPIDirectUploadRequest) DirectUploadRequest(directUploadRequest DirectUploadRequest) OCRAPIDirectUploadRequest {
+	r.directUploadRequest = &directUploadRequest
 	return r
 }
 
@@ -484,9 +326,8 @@ DirectUpload Direct upload
 
 Create a job and generate presigned URLs for direct file upload to S3. Uses multipart upload for all files (1 part for small files, multiple parts for large files ≥50MB).
 **Output Types:**
-- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 - `markdown`: Page-by-page OCR. All configuration fields are optional
-- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 **Note:** Only one of template_slug or format can be provided per request
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -520,8 +361,8 @@ func (a *OCRAPIService) DirectUploadExecute(r OCRAPIDirectUploadRequest) (*Uploa
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.uploadInitiateDirectUploadRequest == nil {
-		return localVarReturnValue, nil, reportError("uploadInitiateDirectUploadRequest is required and must be specified")
+	if r.directUploadRequest == nil {
+		return localVarReturnValue, nil, reportError("directUploadRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -542,7 +383,21 @@ func (a *OCRAPIService) DirectUploadExecute(r OCRAPIDirectUploadRequest) (*Uploa
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.uploadInitiateDirectUploadRequest
+	localVarPostBody = r.directUploadRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -716,6 +571,20 @@ func (a *OCRAPIService) GetJobResultExecute(r OCRAPIGetJobResultRequest) (*Model
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -873,6 +742,20 @@ func (a *OCRAPIService) GetJobStatusExecute(r OCRAPIGetJobStatusRequest) (*Statu
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -1087,14 +970,14 @@ func (a *OCRAPIService) ListOCRModelsExecute(r OCRAPIListOCRModelsRequest) (*Mod
 }
 
 type OCRAPIUploadFromRemoteURLRequest struct {
-	ctx                          context.Context
-	ApiService                   OCRAPI
-	uploadRemoteURLUploadRequest *UploadRemoteURLUploadRequest
+	ctx                        context.Context
+	ApiService                 OCRAPI
+	uploadFromRemoteURLRequest *UploadFromRemoteURLRequest
 }
 
 // Remote URL upload request
-func (r OCRAPIUploadFromRemoteURLRequest) UploadRemoteURLUploadRequest(uploadRemoteURLUploadRequest UploadRemoteURLUploadRequest) OCRAPIUploadFromRemoteURLRequest {
-	r.uploadRemoteURLUploadRequest = &uploadRemoteURLUploadRequest
+func (r OCRAPIUploadFromRemoteURLRequest) UploadFromRemoteURLRequest(uploadFromRemoteURLRequest UploadFromRemoteURLRequest) OCRAPIUploadFromRemoteURLRequest {
+	r.uploadFromRemoteURLRequest = &uploadFromRemoteURLRequest
 	return r
 }
 
@@ -1107,9 +990,8 @@ UploadFromRemoteURL Remote URL upload
 
 Create a job and start processing from a remote URL. Supported format: PDF (.pdf) only.
 **Output Types:**
-- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 - `markdown`: Page-by-page OCR. All configuration fields are optional
-- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 **Note:** Only one of template_slug or format can be provided per request
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -1143,8 +1025,8 @@ func (a *OCRAPIService) UploadFromRemoteURLExecute(r OCRAPIUploadFromRemoteURLRe
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.uploadRemoteURLUploadRequest == nil {
-		return localVarReturnValue, nil, reportError("uploadRemoteURLUploadRequest is required and must be specified")
+	if r.uploadFromRemoteURLRequest == nil {
+		return localVarReturnValue, nil, reportError("uploadFromRemoteURLRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -1165,7 +1047,21 @@ func (a *OCRAPIService) UploadFromRemoteURLExecute(r OCRAPIUploadFromRemoteURLRe
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.uploadRemoteURLUploadRequest
+	localVarPostBody = r.uploadFromRemoteURLRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

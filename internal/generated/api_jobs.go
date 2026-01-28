@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -18,7 +18,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 type JobsAPI interface {
@@ -26,57 +25,65 @@ type JobsAPI interface {
 	/*
 		DeleteJob Delete OCR job
 
-		Delets a job
+		Permanently delete an OCR job and all associated data including pages, results, and metadata. This action cannot be undone
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@param jobId OCR job ID to delete
 		@return JobsAPIDeleteJobRequest
 	*/
-	DeleteJob(ctx context.Context, jobId string) JobsAPIDeleteJobRequest
+	DeleteJob(ctx context.Context, organizationId string, teamId string, jobId string) JobsAPIDeleteJobRequest
 
 	// DeleteJobExecute executes the request
 	//  @return JobsJobResponse
 	DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobResponse, *http.Response, error)
 
 	/*
-		GetJobStatusSimple Get job status with workflow details
+		GetTeamJobStatus Get job status with workflow details
 
 		Get comprehensive job status including database state and Temporal workflow progress information
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@param jobId OCR job ID
-		@return JobsAPIGetJobStatusSimpleRequest
+		@return JobsAPIGetTeamJobStatusRequest
 	*/
-	GetJobStatusSimple(ctx context.Context, jobId string) JobsAPIGetJobStatusSimpleRequest
+	GetTeamJobStatus(ctx context.Context, organizationId string, teamId string, jobId string) JobsAPIGetTeamJobStatusRequest
 
-	// GetJobStatusSimpleExecute executes the request
+	// GetTeamJobStatusExecute executes the request
 	//  @return JobsJobStatusResponse
-	GetJobStatusSimpleExecute(r JobsAPIGetJobStatusSimpleRequest) (*JobsJobStatusResponse, *http.Response, error)
+	GetTeamJobStatusExecute(r JobsAPIGetTeamJobStatusRequest) (*JobsJobStatusResponse, *http.Response, error)
 
 	/*
-		GetJobsList Get jobs list
+		ListJobsCursor List jobs with cursor pagination
 
-		Retrieve a paginated list of OCR jobs with basic filtering options. This endpoint focuses on job management operations.
+		Retrieve a cursor-paginated list of OCR jobs for a team
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return JobsAPIGetJobsListRequest
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return JobsAPIListJobsCursorRequest
 	*/
-	GetJobsList(ctx context.Context) JobsAPIGetJobsListRequest
+	ListJobsCursor(ctx context.Context, organizationId string, teamId string) JobsAPIListJobsCursorRequest
 
-	// GetJobsListExecute executes the request
-	//  @return JobsJobsListResponse
-	GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJobsListResponse, *http.Response, error)
+	// ListJobsCursorExecute executes the request
+	//  @return JobsJobsListCursorResponse
+	ListJobsCursorExecute(r JobsAPIListJobsCursorRequest) (*JobsJobsListCursorResponse, *http.Response, error)
 
 	/*
 		RetryJob Retry failed OCR job
 
-		Retry a failed OCR job. Only jobs with status 'failed' can be retried.
+		Retry a failed OCR job using the original file. Only jobs with status 'failed' can be retried
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
 		@param jobId OCR job ID to retry
 		@return JobsAPIRetryJobRequest
 	*/
-	RetryJob(ctx context.Context, jobId string) JobsAPIRetryJobRequest
+	RetryJob(ctx context.Context, organizationId string, teamId string, jobId string) JobsAPIRetryJobRequest
 
 	// RetryJobExecute executes the request
 	//  @return JobsJobManagementResponse
@@ -87,15 +94,11 @@ type JobsAPI interface {
 type JobsAPIService service
 
 type JobsAPIDeleteJobRequest struct {
-	ctx        context.Context
-	ApiService JobsAPI
-	jobId      string
-	body       *map[string]interface{}
-}
-
-func (r JobsAPIDeleteJobRequest) Body(body map[string]interface{}) JobsAPIDeleteJobRequest {
-	r.body = &body
-	return r
+	ctx            context.Context
+	ApiService     JobsAPI
+	organizationId string
+	teamId         string
+	jobId          string
 }
 
 func (r JobsAPIDeleteJobRequest) Execute() (*JobsJobResponse, *http.Response, error) {
@@ -105,17 +108,21 @@ func (r JobsAPIDeleteJobRequest) Execute() (*JobsJobResponse, *http.Response, er
 /*
 DeleteJob Delete OCR job
 
-Delets a job
+Permanently delete an OCR job and all associated data including pages, results, and metadata. This action cannot be undone
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@param jobId OCR job ID to delete
 	@return JobsAPIDeleteJobRequest
 */
-func (a *JobsAPIService) DeleteJob(ctx context.Context, jobId string) JobsAPIDeleteJobRequest {
+func (a *JobsAPIService) DeleteJob(ctx context.Context, organizationId string, teamId string, jobId string) JobsAPIDeleteJobRequest {
 	return JobsAPIDeleteJobRequest{
-		ApiService: a,
-		ctx:        ctx,
-		jobId:      jobId,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		jobId:          jobId,
 	}
 }
 
@@ -135,7 +142,9 @@ func (a *JobsAPIService) DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobRe
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/ocr/delete/{job_id}"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/jobs/{job_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -143,7 +152,7 @@ func (a *JobsAPIService) DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobRe
 	localVarFormParams := url.Values{}
 
 	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
+	localVarHTTPContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
@@ -159,8 +168,20 @@ func (a *JobsAPIService) DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobRe
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
-	// body params
-	localVarPostBody = r.body
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -241,44 +262,50 @@ func (a *JobsAPIService) DeleteJobExecute(r JobsAPIDeleteJobRequest) (*JobsJobRe
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type JobsAPIGetJobStatusSimpleRequest struct {
+type JobsAPIGetTeamJobStatusRequest struct {
 	ctx             context.Context
 	ApiService      JobsAPI
+	organizationId  string
+	teamId          string
 	jobId           string
 	includeWorkflow *bool
 }
 
 // Include Temporal workflow details
-func (r JobsAPIGetJobStatusSimpleRequest) IncludeWorkflow(includeWorkflow bool) JobsAPIGetJobStatusSimpleRequest {
+func (r JobsAPIGetTeamJobStatusRequest) IncludeWorkflow(includeWorkflow bool) JobsAPIGetTeamJobStatusRequest {
 	r.includeWorkflow = &includeWorkflow
 	return r
 }
 
-func (r JobsAPIGetJobStatusSimpleRequest) Execute() (*JobsJobStatusResponse, *http.Response, error) {
-	return r.ApiService.GetJobStatusSimpleExecute(r)
+func (r JobsAPIGetTeamJobStatusRequest) Execute() (*JobsJobStatusResponse, *http.Response, error) {
+	return r.ApiService.GetTeamJobStatusExecute(r)
 }
 
 /*
-GetJobStatusSimple Get job status with workflow details
+GetTeamJobStatus Get job status with workflow details
 
 Get comprehensive job status including database state and Temporal workflow progress information
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@param jobId OCR job ID
-	@return JobsAPIGetJobStatusSimpleRequest
+	@return JobsAPIGetTeamJobStatusRequest
 */
-func (a *JobsAPIService) GetJobStatusSimple(ctx context.Context, jobId string) JobsAPIGetJobStatusSimpleRequest {
-	return JobsAPIGetJobStatusSimpleRequest{
-		ApiService: a,
-		ctx:        ctx,
-		jobId:      jobId,
+func (a *JobsAPIService) GetTeamJobStatus(ctx context.Context, organizationId string, teamId string, jobId string) JobsAPIGetTeamJobStatusRequest {
+	return JobsAPIGetTeamJobStatusRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		jobId:          jobId,
 	}
 }
 
 // Execute executes the request
 //
 //	@return JobsJobStatusResponse
-func (a *JobsAPIService) GetJobStatusSimpleExecute(r JobsAPIGetJobStatusSimpleRequest) (*JobsJobStatusResponse, *http.Response, error) {
+func (a *JobsAPIService) GetTeamJobStatusExecute(r JobsAPIGetTeamJobStatusRequest) (*JobsJobStatusResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -286,12 +313,14 @@ func (a *JobsAPIService) GetJobStatusSimpleExecute(r JobsAPIGetJobStatusSimpleRe
 		localVarReturnValue *JobsJobStatusResponse
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "JobsAPIService.GetJobStatusSimple")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "JobsAPIService.GetTeamJobStatus")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/jobs/{job_id}/status"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/jobs/{job_id}/status"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -321,6 +350,20 @@ func (a *JobsAPIService) GetJobStatusSimpleExecute(r JobsAPIGetJobStatusSimpleRe
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -401,145 +444,111 @@ func (a *JobsAPIService) GetJobStatusSimpleExecute(r JobsAPIGetJobStatusSimpleRe
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type JobsAPIGetJobsListRequest struct {
+type JobsAPIListJobsCursorRequest struct {
 	ctx            context.Context
 	ApiService     JobsAPI
-	teamId         *string
-	page           *int32
+	organizationId string
+	teamId         string
+	cursor         *string
 	limit          *int32
-	search         *string
 	status         *string
-	templateId     *string
 	model          *string
 	resultFormat   *string
-	sortBy         *string
-	createdAfter   *time.Time
-	createdBefore  *time.Time
+	templateId     *string
 	includeDeleted *bool
 }
 
-// Team ID to filter jobs by
-func (r JobsAPIGetJobsListRequest) TeamId(teamId string) JobsAPIGetJobsListRequest {
-	r.teamId = &teamId
+// Cursor for pagination
+func (r JobsAPIListJobsCursorRequest) Cursor(cursor string) JobsAPIListJobsCursorRequest {
+	r.cursor = &cursor
 	return r
 }
 
-// Page number for pagination
-func (r JobsAPIGetJobsListRequest) Page(page int32) JobsAPIGetJobsListRequest {
-	r.page = &page
-	return r
-}
-
-// Items per page
-func (r JobsAPIGetJobsListRequest) Limit(limit int32) JobsAPIGetJobsListRequest {
+// Number of items per page
+func (r JobsAPIListJobsCursorRequest) Limit(limit int32) JobsAPIListJobsCursorRequest {
 	r.limit = &limit
 	return r
 }
 
-// Search term for filename filtering
-func (r JobsAPIGetJobsListRequest) Search(search string) JobsAPIGetJobsListRequest {
-	r.search = &search
-	return r
-}
-
-// Filter by job processing status
-func (r JobsAPIGetJobsListRequest) Status(status string) JobsAPIGetJobsListRequest {
+// Filter by job status
+func (r JobsAPIListJobsCursorRequest) Status(status string) JobsAPIListJobsCursorRequest {
 	r.status = &status
 	return r
 }
 
-// Filter by template UUID
-func (r JobsAPIGetJobsListRequest) TemplateId(templateId string) JobsAPIGetJobsListRequest {
-	r.templateId = &templateId
-	return r
-}
-
 // Filter by OCR model
-func (r JobsAPIGetJobsListRequest) Model(model string) JobsAPIGetJobsListRequest {
+func (r JobsAPIListJobsCursorRequest) Model(model string) JobsAPIListJobsCursorRequest {
 	r.model = &model
 	return r
 }
 
 // Filter by result format
-func (r JobsAPIGetJobsListRequest) ResultFormat(resultFormat string) JobsAPIGetJobsListRequest {
+func (r JobsAPIListJobsCursorRequest) ResultFormat(resultFormat string) JobsAPIListJobsCursorRequest {
 	r.resultFormat = &resultFormat
 	return r
 }
 
-// Sort results by field
-func (r JobsAPIGetJobsListRequest) SortBy(sortBy string) JobsAPIGetJobsListRequest {
-	r.sortBy = &sortBy
+// Filter by template UUID
+func (r JobsAPIListJobsCursorRequest) TemplateId(templateId string) JobsAPIListJobsCursorRequest {
+	r.templateId = &templateId
 	return r
 }
 
-// Filter jobs created after this date
-func (r JobsAPIGetJobsListRequest) CreatedAfter(createdAfter time.Time) JobsAPIGetJobsListRequest {
-	r.createdAfter = &createdAfter
-	return r
-}
-
-// Filter jobs created before this date
-func (r JobsAPIGetJobsListRequest) CreatedBefore(createdBefore time.Time) JobsAPIGetJobsListRequest {
-	r.createdBefore = &createdBefore
-	return r
-}
-
-// Include soft-deleted jobs in results
-func (r JobsAPIGetJobsListRequest) IncludeDeleted(includeDeleted bool) JobsAPIGetJobsListRequest {
+// Include soft-deleted jobs
+func (r JobsAPIListJobsCursorRequest) IncludeDeleted(includeDeleted bool) JobsAPIListJobsCursorRequest {
 	r.includeDeleted = &includeDeleted
 	return r
 }
 
-func (r JobsAPIGetJobsListRequest) Execute() (*JobsJobsListResponse, *http.Response, error) {
-	return r.ApiService.GetJobsListExecute(r)
+func (r JobsAPIListJobsCursorRequest) Execute() (*JobsJobsListCursorResponse, *http.Response, error) {
+	return r.ApiService.ListJobsCursorExecute(r)
 }
 
 /*
-GetJobsList Get jobs list
+ListJobsCursor List jobs with cursor pagination
 
-Retrieve a paginated list of OCR jobs with basic filtering options. This endpoint focuses on job management operations.
+Retrieve a cursor-paginated list of OCR jobs for a team
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return JobsAPIGetJobsListRequest
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return JobsAPIListJobsCursorRequest
 */
-func (a *JobsAPIService) GetJobsList(ctx context.Context) JobsAPIGetJobsListRequest {
-	return JobsAPIGetJobsListRequest{
-		ApiService: a,
-		ctx:        ctx,
+func (a *JobsAPIService) ListJobsCursor(ctx context.Context, organizationId string, teamId string) JobsAPIListJobsCursorRequest {
+	return JobsAPIListJobsCursorRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
 	}
 }
 
 // Execute executes the request
 //
-//	@return JobsJobsListResponse
-func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJobsListResponse, *http.Response, error) {
+//	@return JobsJobsListCursorResponse
+func (a *JobsAPIService) ListJobsCursorExecute(r JobsAPIListJobsCursorRequest) (*JobsJobsListCursorResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *JobsJobsListResponse
+		localVarReturnValue *JobsJobsListCursorResponse
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "JobsAPIService.GetJobsList")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "JobsAPIService.ListJobsCursor")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/jobs/list"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/jobs"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.teamId == nil {
-		return localVarReturnValue, nil, reportError("teamId is required and must be specified")
-	}
 
-	parameterAddToHeaderOrQuery(localVarQueryParams, "teamId", r.teamId, "form", "")
-	if r.page != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
-	} else {
-		var defaultValue int32 = 1
-		r.page = &defaultValue
+	if r.cursor != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "cursor", r.cursor, "form", "")
 	}
 	if r.limit != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
@@ -547,14 +556,8 @@ func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJ
 		var defaultValue int32 = 20
 		r.limit = &defaultValue
 	}
-	if r.search != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
-	}
 	if r.status != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "status", r.status, "form", "")
-	}
-	if r.templateId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "template_id", r.templateId, "form", "")
 	}
 	if r.model != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
@@ -562,17 +565,8 @@ func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJ
 	if r.resultFormat != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "result_format", r.resultFormat, "form", "")
 	}
-	if r.sortBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", r.sortBy, "form", "")
-	} else {
-		var defaultValue string = "created_at_desc"
-		r.sortBy = &defaultValue
-	}
-	if r.createdAfter != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "created_after", r.createdAfter, "form", "")
-	}
-	if r.createdBefore != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "created_before", r.createdBefore, "form", "")
+	if r.templateId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "template_id", r.templateId, "form", "")
 	}
 	if r.includeDeleted != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "include_deleted", r.includeDeleted, "form", "")
@@ -596,6 +590,20 @@ func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJ
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -631,6 +639,17 @@ func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJ
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
 			var v ResponseErrorResponse
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
@@ -667,15 +686,11 @@ func (a *JobsAPIService) GetJobsListExecute(r JobsAPIGetJobsListRequest) (*JobsJ
 }
 
 type JobsAPIRetryJobRequest struct {
-	ctx        context.Context
-	ApiService JobsAPI
-	jobId      string
-	body       *map[string]interface{}
-}
-
-func (r JobsAPIRetryJobRequest) Body(body map[string]interface{}) JobsAPIRetryJobRequest {
-	r.body = &body
-	return r
+	ctx            context.Context
+	ApiService     JobsAPI
+	organizationId string
+	teamId         string
+	jobId          string
 }
 
 func (r JobsAPIRetryJobRequest) Execute() (*JobsJobManagementResponse, *http.Response, error) {
@@ -685,17 +700,21 @@ func (r JobsAPIRetryJobRequest) Execute() (*JobsJobManagementResponse, *http.Res
 /*
 RetryJob Retry failed OCR job
 
-Retry a failed OCR job. Only jobs with status 'failed' can be retried.
+Retry a failed OCR job using the original file. Only jobs with status 'failed' can be retried
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
 	@param jobId OCR job ID to retry
 	@return JobsAPIRetryJobRequest
 */
-func (a *JobsAPIService) RetryJob(ctx context.Context, jobId string) JobsAPIRetryJobRequest {
+func (a *JobsAPIService) RetryJob(ctx context.Context, organizationId string, teamId string, jobId string) JobsAPIRetryJobRequest {
 	return JobsAPIRetryJobRequest{
-		ApiService: a,
-		ctx:        ctx,
-		jobId:      jobId,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		jobId:          jobId,
 	}
 }
 
@@ -715,7 +734,9 @@ func (a *JobsAPIService) RetryJobExecute(r JobsAPIRetryJobRequest) (*JobsJobMana
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/jobs/{job_id}/retry"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/jobs/{job_id}/retry"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"job_id"+"}", url.PathEscape(parameterValueToString(r.jobId, "jobId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -723,7 +744,7 @@ func (a *JobsAPIService) RetryJobExecute(r JobsAPIRetryJobRequest) (*JobsJobMana
 	localVarFormParams := url.Values{}
 
 	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
+	localVarHTTPContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
@@ -739,8 +760,20 @@ func (a *JobsAPIService) RetryJobExecute(r JobsAPIRetryJobRequest) (*JobsJobMana
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
-	// body params
-	localVarPostBody = r.body
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -17,9 +17,90 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type WebhooksAPI interface {
+
+	/*
+		CreateWebhook Create webhook subscription
+
+		Create a new webhook subscription to receive job events
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return WebhooksAPICreateWebhookRequest
+	*/
+	CreateWebhook(ctx context.Context, organizationId string, teamId string) WebhooksAPICreateWebhookRequest
+
+	// CreateWebhookExecute executes the request
+	//  @return SubscriptionsWebhookSubscriptionResponse
+	CreateWebhookExecute(r WebhooksAPICreateWebhookRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error)
+
+	/*
+		DeleteWebhook Delete webhook subscription
+
+		Permanently delete a webhook subscription. This will stop all webhook deliveries to the endpoint
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@param id Webhook subscription ID
+		@return WebhooksAPIDeleteWebhookRequest
+	*/
+	DeleteWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIDeleteWebhookRequest
+
+	// DeleteWebhookExecute executes the request
+	DeleteWebhookExecute(r WebhooksAPIDeleteWebhookRequest) (*http.Response, error)
+
+	/*
+		GetWebhook Get webhook subscription
+
+		Get details of a specific webhook subscription
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@param id Webhook subscription ID
+		@return WebhooksAPIGetWebhookRequest
+	*/
+	GetWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIGetWebhookRequest
+
+	// GetWebhookExecute executes the request
+	//  @return SubscriptionsWebhookSubscriptionResponse
+	GetWebhookExecute(r WebhooksAPIGetWebhookRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error)
+
+	/*
+		GetWebhookEventPayload Get webhook event payload
+
+		Get enriched payload data for an internal webhook event. For job events, includes current job data if available. Handles deleted resources gracefully.
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@param eventId Webhook event ID
+		@return WebhooksAPIGetWebhookEventPayloadRequest
+	*/
+	GetWebhookEventPayload(ctx context.Context, organizationId string, teamId string, eventId string) WebhooksAPIGetWebhookEventPayloadRequest
+
+	// GetWebhookEventPayloadExecute executes the request
+	//  @return EventsWebhookEventPayloadResponse
+	GetWebhookEventPayloadExecute(r WebhooksAPIGetWebhookEventPayloadRequest) (*EventsWebhookEventPayloadResponse, *http.Response, error)
+
+	/*
+		GetWebhookEventTypes Get webhook event types
+
+		Get a list of all supported webhook event types that can be subscribed to
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return WebhooksAPIGetWebhookEventTypesRequest
+	*/
+	GetWebhookEventTypes(ctx context.Context) WebhooksAPIGetWebhookEventTypesRequest
+
+	// GetWebhookEventTypesExecute executes the request
+	//  @return SubscriptionsWebhookEventTypesResponse
+	GetWebhookEventTypesExecute(r WebhooksAPIGetWebhookEventTypesRequest) (*SubscriptionsWebhookEventTypesResponse, *http.Response, error)
 
 	/*
 		HandlePolarWebhook Handle Polar webhooks
@@ -34,6 +115,106 @@ type WebhooksAPI interface {
 	// HandlePolarWebhookExecute executes the request
 	//  @return string
 	HandlePolarWebhookExecute(r WebhooksAPIHandlePolarWebhookRequest) (string, *http.Response, error)
+
+	/*
+		HealthCheckWebhook Health check webhook subscription
+
+		Check if a webhook subscription endpoint is reachable and responding
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@param id Webhook subscription ID
+		@return WebhooksAPIHealthCheckWebhookRequest
+	*/
+	HealthCheckWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIHealthCheckWebhookRequest
+
+	// HealthCheckWebhookExecute executes the request
+	//  @return map[string]interface{}
+	HealthCheckWebhookExecute(r WebhooksAPIHealthCheckWebhookRequest) (map[string]interface{}, *http.Response, error)
+
+	/*
+		ListWebhookEventsCursor List webhook events with cursor pagination
+
+		Retrieve a cursor-paginated list of webhook delivery events for a team
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return WebhooksAPIListWebhookEventsCursorRequest
+	*/
+	ListWebhookEventsCursor(ctx context.Context, organizationId string, teamId string) WebhooksAPIListWebhookEventsCursorRequest
+
+	// ListWebhookEventsCursorExecute executes the request
+	//  @return EventsWebhookEventsListCursorResponse
+	ListWebhookEventsCursorExecute(r WebhooksAPIListWebhookEventsCursorRequest) (*EventsWebhookEventsListCursorResponse, *http.Response, error)
+
+	/*
+		ListWebhooksCursor List webhook subscriptions with cursor pagination
+
+		Retrieve a cursor-paginated list of webhook subscriptions for a team
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return WebhooksAPIListWebhooksCursorRequest
+	*/
+	ListWebhooksCursor(ctx context.Context, organizationId string, teamId string) WebhooksAPIListWebhooksCursorRequest
+
+	// ListWebhooksCursorExecute executes the request
+	//  @return SubscriptionsWebhooksListCursorResponse
+	ListWebhooksCursorExecute(r WebhooksAPIListWebhooksCursorRequest) (*SubscriptionsWebhooksListCursorResponse, *http.Response, error)
+
+	/*
+		RegenerateWebhookSecret Regenerate webhook secret
+
+		Generate a new secret for a webhook subscription. The old secret will immediately stop working
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@param id Webhook subscription ID
+		@return WebhooksAPIRegenerateWebhookSecretRequest
+	*/
+	RegenerateWebhookSecret(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIRegenerateWebhookSecretRequest
+
+	// RegenerateWebhookSecretExecute executes the request
+	//  @return SubscriptionsWebhookSubscriptionResponse
+	RegenerateWebhookSecretExecute(r WebhooksAPIRegenerateWebhookSecretRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error)
+
+	/*
+		TestWebhook Test webhook subscription
+
+		Send a test webhook event to verify the webhook endpoint is working correctly
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@param id Webhook subscription ID
+		@return WebhooksAPITestWebhookRequest
+	*/
+	TestWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPITestWebhookRequest
+
+	// TestWebhookExecute executes the request
+	//  @return map[string]interface{}
+	TestWebhookExecute(r WebhooksAPITestWebhookRequest) (map[string]interface{}, *http.Response, error)
+
+	/*
+		UpdateWebhook Update webhook subscription
+
+		Update an existing webhook subscription
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@param id Webhook subscription ID
+		@return WebhooksAPIUpdateWebhookRequest
+	*/
+	UpdateWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIUpdateWebhookRequest
+
+	// UpdateWebhookExecute executes the request
+	//  @return SubscriptionsWebhookSubscriptionResponse
+	UpdateWebhookExecute(r WebhooksAPIUpdateWebhookRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error)
 
 	/*
 		WebhooksR2UploadNotificationPost Handle R2 upload notification
@@ -52,6 +233,769 @@ type WebhooksAPI interface {
 
 // WebhooksAPIService WebhooksAPI service
 type WebhooksAPIService service
+
+type WebhooksAPICreateWebhookRequest struct {
+	ctx                  context.Context
+	ApiService           WebhooksAPI
+	organizationId       string
+	teamId               string
+	createWebhookRequest *CreateWebhookRequest
+}
+
+// Webhook subscription details
+func (r WebhooksAPICreateWebhookRequest) CreateWebhookRequest(createWebhookRequest CreateWebhookRequest) WebhooksAPICreateWebhookRequest {
+	r.createWebhookRequest = &createWebhookRequest
+	return r
+}
+
+func (r WebhooksAPICreateWebhookRequest) Execute() (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	return r.ApiService.CreateWebhookExecute(r)
+}
+
+/*
+CreateWebhook Create webhook subscription
+
+Create a new webhook subscription to receive job events
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return WebhooksAPICreateWebhookRequest
+*/
+func (a *WebhooksAPIService) CreateWebhook(ctx context.Context, organizationId string, teamId string) WebhooksAPICreateWebhookRequest {
+	return WebhooksAPICreateWebhookRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SubscriptionsWebhookSubscriptionResponse
+func (a *WebhooksAPIService) CreateWebhookExecute(r WebhooksAPICreateWebhookRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SubscriptionsWebhookSubscriptionResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.CreateWebhook")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.createWebhookRequest == nil {
+		return localVarReturnValue, nil, reportError("createWebhookRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.createWebhookRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPIDeleteWebhookRequest struct {
+	ctx            context.Context
+	ApiService     WebhooksAPI
+	organizationId string
+	teamId         string
+	id             string
+}
+
+func (r WebhooksAPIDeleteWebhookRequest) Execute() (*http.Response, error) {
+	return r.ApiService.DeleteWebhookExecute(r)
+}
+
+/*
+DeleteWebhook Delete webhook subscription
+
+Permanently delete a webhook subscription. This will stop all webhook deliveries to the endpoint
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@param id Webhook subscription ID
+	@return WebhooksAPIDeleteWebhookRequest
+*/
+func (a *WebhooksAPIService) DeleteWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIDeleteWebhookRequest {
+	return WebhooksAPIDeleteWebhookRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
+	}
+}
+
+// Execute executes the request
+func (a *WebhooksAPIService) DeleteWebhookExecute(r WebhooksAPIDeleteWebhookRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.DeleteWebhook")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type WebhooksAPIGetWebhookRequest struct {
+	ctx            context.Context
+	ApiService     WebhooksAPI
+	organizationId string
+	teamId         string
+	id             string
+}
+
+func (r WebhooksAPIGetWebhookRequest) Execute() (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	return r.ApiService.GetWebhookExecute(r)
+}
+
+/*
+GetWebhook Get webhook subscription
+
+Get details of a specific webhook subscription
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@param id Webhook subscription ID
+	@return WebhooksAPIGetWebhookRequest
+*/
+func (a *WebhooksAPIService) GetWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIGetWebhookRequest {
+	return WebhooksAPIGetWebhookRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SubscriptionsWebhookSubscriptionResponse
+func (a *WebhooksAPIService) GetWebhookExecute(r WebhooksAPIGetWebhookRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SubscriptionsWebhookSubscriptionResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.GetWebhook")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPIGetWebhookEventPayloadRequest struct {
+	ctx            context.Context
+	ApiService     WebhooksAPI
+	organizationId string
+	teamId         string
+	eventId        string
+}
+
+func (r WebhooksAPIGetWebhookEventPayloadRequest) Execute() (*EventsWebhookEventPayloadResponse, *http.Response, error) {
+	return r.ApiService.GetWebhookEventPayloadExecute(r)
+}
+
+/*
+GetWebhookEventPayload Get webhook event payload
+
+Get enriched payload data for an internal webhook event. For job events, includes current job data if available. Handles deleted resources gracefully.
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@param eventId Webhook event ID
+	@return WebhooksAPIGetWebhookEventPayloadRequest
+*/
+func (a *WebhooksAPIService) GetWebhookEventPayload(ctx context.Context, organizationId string, teamId string, eventId string) WebhooksAPIGetWebhookEventPayloadRequest {
+	return WebhooksAPIGetWebhookEventPayloadRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		eventId:        eventId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return EventsWebhookEventPayloadResponse
+func (a *WebhooksAPIService) GetWebhookEventPayloadExecute(r WebhooksAPIGetWebhookEventPayloadRequest) (*EventsWebhookEventPayloadResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *EventsWebhookEventPayloadResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.GetWebhookEventPayload")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/events/{event_id}/payload"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"event_id"+"}", url.PathEscape(parameterValueToString(r.eventId, "eventId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPIGetWebhookEventTypesRequest struct {
+	ctx        context.Context
+	ApiService WebhooksAPI
+}
+
+func (r WebhooksAPIGetWebhookEventTypesRequest) Execute() (*SubscriptionsWebhookEventTypesResponse, *http.Response, error) {
+	return r.ApiService.GetWebhookEventTypesExecute(r)
+}
+
+/*
+GetWebhookEventTypes Get webhook event types
+
+Get a list of all supported webhook event types that can be subscribed to
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return WebhooksAPIGetWebhookEventTypesRequest
+*/
+func (a *WebhooksAPIService) GetWebhookEventTypes(ctx context.Context) WebhooksAPIGetWebhookEventTypesRequest {
+	return WebhooksAPIGetWebhookEventTypesRequest{
+		ApiService: a,
+		ctx:        ctx,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SubscriptionsWebhookEventTypesResponse
+func (a *WebhooksAPIService) GetWebhookEventTypesExecute(r WebhooksAPIGetWebhookEventTypesRequest) (*SubscriptionsWebhookEventTypesResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SubscriptionsWebhookEventTypesResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.GetWebhookEventTypes")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/webhooks/event-types"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
 
 type WebhooksAPIHandlePolarWebhookRequest struct {
 	ctx        context.Context
@@ -124,6 +1068,20 @@ func (a *WebhooksAPIService) HandlePolarWebhookExecute(r WebhooksAPIHandlePolarW
 	}
 	// body params
 	localVarPostBody = r.body
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -193,11 +1151,1083 @@ func (a *WebhooksAPIService) HandlePolarWebhookExecute(r WebhooksAPIHandlePolarW
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type WebhooksAPIHealthCheckWebhookRequest struct {
+	ctx            context.Context
+	ApiService     WebhooksAPI
+	organizationId string
+	teamId         string
+	id             string
+}
+
+func (r WebhooksAPIHealthCheckWebhookRequest) Execute() (map[string]interface{}, *http.Response, error) {
+	return r.ApiService.HealthCheckWebhookExecute(r)
+}
+
+/*
+HealthCheckWebhook Health check webhook subscription
+
+Check if a webhook subscription endpoint is reachable and responding
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@param id Webhook subscription ID
+	@return WebhooksAPIHealthCheckWebhookRequest
+*/
+func (a *WebhooksAPIService) HealthCheckWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIHealthCheckWebhookRequest {
+	return WebhooksAPIHealthCheckWebhookRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
+	}
+}
+
+// Execute executes the request
+//
+//	@return map[string]interface{}
+func (a *WebhooksAPIService) HealthCheckWebhookExecute(r WebhooksAPIHealthCheckWebhookRequest) (map[string]interface{}, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue map[string]interface{}
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.HealthCheckWebhook")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/{id}/health"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPIListWebhookEventsCursorRequest struct {
+	ctx              context.Context
+	ApiService       WebhooksAPI
+	organizationId   string
+	teamId           string
+	subscriptionId   *string
+	cursor           *string
+	limit            *int32
+	eventType        *string
+	processingStatus *string
+}
+
+// Filter by subscription ID
+func (r WebhooksAPIListWebhookEventsCursorRequest) SubscriptionId(subscriptionId string) WebhooksAPIListWebhookEventsCursorRequest {
+	r.subscriptionId = &subscriptionId
+	return r
+}
+
+// Cursor for pagination
+func (r WebhooksAPIListWebhookEventsCursorRequest) Cursor(cursor string) WebhooksAPIListWebhookEventsCursorRequest {
+	r.cursor = &cursor
+	return r
+}
+
+// Number of items per page
+func (r WebhooksAPIListWebhookEventsCursorRequest) Limit(limit int32) WebhooksAPIListWebhookEventsCursorRequest {
+	r.limit = &limit
+	return r
+}
+
+// Filter by event type
+func (r WebhooksAPIListWebhookEventsCursorRequest) EventType(eventType string) WebhooksAPIListWebhookEventsCursorRequest {
+	r.eventType = &eventType
+	return r
+}
+
+// Filter by processing status
+func (r WebhooksAPIListWebhookEventsCursorRequest) ProcessingStatus(processingStatus string) WebhooksAPIListWebhookEventsCursorRequest {
+	r.processingStatus = &processingStatus
+	return r
+}
+
+func (r WebhooksAPIListWebhookEventsCursorRequest) Execute() (*EventsWebhookEventsListCursorResponse, *http.Response, error) {
+	return r.ApiService.ListWebhookEventsCursorExecute(r)
+}
+
+/*
+ListWebhookEventsCursor List webhook events with cursor pagination
+
+Retrieve a cursor-paginated list of webhook delivery events for a team
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return WebhooksAPIListWebhookEventsCursorRequest
+*/
+func (a *WebhooksAPIService) ListWebhookEventsCursor(ctx context.Context, organizationId string, teamId string) WebhooksAPIListWebhookEventsCursorRequest {
+	return WebhooksAPIListWebhookEventsCursorRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return EventsWebhookEventsListCursorResponse
+func (a *WebhooksAPIService) ListWebhookEventsCursorExecute(r WebhooksAPIListWebhookEventsCursorRequest) (*EventsWebhookEventsListCursorResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *EventsWebhookEventsListCursorResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.ListWebhookEventsCursor")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/events"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.subscriptionId == nil {
+		return localVarReturnValue, nil, reportError("subscriptionId is required and must be specified")
+	}
+
+	if r.cursor != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "cursor", r.cursor, "form", "")
+	}
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	} else {
+		var defaultValue int32 = 20
+		r.limit = &defaultValue
+	}
+	parameterAddToHeaderOrQuery(localVarQueryParams, "subscription_id", r.subscriptionId, "form", "")
+	if r.eventType != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "event_type", r.eventType, "form", "")
+	}
+	if r.processingStatus != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "processing_status", r.processingStatus, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPIListWebhooksCursorRequest struct {
+	ctx            context.Context
+	ApiService     WebhooksAPI
+	organizationId string
+	teamId         string
+	cursor         *string
+	limit          *int32
+	enabled        *bool
+}
+
+// Cursor for pagination
+func (r WebhooksAPIListWebhooksCursorRequest) Cursor(cursor string) WebhooksAPIListWebhooksCursorRequest {
+	r.cursor = &cursor
+	return r
+}
+
+// Number of items per page
+func (r WebhooksAPIListWebhooksCursorRequest) Limit(limit int32) WebhooksAPIListWebhooksCursorRequest {
+	r.limit = &limit
+	return r
+}
+
+// Filter by enabled status
+func (r WebhooksAPIListWebhooksCursorRequest) Enabled(enabled bool) WebhooksAPIListWebhooksCursorRequest {
+	r.enabled = &enabled
+	return r
+}
+
+func (r WebhooksAPIListWebhooksCursorRequest) Execute() (*SubscriptionsWebhooksListCursorResponse, *http.Response, error) {
+	return r.ApiService.ListWebhooksCursorExecute(r)
+}
+
+/*
+ListWebhooksCursor List webhook subscriptions with cursor pagination
+
+Retrieve a cursor-paginated list of webhook subscriptions for a team
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return WebhooksAPIListWebhooksCursorRequest
+*/
+func (a *WebhooksAPIService) ListWebhooksCursor(ctx context.Context, organizationId string, teamId string) WebhooksAPIListWebhooksCursorRequest {
+	return WebhooksAPIListWebhooksCursorRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SubscriptionsWebhooksListCursorResponse
+func (a *WebhooksAPIService) ListWebhooksCursorExecute(r WebhooksAPIListWebhooksCursorRequest) (*SubscriptionsWebhooksListCursorResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SubscriptionsWebhooksListCursorResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.ListWebhooksCursor")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.cursor != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "cursor", r.cursor, "form", "")
+	}
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	} else {
+		var defaultValue int32 = 20
+		r.limit = &defaultValue
+	}
+	if r.enabled != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "enabled", r.enabled, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPIRegenerateWebhookSecretRequest struct {
+	ctx            context.Context
+	ApiService     WebhooksAPI
+	organizationId string
+	teamId         string
+	id             string
+}
+
+func (r WebhooksAPIRegenerateWebhookSecretRequest) Execute() (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	return r.ApiService.RegenerateWebhookSecretExecute(r)
+}
+
+/*
+RegenerateWebhookSecret Regenerate webhook secret
+
+Generate a new secret for a webhook subscription. The old secret will immediately stop working
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@param id Webhook subscription ID
+	@return WebhooksAPIRegenerateWebhookSecretRequest
+*/
+func (a *WebhooksAPIService) RegenerateWebhookSecret(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIRegenerateWebhookSecretRequest {
+	return WebhooksAPIRegenerateWebhookSecretRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SubscriptionsWebhookSubscriptionResponse
+func (a *WebhooksAPIService) RegenerateWebhookSecretExecute(r WebhooksAPIRegenerateWebhookSecretRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SubscriptionsWebhookSubscriptionResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.RegenerateWebhookSecret")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/{id}/regenerate-secret"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPITestWebhookRequest struct {
+	ctx            context.Context
+	ApiService     WebhooksAPI
+	organizationId string
+	teamId         string
+	id             string
+}
+
+func (r WebhooksAPITestWebhookRequest) Execute() (map[string]interface{}, *http.Response, error) {
+	return r.ApiService.TestWebhookExecute(r)
+}
+
+/*
+TestWebhook Test webhook subscription
+
+Send a test webhook event to verify the webhook endpoint is working correctly
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@param id Webhook subscription ID
+	@return WebhooksAPITestWebhookRequest
+*/
+func (a *WebhooksAPIService) TestWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPITestWebhookRequest {
+	return WebhooksAPITestWebhookRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
+	}
+}
+
+// Execute executes the request
+//
+//	@return map[string]interface{}
+func (a *WebhooksAPIService) TestWebhookExecute(r WebhooksAPITestWebhookRequest) (map[string]interface{}, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue map[string]interface{}
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.TestWebhook")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/{id}/test"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type WebhooksAPIUpdateWebhookRequest struct {
+	ctx                  context.Context
+	ApiService           WebhooksAPI
+	organizationId       string
+	teamId               string
+	id                   string
+	updateWebhookRequest *UpdateWebhookRequest
+}
+
+// Webhook subscription updates
+func (r WebhooksAPIUpdateWebhookRequest) UpdateWebhookRequest(updateWebhookRequest UpdateWebhookRequest) WebhooksAPIUpdateWebhookRequest {
+	r.updateWebhookRequest = &updateWebhookRequest
+	return r
+}
+
+func (r WebhooksAPIUpdateWebhookRequest) Execute() (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	return r.ApiService.UpdateWebhookExecute(r)
+}
+
+/*
+UpdateWebhook Update webhook subscription
+
+Update an existing webhook subscription
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@param id Webhook subscription ID
+	@return WebhooksAPIUpdateWebhookRequest
+*/
+func (a *WebhooksAPIService) UpdateWebhook(ctx context.Context, organizationId string, teamId string, id string) WebhooksAPIUpdateWebhookRequest {
+	return WebhooksAPIUpdateWebhookRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+		id:             id,
+	}
+}
+
+// Execute executes the request
+//
+//	@return SubscriptionsWebhookSubscriptionResponse
+func (a *WebhooksAPIService) UpdateWebhookExecute(r WebhooksAPIUpdateWebhookRequest) (*SubscriptionsWebhookSubscriptionResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodPut
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *SubscriptionsWebhookSubscriptionResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "WebhooksAPIService.UpdateWebhook")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/webhooks/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", url.PathEscape(parameterValueToString(r.id, "id")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.updateWebhookRequest == nil {
+		return localVarReturnValue, nil, reportError("updateWebhookRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.updateWebhookRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type WebhooksAPIWebhooksR2UploadNotificationPostRequest struct {
-	ctx                          context.Context
-	ApiService                   WebhooksAPI
-	xR2Signature                 *string
-	webhooksR2UploadNotification *WebhooksR2UploadNotification
+	ctx                                     context.Context
+	ApiService                              WebhooksAPI
+	xR2Signature                            *string
+	webhooksR2UploadNotificationPostRequest *WebhooksR2UploadNotificationPostRequest
 }
 
 // R2 webhook signature
@@ -207,8 +2237,8 @@ func (r WebhooksAPIWebhooksR2UploadNotificationPostRequest) XR2Signature(xR2Sign
 }
 
 // R2 upload notification
-func (r WebhooksAPIWebhooksR2UploadNotificationPostRequest) WebhooksR2UploadNotification(webhooksR2UploadNotification WebhooksR2UploadNotification) WebhooksAPIWebhooksR2UploadNotificationPostRequest {
-	r.webhooksR2UploadNotification = &webhooksR2UploadNotification
+func (r WebhooksAPIWebhooksR2UploadNotificationPostRequest) WebhooksR2UploadNotificationPostRequest(webhooksR2UploadNotificationPostRequest WebhooksR2UploadNotificationPostRequest) WebhooksAPIWebhooksR2UploadNotificationPostRequest {
+	r.webhooksR2UploadNotificationPostRequest = &webhooksR2UploadNotificationPostRequest
 	return r
 }
 
@@ -255,8 +2285,8 @@ func (a *WebhooksAPIService) WebhooksR2UploadNotificationPostExecute(r WebhooksA
 	if r.xR2Signature == nil {
 		return localVarReturnValue, nil, reportError("xR2Signature is required and must be specified")
 	}
-	if r.webhooksR2UploadNotification == nil {
-		return localVarReturnValue, nil, reportError("webhooksR2UploadNotification is required and must be specified")
+	if r.webhooksR2UploadNotificationPostRequest == nil {
+		return localVarReturnValue, nil, reportError("webhooksR2UploadNotificationPostRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -278,7 +2308,21 @@ func (a *WebhooksAPIService) WebhooksR2UploadNotificationPostExecute(r WebhooksA
 	}
 	parameterAddToHeaderOrQuery(localVarHeaderParams, "X-R2-Signature", r.xR2Signature, "simple", "")
 	// body params
-	localVarPostBody = r.webhooksR2UploadNotification
+	localVarPostBody = r.webhooksR2UploadNotificationPostRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

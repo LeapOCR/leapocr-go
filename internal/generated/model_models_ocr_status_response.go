@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -20,13 +20,13 @@ var _ MappedNullable = &ModelsOCRStatusResponse{}
 
 // ModelsOCRStatusResponse struct for ModelsOCRStatusResponse
 type ModelsOCRStatusResponse struct {
-	CompletedAt    *string `json:"completed_at,omitempty"`
-	ErrorMessage   *string `json:"error_message,omitempty"`
-	JobId          *string `json:"job_id,omitempty"`
-	ProcessedPages *int32  `json:"processed_pages,omitempty"`
-	ResultFormat   *string `json:"result_format,omitempty"`
-	Status         *string `json:"status,omitempty"`
-	TotalPages     *int32  `json:"total_pages,omitempty"`
+	CompletedAt    *string          `json:"completed_at,omitempty"`
+	ErrorMessage   *string          `json:"error_message,omitempty"`
+	JobId          *string          `json:"job_id,omitempty"`
+	ProcessedPages *int32           `json:"processed_pages,omitempty"`
+	ResultFormat   *string          `json:"result_format,omitempty"`
+	Status         *ModelsJobStatus `json:"status,omitempty"`
+	TotalPages     *int32           `json:"total_pages,omitempty"`
 }
 
 // NewModelsOCRStatusResponse instantiates a new ModelsOCRStatusResponse object
@@ -207,9 +207,9 @@ func (o *ModelsOCRStatusResponse) SetResultFormat(v string) {
 }
 
 // GetStatus returns the Status field value if set, zero value otherwise.
-func (o *ModelsOCRStatusResponse) GetStatus() string {
+func (o *ModelsOCRStatusResponse) GetStatus() ModelsJobStatus {
 	if o == nil || IsNil(o.Status) {
-		var ret string
+		var ret ModelsJobStatus
 		return ret
 	}
 	return *o.Status
@@ -217,7 +217,7 @@ func (o *ModelsOCRStatusResponse) GetStatus() string {
 
 // GetStatusOk returns a tuple with the Status field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ModelsOCRStatusResponse) GetStatusOk() (*string, bool) {
+func (o *ModelsOCRStatusResponse) GetStatusOk() (*ModelsJobStatus, bool) {
 	if o == nil || IsNil(o.Status) {
 		return nil, false
 	}
@@ -233,8 +233,8 @@ func (o *ModelsOCRStatusResponse) HasStatus() bool {
 	return false
 }
 
-// SetStatus gets a reference to the given string and assigns it to the Status field.
-func (o *ModelsOCRStatusResponse) SetStatus(v string) {
+// SetStatus gets a reference to the given ModelsJobStatus and assigns it to the Status field.
+func (o *ModelsOCRStatusResponse) SetStatus(v ModelsJobStatus) {
 	o.Status = &v
 }
 

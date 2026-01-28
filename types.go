@@ -12,8 +12,6 @@ const (
 	FormatMarkdown Format = "markdown"
 	// FormatStructured outputs structured data as JSON
 	FormatStructured Format = "structured"
-	// FormatPerPageStructured outputs structured data per page
-	FormatPerPageStructured Format = "per_page_structured"
 )
 
 // Model represents the OCR model to use for processing
@@ -33,20 +31,21 @@ const (
 
 // OCRResult represents the final result of OCR processing
 type OCRResult struct {
-	Text     string                 `json:"text"`
-	Data     map[string]interface{} `json:"data"`
-	Pages    []PageResult           `json:"pages"`
-	Credits  int                    `json:"credits"`
-	Duration time.Duration          `json:"duration"`
-	JobID    string                 `json:"job_id"`
-	Status   string                 `json:"status"`
+	Text     string         `json:"text"`
+	Data     map[string]any `json:"data"`
+	Pages    []PageResult   `json:"pages"`
+	Credits  int            `json:"credits"`
+	Duration time.Duration  `json:"duration"`
+	JobID    string         `json:"job_id"`
+	Status   string         `json:"status"`
 }
 
 // PageResult represents a single page result
 type PageResult struct {
-	PageNumber int                    `json:"page_number"`
-	Text       string                 `json:"text"`
-	Data       map[string]interface{} `json:"data"`
+	PageNumber int            `json:"page_number"`
+	Text       string         `json:"text"`
+	Data       map[string]any `json:"data"`
+	Confidence *float64       `json:"confidence,omitempty"`
 }
 
 // ProcessingOption configures OCR processing
@@ -54,17 +53,23 @@ type ProcessingOption func(*processingConfig)
 
 // processingConfig holds all processing configuration
 type processingConfig struct {
-	format       Format
-	model        string // Can be a Model constant or any custom model string
-	schema       map[string]interface{}
-	instructions string
-	templateSlug string
+	format          Format
+	model           string // Can be a Model constant or any custom model string
+	schema          map[string]any
+	instructions    string
+	templateSlug    string
+	formatSet       bool
+	modelSet        bool
+	schemaSet       bool
+	instructionsSet bool
+	templateSlugSet bool
 }
 
 // WithFormat sets the output format
 func WithFormat(format Format) ProcessingOption {
 	return func(c *processingConfig) {
 		c.format = format
+		c.formatSet = true
 	}
 }
 
@@ -74,6 +79,7 @@ func WithFormat(format Format) ProcessingOption {
 func WithModel(model Model) ProcessingOption {
 	return func(c *processingConfig) {
 		c.model = string(model)
+		c.modelSet = true
 	}
 }
 
@@ -82,13 +88,15 @@ func WithModel(model Model) ProcessingOption {
 func WithModelString(model string) ProcessingOption {
 	return func(c *processingConfig) {
 		c.model = model
+		c.modelSet = true
 	}
 }
 
 // WithSchema sets a custom extraction schema
-func WithSchema(schema map[string]interface{}) ProcessingOption {
+func WithSchema(schema map[string]any) ProcessingOption {
 	return func(c *processingConfig) {
 		c.schema = schema
+		c.schemaSet = true
 	}
 }
 
@@ -96,6 +104,7 @@ func WithSchema(schema map[string]interface{}) ProcessingOption {
 func WithInstructions(instructions string) ProcessingOption {
 	return func(c *processingConfig) {
 		c.instructions = instructions
+		c.instructionsSet = true
 	}
 }
 
@@ -103,6 +112,7 @@ func WithInstructions(instructions string) ProcessingOption {
 func WithTemplateSlug(templateSlug string) ProcessingOption {
 	return func(c *processingConfig) {
 		c.templateSlug = templateSlug
+		c.templateSlugSet = true
 	}
 }
 

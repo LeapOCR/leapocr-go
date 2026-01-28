@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -42,9 +42,8 @@ type UploadAPI interface {
 
 			Create a job and generate presigned URLs for direct file upload to S3. Uses multipart upload for all files (1 part for small files, multiple parts for large files ≥50MB).
 		**Output Types:**
-		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 		- `markdown`: Page-by-page OCR. All configuration fields are optional
-		- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 		**Note:** Only one of template_slug or format can be provided per request
 
 			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -61,9 +60,8 @@ type UploadAPI interface {
 
 			Create a job and start processing from a remote URL. Supported format: PDF (.pdf) only.
 		**Output Types:**
-		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+		- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 		- `markdown`: Page-by-page OCR. All configuration fields are optional
-		- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 		**Note:** Only one of template_slug or format can be provided per request
 
 			@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -80,15 +78,15 @@ type UploadAPI interface {
 type UploadAPIService service
 
 type UploadAPICompleteDirectUploadRequest struct {
-	ctx                               context.Context
-	ApiService                        UploadAPI
-	jobId                             string
-	uploadDirectUploadCompleteRequest *UploadDirectUploadCompleteRequest
+	ctx                         context.Context
+	ApiService                  UploadAPI
+	jobId                       string
+	completeDirectUploadRequest *CompleteDirectUploadRequest
 }
 
 // Completion request with part ETags
-func (r UploadAPICompleteDirectUploadRequest) UploadDirectUploadCompleteRequest(uploadDirectUploadCompleteRequest UploadDirectUploadCompleteRequest) UploadAPICompleteDirectUploadRequest {
-	r.uploadDirectUploadCompleteRequest = &uploadDirectUploadCompleteRequest
+func (r UploadAPICompleteDirectUploadRequest) CompleteDirectUploadRequest(completeDirectUploadRequest CompleteDirectUploadRequest) UploadAPICompleteDirectUploadRequest {
+	r.completeDirectUploadRequest = &completeDirectUploadRequest
 	return r
 }
 
@@ -135,8 +133,8 @@ func (a *UploadAPIService) CompleteDirectUploadExecute(r UploadAPICompleteDirect
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.uploadDirectUploadCompleteRequest == nil {
-		return localVarReturnValue, nil, reportError("uploadDirectUploadCompleteRequest is required and must be specified")
+	if r.completeDirectUploadRequest == nil {
+		return localVarReturnValue, nil, reportError("completeDirectUploadRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -157,7 +155,21 @@ func (a *UploadAPIService) CompleteDirectUploadExecute(r UploadAPICompleteDirect
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.uploadDirectUploadCompleteRequest
+	localVarPostBody = r.completeDirectUploadRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -250,14 +262,14 @@ func (a *UploadAPIService) CompleteDirectUploadExecute(r UploadAPICompleteDirect
 }
 
 type UploadAPIDirectUploadRequest struct {
-	ctx                               context.Context
-	ApiService                        UploadAPI
-	uploadInitiateDirectUploadRequest *UploadInitiateDirectUploadRequest
+	ctx                 context.Context
+	ApiService          UploadAPI
+	directUploadRequest *DirectUploadRequest
 }
 
 // Upload initiation request
-func (r UploadAPIDirectUploadRequest) UploadInitiateDirectUploadRequest(uploadInitiateDirectUploadRequest UploadInitiateDirectUploadRequest) UploadAPIDirectUploadRequest {
-	r.uploadInitiateDirectUploadRequest = &uploadInitiateDirectUploadRequest
+func (r UploadAPIDirectUploadRequest) DirectUploadRequest(directUploadRequest DirectUploadRequest) UploadAPIDirectUploadRequest {
+	r.directUploadRequest = &directUploadRequest
 	return r
 }
 
@@ -270,9 +282,8 @@ DirectUpload Direct upload
 
 Create a job and generate presigned URLs for direct file upload to S3. Uses multipart upload for all files (1 part for small files, multiple parts for large files ≥50MB).
 **Output Types:**
-- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 - `markdown`: Page-by-page OCR. All configuration fields are optional
-- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 **Note:** Only one of template_slug or format can be provided per request
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -306,8 +317,8 @@ func (a *UploadAPIService) DirectUploadExecute(r UploadAPIDirectUploadRequest) (
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.uploadInitiateDirectUploadRequest == nil {
-		return localVarReturnValue, nil, reportError("uploadInitiateDirectUploadRequest is required and must be specified")
+	if r.directUploadRequest == nil {
+		return localVarReturnValue, nil, reportError("directUploadRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -328,7 +339,21 @@ func (a *UploadAPIService) DirectUploadExecute(r UploadAPIDirectUploadRequest) (
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.uploadInitiateDirectUploadRequest
+	localVarPostBody = r.directUploadRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -410,14 +435,14 @@ func (a *UploadAPIService) DirectUploadExecute(r UploadAPIDirectUploadRequest) (
 }
 
 type UploadAPIUploadFromRemoteURLRequest struct {
-	ctx                          context.Context
-	ApiService                   UploadAPI
-	uploadRemoteURLUploadRequest *UploadRemoteURLUploadRequest
+	ctx                        context.Context
+	ApiService                 UploadAPI
+	uploadFromRemoteURLRequest *UploadFromRemoteURLRequest
 }
 
 // Remote URL upload request
-func (r UploadAPIUploadFromRemoteURLRequest) UploadRemoteURLUploadRequest(uploadRemoteURLUploadRequest UploadRemoteURLUploadRequest) UploadAPIUploadFromRemoteURLRequest {
-	r.uploadRemoteURLUploadRequest = &uploadRemoteURLUploadRequest
+func (r UploadAPIUploadFromRemoteURLRequest) UploadFromRemoteURLRequest(uploadFromRemoteURLRequest UploadFromRemoteURLRequest) UploadAPIUploadFromRemoteURLRequest {
+	r.uploadFromRemoteURLRequest = &uploadFromRemoteURLRequest
 	return r
 }
 
@@ -430,9 +455,8 @@ UploadFromRemoteURL Remote URL upload
 
 Create a job and start processing from a remote URL. Supported format: PDF (.pdf) only.
 **Output Types:**
-- `structured`: Structured data extraction. Requires either template_slug OR format (with schema & instructions)
+- `structured`: Structured data extraction. Requires either template_slug OR format (with schema)
 - `markdown`: Page-by-page OCR. All configuration fields are optional
-- `per_page_structured`: Per-page structured extraction (future or hybrid mode)
 **Note:** Only one of template_slug or format can be provided per request
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -466,8 +490,8 @@ func (a *UploadAPIService) UploadFromRemoteURLExecute(r UploadAPIUploadFromRemot
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.uploadRemoteURLUploadRequest == nil {
-		return localVarReturnValue, nil, reportError("uploadRemoteURLUploadRequest is required and must be specified")
+	if r.uploadFromRemoteURLRequest == nil {
+		return localVarReturnValue, nil, reportError("uploadFromRemoteURLRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -488,7 +512,21 @@ func (a *UploadAPIService) UploadFromRemoteURLExecute(r UploadAPIUploadFromRemot
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.uploadRemoteURLUploadRequest
+	localVarPostBody = r.uploadFromRemoteURLRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 
 func TestIntegration_ProcessFile(t *testing.T) {
 	sdk := createTestSDK(t)
+	templateSlug := os.Getenv("LEAPOCR_TEMPLATE_SLUG")
 
 	// Find repo root by looking for go.mod file
 	repoRoot := findRepoRoot(t)
@@ -65,11 +67,26 @@ func TestIntegration_ProcessFile(t *testing.T) {
 	// - Completes the upload
 	// - Returns job ID
 	t.Logf("Step 1: Initiating direct upload (will get presigned URLs for chunks)...")
-	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile),
-		ocr.WithFormat(ocr.FormatStructured),
-		ocr.WithModel(ocr.ModelStandardV1),
-		ocr.WithInstructions("Extract all text and identify key information"),
-	)
+	structuredOptions := []ocr.ProcessingOption{}
+	if templateSlug != "" {
+		structuredOptions = append(structuredOptions, ocr.WithTemplateSlug(templateSlug))
+	} else {
+		structuredOptions = append(
+			structuredOptions,
+			ocr.WithFormat(ocr.FormatStructured),
+			ocr.WithModel(ocr.ModelStandardV1),
+			ocr.WithInstructions("Extract all text and identify key information"),
+			ocr.WithSchema(map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"text": map[string]interface{}{"type": "string"},
+				},
+				"required": []interface{}{"text"},
+			}),
+		)
+	}
+
+	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile), structuredOptions...)
 	require.NoError(t, err)
 	require.NotNil(t, job)
 
@@ -93,7 +110,6 @@ func TestIntegration_ProcessFile(t *testing.T) {
 
 	if len(result.Pages) > 0 {
 		t.Logf("First page text length: %d characters", len(result.Pages[0].Text))
-		// Confidence is no longer returned by the API
 	}
 
 	// Test deletion
@@ -127,6 +143,11 @@ func findRepoRoot(t *testing.T) string {
 
 func TestIntegration_ProcessURL(t *testing.T) {
 	sdk := createTestSDK(t)
+
+	enabled := strings.ToLower(os.Getenv("LEAPOCR_URL_UPLOAD_ENABLED"))
+	if enabled != "1" && enabled != "true" && enabled != "yes" {
+		t.Skip("LEAPOCR_URL_UPLOAD_ENABLED not set; skipping URL upload test")
+	}
 
 	// Use environment variable if set, otherwise use a hardcoded test PDF URL
 	testURL := os.Getenv("TEST_DOCUMENT_URL")
@@ -198,7 +219,7 @@ func TestIntegration_ErrorHandling(t *testing.T) {
 	// Test invalid URL
 	t.Run("Invalid URL", func(t *testing.T) {
 		_, err := sdk.ProcessURL(ctx, "not-a-valid-url",
-			ocr.WithFormat(ocr.FormatStructured))
+			ocr.WithFormat(ocr.FormatMarkdown))
 		require.Error(t, err)
 
 		// Check if it's an SDK error
@@ -240,6 +261,7 @@ func TestIntegration_CustomWaitOptions(t *testing.T) {
 
 func TestIntegration_DeleteJob(t *testing.T) {
 	sdk := createTestSDK(t)
+	templateSlug := os.Getenv("LEAPOCR_TEMPLATE_SLUG")
 
 	// Find repo root and test file
 	repoRoot := findRepoRoot(t)
@@ -270,10 +292,25 @@ func TestIntegration_DeleteJob(t *testing.T) {
 	defer file.Close()
 
 	t.Logf("Processing file for deletion test: %s", filepath.Base(testFile))
-	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile),
-		ocr.WithFormat(ocr.FormatStructured),
-		ocr.WithModel(ocr.ModelStandardV1),
-	)
+	structuredOptions := []ocr.ProcessingOption{}
+	if templateSlug != "" {
+		structuredOptions = append(structuredOptions, ocr.WithTemplateSlug(templateSlug))
+	} else {
+		structuredOptions = append(
+			structuredOptions,
+			ocr.WithFormat(ocr.FormatStructured),
+			ocr.WithModel(ocr.ModelStandardV1),
+			ocr.WithSchema(map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"text": map[string]interface{}{"type": "string"},
+				},
+				"required": []interface{}{"text"},
+			}),
+		)
+	}
+
+	job, err := sdk.ProcessFile(ctx, file, filepath.Base(testFile), structuredOptions...)
 	require.NoError(t, err)
 	t.Logf("Job created: %s", job.ID)
 

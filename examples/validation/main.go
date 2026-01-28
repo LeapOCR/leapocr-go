@@ -60,7 +60,7 @@ func inputValidationExample(apiKey string) error {
 	defer cancel()
 
 	_, err = sdk.ProcessURL(ctx, "not-a-valid-url",
-		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithFormat(ocr.FormatMarkdown),
 	)
 	if err != nil {
 		fmt.Printf("[PASS] Correctly rejected invalid URL: %v\n", err)
@@ -96,6 +96,13 @@ func errorHandlingExample(apiKey string) error {
 	fmt.Println("1. Testing error handling for invalid processing...")
 	_, err = sdk.ProcessURL(ctx, "https://nonexistent-domain-12345.com/fake.pdf",
 		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithSchema(map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"text": map[string]interface{}{"type": "string"},
+			},
+			"required": []interface{}{"text"},
+		}),
 	)
 	if err != nil {
 		// Demonstrate error type checking
@@ -144,6 +151,13 @@ func timeoutHandlingExample(apiKey string) error {
 	start := time.Now()
 	_, err = sdk.ProcessURL(shortCtx, "https://httpbin.org/delay/2", // Delayed response
 		ocr.WithFormat(ocr.FormatStructured),
+		ocr.WithSchema(map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"text": map[string]interface{}{"type": "string"},
+			},
+			"required": []interface{}{"text"},
+		}),
 	)
 	duration := time.Since(start)
 

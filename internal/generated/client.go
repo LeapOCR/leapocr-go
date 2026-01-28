@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -55,6 +55,8 @@ type APIClient struct {
 
 	CreditsAPI CreditsAPI
 
+	DemoAPI DemoAPI
+
 	HealthAPI HealthAPI
 
 	JobsAPI JobsAPI
@@ -66,6 +68,8 @@ type APIClient struct {
 	OnboardingAPI OnboardingAPI
 
 	SDKAPI SDKAPI
+
+	TeamSettingsAPI TeamSettingsAPI
 
 	TemplatesAPI TemplatesAPI
 
@@ -93,12 +97,14 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.AnalyticsAPI = (*AnalyticsAPIService)(&c.common)
 	c.AuthenticationAPI = (*AuthenticationAPIService)(&c.common)
 	c.CreditsAPI = (*CreditsAPIService)(&c.common)
+	c.DemoAPI = (*DemoAPIService)(&c.common)
 	c.HealthAPI = (*HealthAPIService)(&c.common)
 	c.JobsAPI = (*JobsAPIService)(&c.common)
 	c.ModelsAPI = (*ModelsAPIService)(&c.common)
 	c.OCRAPI = (*OCRAPIService)(&c.common)
 	c.OnboardingAPI = (*OnboardingAPIService)(&c.common)
 	c.SDKAPI = (*SDKAPIService)(&c.common)
+	c.TeamSettingsAPI = (*TeamSettingsAPIService)(&c.common)
 	c.TemplatesAPI = (*TemplatesAPIService)(&c.common)
 	c.UploadAPI = (*UploadAPIService)(&c.common)
 	c.WebhooksAPI = (*WebhooksAPIService)(&c.common)

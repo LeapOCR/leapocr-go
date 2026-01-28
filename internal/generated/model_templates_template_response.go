@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -21,17 +21,22 @@ var _ MappedNullable = &TemplatesTemplateResponse{}
 
 // TemplatesTemplateResponse struct for TemplatesTemplateResponse
 type TemplatesTemplateResponse struct {
-	Checksum     *string    `json:"checksum,omitempty"`
-	Color        *string    `json:"color,omitempty"`
-	CreatedAt    *time.Time `json:"created_at,omitempty"`
-	Description  *string    `json:"description,omitempty"`
-	Enabled      *bool      `json:"enabled,omitempty"`
-	Favorite     *bool      `json:"favorite,omitempty"`
-	Format       *string    `json:"format,omitempty"`
-	Id           *string    `json:"id,omitempty"`
-	Instructions *string    `json:"instructions,omitempty"`
-	LastUsed     *time.Time `json:"last_used,omitempty"`
-	Name         *string    `json:"name,omitempty"`
+	Checksum    *string    `json:"checksum,omitempty"`
+	Color       *string    `json:"color,omitempty"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	Enabled     *bool      `json:"enabled,omitempty"`
+	// NEW
+	Ephemeral            *bool                 `json:"ephemeral,omitempty"`
+	ExtractBoundingBoxes *bool                 `json:"extract_bounding_boxes,omitempty"`
+	Favorite             *bool                 `json:"favorite,omitempty"`
+	Format               *SqlcResultFormatEnum `json:"format,omitempty"`
+	Id                   *string               `json:"id,omitempty"`
+	Instructions         *string               `json:"instructions,omitempty"`
+	LastUsed             *time.Time            `json:"last_used,omitempty"`
+	// NEW
+	Model *string `json:"model,omitempty"`
+	Name  *string `json:"name,omitempty"`
 	// JSON schema definition
 	Schema     map[string]interface{} `json:"schema,omitempty"`
 	Slug       *string                `json:"slug,omitempty"`
@@ -219,6 +224,70 @@ func (o *TemplatesTemplateResponse) SetEnabled(v bool) {
 	o.Enabled = &v
 }
 
+// GetEphemeral returns the Ephemeral field value if set, zero value otherwise.
+func (o *TemplatesTemplateResponse) GetEphemeral() bool {
+	if o == nil || IsNil(o.Ephemeral) {
+		var ret bool
+		return ret
+	}
+	return *o.Ephemeral
+}
+
+// GetEphemeralOk returns a tuple with the Ephemeral field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *TemplatesTemplateResponse) GetEphemeralOk() (*bool, bool) {
+	if o == nil || IsNil(o.Ephemeral) {
+		return nil, false
+	}
+	return o.Ephemeral, true
+}
+
+// HasEphemeral returns a boolean if a field has been set.
+func (o *TemplatesTemplateResponse) HasEphemeral() bool {
+	if o != nil && !IsNil(o.Ephemeral) {
+		return true
+	}
+
+	return false
+}
+
+// SetEphemeral gets a reference to the given bool and assigns it to the Ephemeral field.
+func (o *TemplatesTemplateResponse) SetEphemeral(v bool) {
+	o.Ephemeral = &v
+}
+
+// GetExtractBoundingBoxes returns the ExtractBoundingBoxes field value if set, zero value otherwise.
+func (o *TemplatesTemplateResponse) GetExtractBoundingBoxes() bool {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		var ret bool
+		return ret
+	}
+	return *o.ExtractBoundingBoxes
+}
+
+// GetExtractBoundingBoxesOk returns a tuple with the ExtractBoundingBoxes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *TemplatesTemplateResponse) GetExtractBoundingBoxesOk() (*bool, bool) {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		return nil, false
+	}
+	return o.ExtractBoundingBoxes, true
+}
+
+// HasExtractBoundingBoxes returns a boolean if a field has been set.
+func (o *TemplatesTemplateResponse) HasExtractBoundingBoxes() bool {
+	if o != nil && !IsNil(o.ExtractBoundingBoxes) {
+		return true
+	}
+
+	return false
+}
+
+// SetExtractBoundingBoxes gets a reference to the given bool and assigns it to the ExtractBoundingBoxes field.
+func (o *TemplatesTemplateResponse) SetExtractBoundingBoxes(v bool) {
+	o.ExtractBoundingBoxes = &v
+}
+
 // GetFavorite returns the Favorite field value if set, zero value otherwise.
 func (o *TemplatesTemplateResponse) GetFavorite() bool {
 	if o == nil || IsNil(o.Favorite) {
@@ -252,9 +321,9 @@ func (o *TemplatesTemplateResponse) SetFavorite(v bool) {
 }
 
 // GetFormat returns the Format field value if set, zero value otherwise.
-func (o *TemplatesTemplateResponse) GetFormat() string {
+func (o *TemplatesTemplateResponse) GetFormat() SqlcResultFormatEnum {
 	if o == nil || IsNil(o.Format) {
-		var ret string
+		var ret SqlcResultFormatEnum
 		return ret
 	}
 	return *o.Format
@@ -262,7 +331,7 @@ func (o *TemplatesTemplateResponse) GetFormat() string {
 
 // GetFormatOk returns a tuple with the Format field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *TemplatesTemplateResponse) GetFormatOk() (*string, bool) {
+func (o *TemplatesTemplateResponse) GetFormatOk() (*SqlcResultFormatEnum, bool) {
 	if o == nil || IsNil(o.Format) {
 		return nil, false
 	}
@@ -278,8 +347,8 @@ func (o *TemplatesTemplateResponse) HasFormat() bool {
 	return false
 }
 
-// SetFormat gets a reference to the given string and assigns it to the Format field.
-func (o *TemplatesTemplateResponse) SetFormat(v string) {
+// SetFormat gets a reference to the given SqlcResultFormatEnum and assigns it to the Format field.
+func (o *TemplatesTemplateResponse) SetFormat(v SqlcResultFormatEnum) {
 	o.Format = &v
 }
 
@@ -377,6 +446,38 @@ func (o *TemplatesTemplateResponse) HasLastUsed() bool {
 // SetLastUsed gets a reference to the given time.Time and assigns it to the LastUsed field.
 func (o *TemplatesTemplateResponse) SetLastUsed(v time.Time) {
 	o.LastUsed = &v
+}
+
+// GetModel returns the Model field value if set, zero value otherwise.
+func (o *TemplatesTemplateResponse) GetModel() string {
+	if o == nil || IsNil(o.Model) {
+		var ret string
+		return ret
+	}
+	return *o.Model
+}
+
+// GetModelOk returns a tuple with the Model field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *TemplatesTemplateResponse) GetModelOk() (*string, bool) {
+	if o == nil || IsNil(o.Model) {
+		return nil, false
+	}
+	return o.Model, true
+}
+
+// HasModel returns a boolean if a field has been set.
+func (o *TemplatesTemplateResponse) HasModel() bool {
+	if o != nil && !IsNil(o.Model) {
+		return true
+	}
+
+	return false
+}
+
+// SetModel gets a reference to the given string and assigns it to the Model field.
+func (o *TemplatesTemplateResponse) SetModel(v string) {
+	o.Model = &v
 }
 
 // GetName returns the Name field value if set, zero value otherwise.
@@ -660,6 +761,12 @@ func (o TemplatesTemplateResponse) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Enabled) {
 		toSerialize["enabled"] = o.Enabled
 	}
+	if !IsNil(o.Ephemeral) {
+		toSerialize["ephemeral"] = o.Ephemeral
+	}
+	if !IsNil(o.ExtractBoundingBoxes) {
+		toSerialize["extract_bounding_boxes"] = o.ExtractBoundingBoxes
+	}
 	if !IsNil(o.Favorite) {
 		toSerialize["favorite"] = o.Favorite
 	}
@@ -674,6 +781,9 @@ func (o TemplatesTemplateResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.LastUsed) {
 		toSerialize["last_used"] = o.LastUsed
+	}
+	if !IsNil(o.Model) {
+		toSerialize["model"] = o.Model
 	}
 	if !IsNil(o.Name) {
 		toSerialize["name"] = o.Name

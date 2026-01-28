@@ -99,13 +99,13 @@ func ValidateURL(fileURL string) error {
 // ValidateFormat validates the OCR format
 func ValidateFormat(format Format) error {
 	switch format {
-	case FormatMarkdown, FormatStructured, FormatPerPageStructured:
+	case FormatMarkdown, FormatStructured:
 		return nil
 	case "":
 		return NewValidationError("format", "format cannot be empty")
 	default:
-		return NewValidationError("format", fmt.Sprintf("invalid format '%s'. Valid formats are: %s, %s, %s",
-			format, FormatMarkdown, FormatStructured, FormatPerPageStructured))
+		return NewValidationError("format", fmt.Sprintf("invalid format '%s'. Valid formats are: %s, %s",
+			format, FormatMarkdown, FormatStructured))
 	}
 }
 
@@ -137,13 +137,16 @@ func ValidateInstructions(instructions string) error {
 
 // ValidateSchema validates the extraction schema based on format
 func ValidateSchema(schema map[string]interface{}, format Format) error {
-	if schema == nil {
-		return nil // Schema is optional
-	}
-
 	// Schema is not allowed with markdown format
 	if format == FormatMarkdown {
-		return NewValidationError("schema", "custom schema is not supported with markdown format. Use structured format instead")
+		if schema != nil {
+			return NewValidationError("schema", "custom schema is not supported with markdown format. Use structured format instead")
+		}
+		return nil
+	}
+
+	if schema == nil {
+		return NewValidationError("schema", "schema is required for structured format")
 	}
 
 	// Basic schema structure validation
@@ -185,6 +188,18 @@ func ValidateTemplateSlug(templateSlug string) error {
 
 // ValidateProcessingConfig validates the entire processing configuration
 func ValidateProcessingConfig(config *processingConfig) error {
+	// Validate template slug
+	if err := ValidateTemplateSlug(config.templateSlug); err != nil {
+		return err
+	}
+
+	if config.templateSlugSet {
+		if config.formatSet || config.modelSet || config.schemaSet || config.instructionsSet {
+			return NewValidationError("templateSlug", "template slug cannot be combined with format, model, schema, or instructions")
+		}
+		return nil
+	}
+
 	// Validate format
 	if err := ValidateFormat(config.format); err != nil {
 		return err
@@ -200,13 +215,12 @@ func ValidateProcessingConfig(config *processingConfig) error {
 		return err
 	}
 
-	// Validate schema (depends on format)
-	if err := ValidateSchema(config.schema, config.format); err != nil {
-		return err
+	if config.instructions != "" && config.format != FormatStructured {
+		return NewValidationError("instructions", "instructions are only supported with structured format")
 	}
 
-	// Validate template slug
-	if err := ValidateTemplateSlug(config.templateSlug); err != nil {
+	// Validate schema (depends on format)
+	if err := ValidateSchema(config.schema, config.format); err != nil {
 		return err
 	}
 

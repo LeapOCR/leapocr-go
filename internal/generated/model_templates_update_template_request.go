@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -22,13 +22,14 @@ var _ MappedNullable = &TemplatesUpdateTemplateRequest{}
 
 // TemplatesUpdateTemplateRequest struct for TemplatesUpdateTemplateRequest
 type TemplatesUpdateTemplateRequest struct {
-	Color        *string `json:"color,omitempty"`
-	Description  *string `json:"description,omitempty"`
-	Enabled      *bool   `json:"enabled,omitempty"`
-	Favorite     *bool   `json:"favorite,omitempty"`
-	Format       string  `json:"format"`
-	Instructions *string `json:"instructions,omitempty"`
-	Name         string  `json:"name"`
+	Color                *string              `json:"color,omitempty"`
+	Description          *string              `json:"description,omitempty"`
+	Enabled              *bool                `json:"enabled,omitempty"`
+	ExtractBoundingBoxes *bool                `json:"extract_bounding_boxes,omitempty"`
+	Favorite             *bool                `json:"favorite,omitempty"`
+	Format               SqlcResultFormatEnum `json:"format"`
+	Instructions         *string              `json:"instructions,omitempty"`
+	Name                 string               `json:"name"`
 	// JSON schema definition
 	Schema map[string]interface{} `json:"schema,omitempty"`
 	Tags   []string               `json:"tags,omitempty"`
@@ -40,7 +41,7 @@ type _TemplatesUpdateTemplateRequest TemplatesUpdateTemplateRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTemplatesUpdateTemplateRequest(format string, name string) *TemplatesUpdateTemplateRequest {
+func NewTemplatesUpdateTemplateRequest(format SqlcResultFormatEnum, name string) *TemplatesUpdateTemplateRequest {
 	this := TemplatesUpdateTemplateRequest{}
 	this.Format = format
 	this.Name = name
@@ -151,6 +152,38 @@ func (o *TemplatesUpdateTemplateRequest) SetEnabled(v bool) {
 	o.Enabled = &v
 }
 
+// GetExtractBoundingBoxes returns the ExtractBoundingBoxes field value if set, zero value otherwise.
+func (o *TemplatesUpdateTemplateRequest) GetExtractBoundingBoxes() bool {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		var ret bool
+		return ret
+	}
+	return *o.ExtractBoundingBoxes
+}
+
+// GetExtractBoundingBoxesOk returns a tuple with the ExtractBoundingBoxes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *TemplatesUpdateTemplateRequest) GetExtractBoundingBoxesOk() (*bool, bool) {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		return nil, false
+	}
+	return o.ExtractBoundingBoxes, true
+}
+
+// HasExtractBoundingBoxes returns a boolean if a field has been set.
+func (o *TemplatesUpdateTemplateRequest) HasExtractBoundingBoxes() bool {
+	if o != nil && !IsNil(o.ExtractBoundingBoxes) {
+		return true
+	}
+
+	return false
+}
+
+// SetExtractBoundingBoxes gets a reference to the given bool and assigns it to the ExtractBoundingBoxes field.
+func (o *TemplatesUpdateTemplateRequest) SetExtractBoundingBoxes(v bool) {
+	o.ExtractBoundingBoxes = &v
+}
+
 // GetFavorite returns the Favorite field value if set, zero value otherwise.
 func (o *TemplatesUpdateTemplateRequest) GetFavorite() bool {
 	if o == nil || IsNil(o.Favorite) {
@@ -184,9 +217,9 @@ func (o *TemplatesUpdateTemplateRequest) SetFavorite(v bool) {
 }
 
 // GetFormat returns the Format field value
-func (o *TemplatesUpdateTemplateRequest) GetFormat() string {
+func (o *TemplatesUpdateTemplateRequest) GetFormat() SqlcResultFormatEnum {
 	if o == nil {
-		var ret string
+		var ret SqlcResultFormatEnum
 		return ret
 	}
 
@@ -195,7 +228,7 @@ func (o *TemplatesUpdateTemplateRequest) GetFormat() string {
 
 // GetFormatOk returns a tuple with the Format field value
 // and a boolean to check if the value has been set.
-func (o *TemplatesUpdateTemplateRequest) GetFormatOk() (*string, bool) {
+func (o *TemplatesUpdateTemplateRequest) GetFormatOk() (*SqlcResultFormatEnum, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -203,7 +236,7 @@ func (o *TemplatesUpdateTemplateRequest) GetFormatOk() (*string, bool) {
 }
 
 // SetFormat sets field value
-func (o *TemplatesUpdateTemplateRequest) SetFormat(v string) {
+func (o *TemplatesUpdateTemplateRequest) SetFormat(v SqlcResultFormatEnum) {
 	o.Format = v
 }
 
@@ -345,6 +378,9 @@ func (o TemplatesUpdateTemplateRequest) ToMap() (map[string]interface{}, error) 
 	}
 	if !IsNil(o.Enabled) {
 		toSerialize["enabled"] = o.Enabled
+	}
+	if !IsNil(o.ExtractBoundingBoxes) {
+		toSerialize["extract_bounding_boxes"] = o.ExtractBoundingBoxes
 	}
 	if !IsNil(o.Favorite) {
 		toSerialize["favorite"] = o.Favorite

@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -23,15 +23,16 @@ var _ MappedNullable = &UploadInitiateDirectUploadRequest{}
 // UploadInitiateDirectUploadRequest struct for UploadInitiateDirectUploadRequest
 type UploadInitiateDirectUploadRequest struct {
 	ContentType string `json:"content_type"`
-	FileName    string `json:"file_name"`
-	FileSize    *int32 `json:"file_size,omitempty"`
-	// Option 2: Direct specification (will create template on-the-fly)
-	Format       *string                `json:"format,omitempty"`
-	Instructions *string                `json:"instructions,omitempty"`
-	Model        *string                `json:"model,omitempty"`
-	Schema       map[string]interface{} `json:"schema,omitempty"`
-	// Option 1: Use existing template by slug
-	TemplateSlug *string `json:"template_slug,omitempty"`
+	// Pipeline enhancement: bounding box extraction
+	ExtractBoundingBoxes *bool                  `json:"extract_bounding_boxes,omitempty"`
+	FileName             string                 `json:"file_name"`
+	FileSize             *int32                 `json:"file_size,omitempty"`
+	Format               *string                `json:"format,omitempty"`
+	Instructions         *string                `json:"instructions,omitempty"`
+	Model                *string                `json:"model,omitempty"`
+	SaveAsTemplate       *bool                  `json:"save_as_template,omitempty"`
+	Schema               map[string]interface{} `json:"schema,omitempty"`
+	TemplateSlug         *string                `json:"template_slug,omitempty"`
 }
 
 type _UploadInitiateDirectUploadRequest UploadInitiateDirectUploadRequest
@@ -77,6 +78,38 @@ func (o *UploadInitiateDirectUploadRequest) GetContentTypeOk() (*string, bool) {
 // SetContentType sets field value
 func (o *UploadInitiateDirectUploadRequest) SetContentType(v string) {
 	o.ContentType = v
+}
+
+// GetExtractBoundingBoxes returns the ExtractBoundingBoxes field value if set, zero value otherwise.
+func (o *UploadInitiateDirectUploadRequest) GetExtractBoundingBoxes() bool {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		var ret bool
+		return ret
+	}
+	return *o.ExtractBoundingBoxes
+}
+
+// GetExtractBoundingBoxesOk returns a tuple with the ExtractBoundingBoxes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UploadInitiateDirectUploadRequest) GetExtractBoundingBoxesOk() (*bool, bool) {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		return nil, false
+	}
+	return o.ExtractBoundingBoxes, true
+}
+
+// HasExtractBoundingBoxes returns a boolean if a field has been set.
+func (o *UploadInitiateDirectUploadRequest) HasExtractBoundingBoxes() bool {
+	if o != nil && !IsNil(o.ExtractBoundingBoxes) {
+		return true
+	}
+
+	return false
+}
+
+// SetExtractBoundingBoxes gets a reference to the given bool and assigns it to the ExtractBoundingBoxes field.
+func (o *UploadInitiateDirectUploadRequest) SetExtractBoundingBoxes(v bool) {
+	o.ExtractBoundingBoxes = &v
 }
 
 // GetFileName returns the FileName field value
@@ -231,6 +264,38 @@ func (o *UploadInitiateDirectUploadRequest) SetModel(v string) {
 	o.Model = &v
 }
 
+// GetSaveAsTemplate returns the SaveAsTemplate field value if set, zero value otherwise.
+func (o *UploadInitiateDirectUploadRequest) GetSaveAsTemplate() bool {
+	if o == nil || IsNil(o.SaveAsTemplate) {
+		var ret bool
+		return ret
+	}
+	return *o.SaveAsTemplate
+}
+
+// GetSaveAsTemplateOk returns a tuple with the SaveAsTemplate field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UploadInitiateDirectUploadRequest) GetSaveAsTemplateOk() (*bool, bool) {
+	if o == nil || IsNil(o.SaveAsTemplate) {
+		return nil, false
+	}
+	return o.SaveAsTemplate, true
+}
+
+// HasSaveAsTemplate returns a boolean if a field has been set.
+func (o *UploadInitiateDirectUploadRequest) HasSaveAsTemplate() bool {
+	if o != nil && !IsNil(o.SaveAsTemplate) {
+		return true
+	}
+
+	return false
+}
+
+// SetSaveAsTemplate gets a reference to the given bool and assigns it to the SaveAsTemplate field.
+func (o *UploadInitiateDirectUploadRequest) SetSaveAsTemplate(v bool) {
+	o.SaveAsTemplate = &v
+}
+
 // GetSchema returns the Schema field value if set, zero value otherwise.
 func (o *UploadInitiateDirectUploadRequest) GetSchema() map[string]interface{} {
 	if o == nil || IsNil(o.Schema) {
@@ -306,6 +371,9 @@ func (o UploadInitiateDirectUploadRequest) MarshalJSON() ([]byte, error) {
 func (o UploadInitiateDirectUploadRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["content_type"] = o.ContentType
+	if !IsNil(o.ExtractBoundingBoxes) {
+		toSerialize["extract_bounding_boxes"] = o.ExtractBoundingBoxes
+	}
 	toSerialize["file_name"] = o.FileName
 	if !IsNil(o.FileSize) {
 		toSerialize["file_size"] = o.FileSize
@@ -318,6 +386,9 @@ func (o UploadInitiateDirectUploadRequest) ToMap() (map[string]interface{}, erro
 	}
 	if !IsNil(o.Model) {
 		toSerialize["model"] = o.Model
+	}
+	if !IsNil(o.SaveAsTemplate) {
+		toSerialize["save_as_template"] = o.SaveAsTemplate
 	}
 	if !IsNil(o.Schema) {
 		toSerialize["schema"] = o.Schema

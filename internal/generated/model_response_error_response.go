@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -20,7 +20,7 @@ var _ MappedNullable = &ResponseErrorResponse{}
 
 // ResponseErrorResponse struct for ResponseErrorResponse
 type ResponseErrorResponse struct {
-	Code    *string               `json:"code,omitempty"`
+	Code    *ResponseErrorCode    `json:"code,omitempty"`
 	Details interface{}           `json:"details,omitempty"`
 	Error   *ResponseErrorMessage `json:"error,omitempty"`
 }
@@ -43,9 +43,9 @@ func NewResponseErrorResponseWithDefaults() *ResponseErrorResponse {
 }
 
 // GetCode returns the Code field value if set, zero value otherwise.
-func (o *ResponseErrorResponse) GetCode() string {
+func (o *ResponseErrorResponse) GetCode() ResponseErrorCode {
 	if o == nil || IsNil(o.Code) {
-		var ret string
+		var ret ResponseErrorCode
 		return ret
 	}
 	return *o.Code
@@ -53,7 +53,7 @@ func (o *ResponseErrorResponse) GetCode() string {
 
 // GetCodeOk returns a tuple with the Code field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ResponseErrorResponse) GetCodeOk() (*string, bool) {
+func (o *ResponseErrorResponse) GetCodeOk() (*ResponseErrorCode, bool) {
 	if o == nil || IsNil(o.Code) {
 		return nil, false
 	}
@@ -69,8 +69,8 @@ func (o *ResponseErrorResponse) HasCode() bool {
 	return false
 }
 
-// SetCode gets a reference to the given string and assigns it to the Code field.
-func (o *ResponseErrorResponse) SetCode(v string) {
+// SetCode gets a reference to the given ResponseErrorCode and assigns it to the Code field.
+func (o *ResponseErrorResponse) SetCode(v ResponseErrorCode) {
 	o.Code = &v
 }
 

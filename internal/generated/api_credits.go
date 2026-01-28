@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -18,39 +18,10 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type CreditsAPI interface {
-
-	/*
-		GetCreditTransactionsByOrganizationID Get credit transactions by organization ID
-
-		Retrieve paginated list of credit transactions for the authenticated user's organization
-
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param organizationId Organization ID
-		@return CreditsAPIGetCreditTransactionsByOrganizationIDRequest
-	*/
-	GetCreditTransactionsByOrganizationID(ctx context.Context, organizationId string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest
-
-	// GetCreditTransactionsByOrganizationIDExecute executes the request
-	//  @return CreditsCreditTransactionsResponseCreditsCreditTransactionOrganizationResponse
-	GetCreditTransactionsByOrganizationIDExecute(r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) (*CreditsCreditTransactionsResponseCreditsCreditTransactionOrganizationResponse, *http.Response, error)
-
-	/*
-		GetCreditTransactionsByTeamID Get credit transactions by team ID
-
-		Retrieve paginated list of credit transactions for the authenticated user's team
-
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@param teamId Team ID
-		@return CreditsAPIGetCreditTransactionsByTeamIDRequest
-	*/
-	GetCreditTransactionsByTeamID(ctx context.Context, teamId string) CreditsAPIGetCreditTransactionsByTeamIDRequest
-
-	// GetCreditTransactionsByTeamIDExecute executes the request
-	//  @return CreditsCreditTransactionsResponseCreditsCreditTransactionProjectResponse
-	GetCreditTransactionsByTeamIDExecute(r CreditsAPIGetCreditTransactionsByTeamIDRequest) (*CreditsCreditTransactionsResponseCreditsCreditTransactionProjectResponse, *http.Response, error)
 
 	/*
 		GetOrganizationCreditsBalance Get organization credits balance
@@ -58,13 +29,14 @@ type CreditsAPI interface {
 		Retrieve current credit balance, consumption, trial status, active subscriptions, granted benefits, and active meters for the authenticated user's organization from the JWT token.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
 		@return CreditsAPIGetOrganizationCreditsBalanceRequest
 	*/
-	GetOrganizationCreditsBalance(ctx context.Context) CreditsAPIGetOrganizationCreditsBalanceRequest
+	GetOrganizationCreditsBalance(ctx context.Context, organizationId string) CreditsAPIGetOrganizationCreditsBalanceRequest
 
 	// GetOrganizationCreditsBalanceExecute executes the request
-	//  @return CreditsCreditBalanceResponse
-	GetOrganizationCreditsBalanceExecute(r CreditsAPIGetOrganizationCreditsBalanceRequest) (*CreditsCreditBalanceResponse, *http.Response, error)
+	//  @return CreditBalanceResponse
+	GetOrganizationCreditsBalanceExecute(r CreditsAPIGetOrganizationCreditsBalanceRequest) (*CreditBalanceResponse, *http.Response, error)
 
 	/*
 		GetPolarProductsCatalog Get Polar products catalog
@@ -77,437 +49,51 @@ type CreditsAPI interface {
 	GetPolarProductsCatalog(ctx context.Context) CreditsAPIGetPolarProductsCatalogRequest
 
 	// GetPolarProductsCatalogExecute executes the request
-	//  @return CreditsProductCatalog
-	GetPolarProductsCatalogExecute(r CreditsAPIGetPolarProductsCatalogRequest) (*CreditsProductCatalog, *http.Response, error)
+	//  @return ProductCatalog
+	GetPolarProductsCatalogExecute(r CreditsAPIGetPolarProductsCatalogRequest) (*ProductCatalog, *http.Response, error)
+
+	/*
+		ListCreditTransactionsCursor List credit transactions with cursor pagination
+
+		Retrieve a cursor-paginated list of credit transactions for a team
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return CreditsAPIListCreditTransactionsCursorRequest
+	*/
+	ListCreditTransactionsCursor(ctx context.Context, organizationId string, teamId string) CreditsAPIListCreditTransactionsCursorRequest
+
+	// ListCreditTransactionsCursorExecute executes the request
+	//  @return CreditsCreditTransactionsListCursorResponse
+	ListCreditTransactionsCursorExecute(r CreditsAPIListCreditTransactionsCursorRequest) (*CreditsCreditTransactionsListCursorResponse, *http.Response, error)
+
+	/*
+		ListOrgCreditTransactionsCursor List organization credit transactions with cursor pagination
+
+		Retrieve a cursor-paginated list of credit transactions for an organization
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@return CreditsAPIListOrgCreditTransactionsCursorRequest
+	*/
+	ListOrgCreditTransactionsCursor(ctx context.Context, organizationId string) CreditsAPIListOrgCreditTransactionsCursorRequest
+
+	// ListOrgCreditTransactionsCursorExecute executes the request
+	//  @return CreditsOrgCreditTransactionsListCursorResponse
+	ListOrgCreditTransactionsCursorExecute(r CreditsAPIListOrgCreditTransactionsCursorRequest) (*CreditsOrgCreditTransactionsListCursorResponse, *http.Response, error)
 }
 
 // CreditsAPIService CreditsAPI service
 type CreditsAPIService service
 
-type CreditsAPIGetCreditTransactionsByOrganizationIDRequest struct {
+type CreditsAPIGetOrganizationCreditsBalanceRequest struct {
 	ctx            context.Context
 	ApiService     CreditsAPI
 	organizationId string
-	page           *int32
-	limit          *int32
-	search         *string
-	model          *string
-	sortBy         *string
-	createdFrom    *string
-	createdTo      *string
 }
 
-// Page number (default: 1)
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Page(page int32) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.page = &page
-	return r
-}
-
-// Items per page (default: 20)
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Limit(limit int32) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.limit = &limit
-	return r
-}
-
-// Search in description, file name, model, or project name
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Search(search string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.search = &search
-	return r
-}
-
-// Filter by model
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Model(model string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.model = &model
-	return r
-}
-
-// Sort by field
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) SortBy(sortBy string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.sortBy = &sortBy
-	return r
-}
-
-// Filter transactions from date (RFC3339 format)
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) CreatedFrom(createdFrom string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.createdFrom = &createdFrom
-	return r
-}
-
-// Filter transactions to date (RFC3339 format)
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) CreatedTo(createdTo string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	r.createdTo = &createdTo
-	return r
-}
-
-func (r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) Execute() (*CreditsCreditTransactionsResponseCreditsCreditTransactionOrganizationResponse, *http.Response, error) {
-	return r.ApiService.GetCreditTransactionsByOrganizationIDExecute(r)
-}
-
-/*
-GetCreditTransactionsByOrganizationID Get credit transactions by organization ID
-
-Retrieve paginated list of credit transactions for the authenticated user's organization
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param organizationId Organization ID
-	@return CreditsAPIGetCreditTransactionsByOrganizationIDRequest
-*/
-func (a *CreditsAPIService) GetCreditTransactionsByOrganizationID(ctx context.Context, organizationId string) CreditsAPIGetCreditTransactionsByOrganizationIDRequest {
-	return CreditsAPIGetCreditTransactionsByOrganizationIDRequest{
-		ApiService:     a,
-		ctx:            ctx,
-		organizationId: organizationId,
-	}
-}
-
-// Execute executes the request
-//
-//	@return CreditsCreditTransactionsResponseCreditsCreditTransactionOrganizationResponse
-func (a *CreditsAPIService) GetCreditTransactionsByOrganizationIDExecute(r CreditsAPIGetCreditTransactionsByOrganizationIDRequest) (*CreditsCreditTransactionsResponseCreditsCreditTransactionOrganizationResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *CreditsCreditTransactionsResponseCreditsCreditTransactionOrganizationResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CreditsAPIService.GetCreditTransactionsByOrganizationID")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/credits/organizations/{organization_id}/transactions"
-	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	if r.page != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
-	}
-	if r.limit != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
-	}
-	if r.search != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
-	}
-	if r.model != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
-	}
-	if r.sortBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", r.sortBy, "form", "")
-	} else {
-		var defaultValue string = "created_at_desc"
-		r.sortBy = &defaultValue
-	}
-	if r.createdFrom != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "created_from", r.createdFrom, "form", "")
-	}
-	if r.createdTo != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "created_to", r.createdTo, "form", "")
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 401 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type CreditsAPIGetCreditTransactionsByTeamIDRequest struct {
-	ctx         context.Context
-	ApiService  CreditsAPI
-	teamId      string
-	page        *int32
-	limit       *int32
-	search      *string
-	model       *string
-	sortBy      *string
-	createdFrom *string
-	createdTo   *string
-}
-
-// Page number (default: 1)
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Page(page int32) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.page = &page
-	return r
-}
-
-// Items per page (default: 20)
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Limit(limit int32) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.limit = &limit
-	return r
-}
-
-// Search in description, file name, or model
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Search(search string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.search = &search
-	return r
-}
-
-// Filter by model
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Model(model string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.model = &model
-	return r
-}
-
-// Sort by field
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) SortBy(sortBy string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.sortBy = &sortBy
-	return r
-}
-
-// Filter transactions from date (RFC3339 format)
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) CreatedFrom(createdFrom string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.createdFrom = &createdFrom
-	return r
-}
-
-// Filter transactions to date (RFC3339 format)
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) CreatedTo(createdTo string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	r.createdTo = &createdTo
-	return r
-}
-
-func (r CreditsAPIGetCreditTransactionsByTeamIDRequest) Execute() (*CreditsCreditTransactionsResponseCreditsCreditTransactionProjectResponse, *http.Response, error) {
-	return r.ApiService.GetCreditTransactionsByTeamIDExecute(r)
-}
-
-/*
-GetCreditTransactionsByTeamID Get credit transactions by team ID
-
-Retrieve paginated list of credit transactions for the authenticated user's team
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param teamId Team ID
-	@return CreditsAPIGetCreditTransactionsByTeamIDRequest
-*/
-func (a *CreditsAPIService) GetCreditTransactionsByTeamID(ctx context.Context, teamId string) CreditsAPIGetCreditTransactionsByTeamIDRequest {
-	return CreditsAPIGetCreditTransactionsByTeamIDRequest{
-		ApiService: a,
-		ctx:        ctx,
-		teamId:     teamId,
-	}
-}
-
-// Execute executes the request
-//
-//	@return CreditsCreditTransactionsResponseCreditsCreditTransactionProjectResponse
-func (a *CreditsAPIService) GetCreditTransactionsByTeamIDExecute(r CreditsAPIGetCreditTransactionsByTeamIDRequest) (*CreditsCreditTransactionsResponseCreditsCreditTransactionProjectResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *CreditsCreditTransactionsResponseCreditsCreditTransactionProjectResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CreditsAPIService.GetCreditTransactionsByTeamID")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/credits/teams/{team_id}/transactions"
-	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	if r.page != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
-	}
-	if r.limit != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
-	}
-	if r.search != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
-	}
-	if r.model != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
-	}
-	if r.sortBy != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "sort_by", r.sortBy, "form", "")
-	} else {
-		var defaultValue string = "created_at_desc"
-		r.sortBy = &defaultValue
-	}
-	if r.createdFrom != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "created_from", r.createdFrom, "form", "")
-	}
-	if r.createdTo != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "created_to", r.createdTo, "form", "")
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 401 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type CreditsAPIGetOrganizationCreditsBalanceRequest struct {
-	ctx        context.Context
-	ApiService CreditsAPI
-}
-
-func (r CreditsAPIGetOrganizationCreditsBalanceRequest) Execute() (*CreditsCreditBalanceResponse, *http.Response, error) {
+func (r CreditsAPIGetOrganizationCreditsBalanceRequest) Execute() (*CreditBalanceResponse, *http.Response, error) {
 	return r.ApiService.GetOrganizationCreditsBalanceExecute(r)
 }
 
@@ -517,24 +103,26 @@ GetOrganizationCreditsBalance Get organization credits balance
 Retrieve current credit balance, consumption, trial status, active subscriptions, granted benefits, and active meters for the authenticated user's organization from the JWT token.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
 	@return CreditsAPIGetOrganizationCreditsBalanceRequest
 */
-func (a *CreditsAPIService) GetOrganizationCreditsBalance(ctx context.Context) CreditsAPIGetOrganizationCreditsBalanceRequest {
+func (a *CreditsAPIService) GetOrganizationCreditsBalance(ctx context.Context, organizationId string) CreditsAPIGetOrganizationCreditsBalanceRequest {
 	return CreditsAPIGetOrganizationCreditsBalanceRequest{
-		ApiService: a,
-		ctx:        ctx,
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
 	}
 }
 
 // Execute executes the request
 //
-//	@return CreditsCreditBalanceResponse
-func (a *CreditsAPIService) GetOrganizationCreditsBalanceExecute(r CreditsAPIGetOrganizationCreditsBalanceRequest) (*CreditsCreditBalanceResponse, *http.Response, error) {
+//	@return CreditBalanceResponse
+func (a *CreditsAPIService) GetOrganizationCreditsBalanceExecute(r CreditsAPIGetOrganizationCreditsBalanceRequest) (*CreditBalanceResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *CreditsCreditBalanceResponse
+		localVarReturnValue *CreditBalanceResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CreditsAPIService.GetOrganizationCreditsBalance")
@@ -542,7 +130,8 @@ func (a *CreditsAPIService) GetOrganizationCreditsBalanceExecute(r CreditsAPIGet
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/credits/organizations/balance"
+	localVarPath := localBasePath + "/organizations/{organization_id}/credits/balance"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -564,6 +153,20 @@ func (a *CreditsAPIService) GetOrganizationCreditsBalanceExecute(r CreditsAPIGet
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
@@ -628,7 +231,7 @@ type CreditsAPIGetPolarProductsCatalogRequest struct {
 	ApiService CreditsAPI
 }
 
-func (r CreditsAPIGetPolarProductsCatalogRequest) Execute() (*CreditsProductCatalog, *http.Response, error) {
+func (r CreditsAPIGetPolarProductsCatalogRequest) Execute() (*ProductCatalog, *http.Response, error) {
 	return r.ApiService.GetPolarProductsCatalogExecute(r)
 }
 
@@ -649,13 +252,13 @@ func (a *CreditsAPIService) GetPolarProductsCatalog(ctx context.Context) Credits
 
 // Execute executes the request
 //
-//	@return CreditsProductCatalog
-func (a *CreditsAPIService) GetPolarProductsCatalogExecute(r CreditsAPIGetPolarProductsCatalogRequest) (*CreditsProductCatalog, *http.Response, error) {
+//	@return ProductCatalog
+func (a *CreditsAPIService) GetPolarProductsCatalogExecute(r CreditsAPIGetPolarProductsCatalogRequest) (*ProductCatalog, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *CreditsProductCatalog
+		localVarReturnValue *ProductCatalog
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CreditsAPIService.GetPolarProductsCatalog")
@@ -686,6 +289,20 @@ func (a *CreditsAPIService) GetPolarProductsCatalogExecute(r CreditsAPIGetPolarP
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -709,6 +326,458 @@ func (a *CreditsAPIService) GetPolarProductsCatalogExecute(r CreditsAPIGetPolarP
 			error: localVarHTTPResponse.Status,
 		}
 		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type CreditsAPIListCreditTransactionsCursorRequest struct {
+	ctx            context.Context
+	ApiService     CreditsAPI
+	organizationId string
+	teamId         string
+	cursor         *string
+	limit          *int32
+	search         *string
+	model          *string
+	createdFrom    *time.Time
+	createdTo      *time.Time
+}
+
+// Cursor for pagination
+func (r CreditsAPIListCreditTransactionsCursorRequest) Cursor(cursor string) CreditsAPIListCreditTransactionsCursorRequest {
+	r.cursor = &cursor
+	return r
+}
+
+// Number of items per page
+func (r CreditsAPIListCreditTransactionsCursorRequest) Limit(limit int32) CreditsAPIListCreditTransactionsCursorRequest {
+	r.limit = &limit
+	return r
+}
+
+// Search by job ID or file name
+func (r CreditsAPIListCreditTransactionsCursorRequest) Search(search string) CreditsAPIListCreditTransactionsCursorRequest {
+	r.search = &search
+	return r
+}
+
+// Filter by OCR model
+func (r CreditsAPIListCreditTransactionsCursorRequest) Model(model string) CreditsAPIListCreditTransactionsCursorRequest {
+	r.model = &model
+	return r
+}
+
+// Filter by creation date (ISO 8601, inclusive)
+func (r CreditsAPIListCreditTransactionsCursorRequest) CreatedFrom(createdFrom time.Time) CreditsAPIListCreditTransactionsCursorRequest {
+	r.createdFrom = &createdFrom
+	return r
+}
+
+// Filter by creation date (ISO 8601, inclusive)
+func (r CreditsAPIListCreditTransactionsCursorRequest) CreatedTo(createdTo time.Time) CreditsAPIListCreditTransactionsCursorRequest {
+	r.createdTo = &createdTo
+	return r
+}
+
+func (r CreditsAPIListCreditTransactionsCursorRequest) Execute() (*CreditsCreditTransactionsListCursorResponse, *http.Response, error) {
+	return r.ApiService.ListCreditTransactionsCursorExecute(r)
+}
+
+/*
+ListCreditTransactionsCursor List credit transactions with cursor pagination
+
+Retrieve a cursor-paginated list of credit transactions for a team
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return CreditsAPIListCreditTransactionsCursorRequest
+*/
+func (a *CreditsAPIService) ListCreditTransactionsCursor(ctx context.Context, organizationId string, teamId string) CreditsAPIListCreditTransactionsCursorRequest {
+	return CreditsAPIListCreditTransactionsCursorRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return CreditsCreditTransactionsListCursorResponse
+func (a *CreditsAPIService) ListCreditTransactionsCursorExecute(r CreditsAPIListCreditTransactionsCursorRequest) (*CreditsCreditTransactionsListCursorResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CreditsCreditTransactionsListCursorResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CreditsAPIService.ListCreditTransactionsCursor")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/credits/transactions"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.cursor != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "cursor", r.cursor, "form", "")
+	}
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	} else {
+		var defaultValue int32 = 20
+		r.limit = &defaultValue
+	}
+	if r.search != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
+	}
+	if r.model != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
+	}
+	if r.createdFrom != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "created_from", r.createdFrom, "form", "")
+	}
+	if r.createdTo != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "created_to", r.createdTo, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type CreditsAPIListOrgCreditTransactionsCursorRequest struct {
+	ctx            context.Context
+	ApiService     CreditsAPI
+	organizationId string
+	cursor         *string
+	limit          *int32
+	search         *string
+	model          *string
+	createdFrom    *time.Time
+	createdTo      *time.Time
+}
+
+// Cursor for pagination
+func (r CreditsAPIListOrgCreditTransactionsCursorRequest) Cursor(cursor string) CreditsAPIListOrgCreditTransactionsCursorRequest {
+	r.cursor = &cursor
+	return r
+}
+
+// Number of items per page
+func (r CreditsAPIListOrgCreditTransactionsCursorRequest) Limit(limit int32) CreditsAPIListOrgCreditTransactionsCursorRequest {
+	r.limit = &limit
+	return r
+}
+
+// Search by job ID or file name
+func (r CreditsAPIListOrgCreditTransactionsCursorRequest) Search(search string) CreditsAPIListOrgCreditTransactionsCursorRequest {
+	r.search = &search
+	return r
+}
+
+// Filter by OCR model
+func (r CreditsAPIListOrgCreditTransactionsCursorRequest) Model(model string) CreditsAPIListOrgCreditTransactionsCursorRequest {
+	r.model = &model
+	return r
+}
+
+// Filter by creation date (ISO 8601, inclusive)
+func (r CreditsAPIListOrgCreditTransactionsCursorRequest) CreatedFrom(createdFrom time.Time) CreditsAPIListOrgCreditTransactionsCursorRequest {
+	r.createdFrom = &createdFrom
+	return r
+}
+
+// Filter by creation date (ISO 8601, inclusive)
+func (r CreditsAPIListOrgCreditTransactionsCursorRequest) CreatedTo(createdTo time.Time) CreditsAPIListOrgCreditTransactionsCursorRequest {
+	r.createdTo = &createdTo
+	return r
+}
+
+func (r CreditsAPIListOrgCreditTransactionsCursorRequest) Execute() (*CreditsOrgCreditTransactionsListCursorResponse, *http.Response, error) {
+	return r.ApiService.ListOrgCreditTransactionsCursorExecute(r)
+}
+
+/*
+ListOrgCreditTransactionsCursor List organization credit transactions with cursor pagination
+
+Retrieve a cursor-paginated list of credit transactions for an organization
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@return CreditsAPIListOrgCreditTransactionsCursorRequest
+*/
+func (a *CreditsAPIService) ListOrgCreditTransactionsCursor(ctx context.Context, organizationId string) CreditsAPIListOrgCreditTransactionsCursorRequest {
+	return CreditsAPIListOrgCreditTransactionsCursorRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return CreditsOrgCreditTransactionsListCursorResponse
+func (a *CreditsAPIService) ListOrgCreditTransactionsCursorExecute(r CreditsAPIListOrgCreditTransactionsCursorRequest) (*CreditsOrgCreditTransactionsListCursorResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CreditsOrgCreditTransactionsListCursorResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CreditsAPIService.ListOrgCreditTransactionsCursor")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/credits/transactions"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.cursor != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "cursor", r.cursor, "form", "")
+	}
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	} else {
+		var defaultValue int32 = 20
+		r.limit = &defaultValue
+	}
+	if r.search != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "search", r.search, "form", "")
+	}
+	if r.model != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "model", r.model, "form", "")
+	}
+	if r.createdFrom != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "created_from", r.createdFrom, "form", "")
+	}
+	if r.createdTo != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "created_to", r.createdTo, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 403 {
 			var v ResponseErrorResponse
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {

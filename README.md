@@ -51,6 +51,13 @@ func main() {
         "https://example.com/document.pdf",
         ocr.WithFormat(ocr.FormatStructured),
         ocr.WithModel(ocr.ModelStandardV1),
+        ocr.WithSchema(map[string]interface{}{
+            "type": "object",
+            "properties": map[string]interface{}{
+                "title": map[string]interface{}{"type": "string"},
+            },
+            "required": []interface{}{"title"},
+        }),
     )
     if err != nil {
         log.Fatal(err)
@@ -74,7 +81,7 @@ func main() {
 ## Key Features
 
 - **Idiomatic Go API** - Clean, type-safe interface following Go best practices
-- **Multiple Processing Formats** - Structured data extraction, markdown output, or per-page processing
+- **Multiple Processing Formats** - Structured data extraction or markdown output
 - **Flexible Model Selection** - Choose from standard, english pro, or custom AI models
 - **Custom Schema Support** - Define extraction schemas for your specific use case
 - **Built-in Retry Logic** - Automatic handling of transient failures
@@ -96,7 +103,15 @@ job, err := client.ProcessURL(ctx,
     "https://example.com/invoice.pdf",
     ocr.WithFormat(ocr.FormatStructured),
     ocr.WithModel(ocr.ModelStandardV1),
-    ocr.WithInstructions("Extract invoice number, date, and total amount"),
+    ocr.WithSchema(map[string]interface{}{
+        "type": "object",
+        "properties": map[string]interface{}{
+            "invoice_number": map[string]interface{}{"type": "string"},
+            "invoice_date":   map[string]interface{}{"type": "string"},
+            "total_amount":   map[string]interface{}{"type": "number"},
+        },
+        "required": []interface{}{"invoice_number", "total_amount"},
+    }),
 )
 if err != nil {
     log.Fatal(err)
@@ -140,7 +155,6 @@ Use pre-configured templates for common document types:
 ```go
 // Use an existing template by slug
 job, err := client.ProcessFile(ctx, file, "invoice.pdf",
-    ocr.WithFormat(ocr.FormatStructured),
     ocr.WithTemplateSlug("invoice-template"),
 )
 ```
@@ -153,15 +167,15 @@ Define custom extraction schemas for specific use cases:
 schema := map[string]interface{}{
     "type": "object",
     "properties": map[string]interface{}{
-        "patient_name": map[string]string{"type": "string"},
-        "date_of_birth": map[string]string{"type": "string"},
+        "patient_name": map[string]interface{}{"type": "string"},
+        "date_of_birth": map[string]interface{}{"type": "string"},
         "medications": map[string]interface{}{
             "type": "array",
             "items": map[string]interface{}{
                 "type": "object",
                 "properties": map[string]interface{}{
-                    "name": map[string]string{"type": "string"},
-                    "dosage": map[string]string{"type": "string"},
+                    "name": map[string]interface{}{"type": "string"},
+                    "dosage": map[string]interface{}{"type": "string"},
                 },
             },
         },
@@ -180,7 +194,6 @@ job, err := client.ProcessFile(ctx, file, "medical-record.pdf",
 | ------------------------- | ------------------ | ---------------------------------------------- |
 | `FormatStructured`        | Single JSON object | Extract specific fields across entire document |
 | `FormatMarkdown`          | Text per page      | Convert document to readable text              |
-| `FormatPerPageStructured` | JSON per page      | Extract fields from multi-section documents    |
 
 ### Monitoring Job Progress
 

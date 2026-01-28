@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -22,12 +22,15 @@ var _ MappedNullable = &UploadRemoteURLUploadRequest{}
 
 // UploadRemoteURLUploadRequest struct for UploadRemoteURLUploadRequest
 type UploadRemoteURLUploadRequest struct {
-	FileName *string `json:"file_name,omitempty"`
+	// Pipeline enhancement: bounding box extraction
+	ExtractBoundingBoxes *bool   `json:"extract_bounding_boxes,omitempty"`
+	FileName             *string `json:"file_name,omitempty"`
 	// Option 2: Direct specification (will create template on-the-fly)
-	Format       *string                `json:"format,omitempty"`
-	Instructions *string                `json:"instructions,omitempty"`
-	Model        *string                `json:"model,omitempty"`
-	Schema       map[string]interface{} `json:"schema,omitempty"`
+	Format         *string                `json:"format,omitempty"`
+	Instructions   *string                `json:"instructions,omitempty"`
+	Model          *string                `json:"model,omitempty"`
+	SaveAsTemplate *bool                  `json:"save_as_template,omitempty"`
+	Schema         map[string]interface{} `json:"schema,omitempty"`
 	// Option 1: Use existing template by slug
 	TemplateSlug *string `json:"template_slug,omitempty"`
 	Url          string  `json:"url"`
@@ -51,6 +54,38 @@ func NewUploadRemoteURLUploadRequest(url string) *UploadRemoteURLUploadRequest {
 func NewUploadRemoteURLUploadRequestWithDefaults() *UploadRemoteURLUploadRequest {
 	this := UploadRemoteURLUploadRequest{}
 	return &this
+}
+
+// GetExtractBoundingBoxes returns the ExtractBoundingBoxes field value if set, zero value otherwise.
+func (o *UploadRemoteURLUploadRequest) GetExtractBoundingBoxes() bool {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		var ret bool
+		return ret
+	}
+	return *o.ExtractBoundingBoxes
+}
+
+// GetExtractBoundingBoxesOk returns a tuple with the ExtractBoundingBoxes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UploadRemoteURLUploadRequest) GetExtractBoundingBoxesOk() (*bool, bool) {
+	if o == nil || IsNil(o.ExtractBoundingBoxes) {
+		return nil, false
+	}
+	return o.ExtractBoundingBoxes, true
+}
+
+// HasExtractBoundingBoxes returns a boolean if a field has been set.
+func (o *UploadRemoteURLUploadRequest) HasExtractBoundingBoxes() bool {
+	if o != nil && !IsNil(o.ExtractBoundingBoxes) {
+		return true
+	}
+
+	return false
+}
+
+// SetExtractBoundingBoxes gets a reference to the given bool and assigns it to the ExtractBoundingBoxes field.
+func (o *UploadRemoteURLUploadRequest) SetExtractBoundingBoxes(v bool) {
+	o.ExtractBoundingBoxes = &v
 }
 
 // GetFileName returns the FileName field value if set, zero value otherwise.
@@ -181,6 +216,38 @@ func (o *UploadRemoteURLUploadRequest) SetModel(v string) {
 	o.Model = &v
 }
 
+// GetSaveAsTemplate returns the SaveAsTemplate field value if set, zero value otherwise.
+func (o *UploadRemoteURLUploadRequest) GetSaveAsTemplate() bool {
+	if o == nil || IsNil(o.SaveAsTemplate) {
+		var ret bool
+		return ret
+	}
+	return *o.SaveAsTemplate
+}
+
+// GetSaveAsTemplateOk returns a tuple with the SaveAsTemplate field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UploadRemoteURLUploadRequest) GetSaveAsTemplateOk() (*bool, bool) {
+	if o == nil || IsNil(o.SaveAsTemplate) {
+		return nil, false
+	}
+	return o.SaveAsTemplate, true
+}
+
+// HasSaveAsTemplate returns a boolean if a field has been set.
+func (o *UploadRemoteURLUploadRequest) HasSaveAsTemplate() bool {
+	if o != nil && !IsNil(o.SaveAsTemplate) {
+		return true
+	}
+
+	return false
+}
+
+// SetSaveAsTemplate gets a reference to the given bool and assigns it to the SaveAsTemplate field.
+func (o *UploadRemoteURLUploadRequest) SetSaveAsTemplate(v bool) {
+	o.SaveAsTemplate = &v
+}
+
 // GetSchema returns the Schema field value if set, zero value otherwise.
 func (o *UploadRemoteURLUploadRequest) GetSchema() map[string]interface{} {
 	if o == nil || IsNil(o.Schema) {
@@ -279,6 +346,9 @@ func (o UploadRemoteURLUploadRequest) MarshalJSON() ([]byte, error) {
 
 func (o UploadRemoteURLUploadRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.ExtractBoundingBoxes) {
+		toSerialize["extract_bounding_boxes"] = o.ExtractBoundingBoxes
+	}
 	if !IsNil(o.FileName) {
 		toSerialize["file_name"] = o.FileName
 	}
@@ -290,6 +360,9 @@ func (o UploadRemoteURLUploadRequest) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Model) {
 		toSerialize["model"] = o.Model
+	}
+	if !IsNil(o.SaveAsTemplate) {
+		toSerialize["save_as_template"] = o.SaveAsTemplate
 	}
 	if !IsNil(o.Schema) {
 		toSerialize["schema"] = o.Schema

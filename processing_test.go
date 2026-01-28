@@ -62,6 +62,14 @@ func TestProcessURL_Validation(t *testing.T) {
 			expectError: "custom schema is not supported with markdown format",
 		},
 		{
+			name: "structured without schema",
+			url:  "https://example.com/document.pdf",
+			opts: []ProcessingOption{
+				WithFormat(FormatStructured),
+			},
+			expectError: "schema is required for structured format",
+		},
+		{
 			name: "instructions too long",
 			url:  "https://example.com/document.pdf",
 			opts: []ProcessingOption{
@@ -76,6 +84,15 @@ func TestProcessURL_Validation(t *testing.T) {
 				WithTemplateSlug("invalid category"),
 			},
 			expectError: "template slug can only contain letters, numbers, hyphens, and underscores",
+		},
+		{
+			name: "template slug with schema",
+			url:  "https://example.com/document.pdf",
+			opts: []ProcessingOption{
+				WithTemplateSlug("invoice"),
+				WithSchema(map[string]interface{}{"title": "string"}),
+			},
+			expectError: "template slug cannot be combined",
 		},
 	}
 
@@ -191,6 +208,12 @@ func TestProcessingOptions_Validation(t *testing.T) {
 					"amount": "number",
 				}),
 				WithInstructions("Extract title and amount"),
+			},
+			expectError: "",
+		},
+		{
+			name: "valid template only",
+			opts: []ProcessingOption{
 				WithTemplateSlug("invoice"),
 			},
 			expectError: "",
@@ -200,9 +223,31 @@ func TestProcessingOptions_Validation(t *testing.T) {
 			opts: []ProcessingOption{
 				WithFormat(FormatMarkdown),
 				WithModel(ModelStandardV1),
-				WithInstructions("Extract all text"),
 			},
 			expectError: "",
+		},
+		{
+			name: "invalid - instructions with markdown",
+			opts: []ProcessingOption{
+				WithFormat(FormatMarkdown),
+				WithInstructions("Extract all text"),
+			},
+			expectError: "instructions are only supported with structured format",
+		},
+		{
+			name: "invalid - structured without schema",
+			opts: []ProcessingOption{
+				WithFormat(FormatStructured),
+			},
+			expectError: "schema is required for structured format",
+		},
+		{
+			name: "invalid - template with schema",
+			opts: []ProcessingOption{
+				WithTemplateSlug("invoice"),
+				WithSchema(map[string]interface{}{"title": "string"}),
+			},
+			expectError: "template slug cannot be combined",
 		},
 		{
 			name: "invalid - empty schema object",

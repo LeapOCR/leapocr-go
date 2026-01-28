@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-01-28
+
+### Changed
+
+- BREAKING: Removed per-page structured format; only `structured` and `markdown` remain
+- BREAKING: Structured requests now require a non-empty JSON schema unless using a template
+- BREAKING: Template slug is now exclusive and cannot be combined with format/model/instructions/schema
+- BREAKING: `DeleteJob` now uses the API-key delete endpoint and only requires a job ID
+- Added page-level confidence to results
+- Regenerated SDK from the latest OpenAPI spec
+
 ## [0.0.5] - 2025-11-23
 
 

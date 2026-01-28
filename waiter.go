@@ -3,6 +3,7 @@ package ocr
 import (
 	"context"
 	"crypto/rand"
+	"maps"
 	"math/big"
 	"time"
 )
@@ -174,7 +175,7 @@ func (s *SDK) getJobStatus(ctx context.Context, jobID string) (*JobStatusInfo, e
 
 	// Add fields if present
 	if resp.Status != nil {
-		status.Status = *resp.Status
+		status.Status = string(*resp.Status)
 	}
 	// Calculate progress from processed pages and total pages
 	if resp.ProcessedPages != nil && resp.TotalPages != nil && *resp.TotalPages > 0 {
@@ -207,7 +208,7 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 
 	// Extract status from response
 	if resp.Status != nil {
-		result.Status = *resp.Status
+		result.Status = string(*resp.Status)
 	} else {
 		// Default to completed if status not available
 		result.Status = "completed"
@@ -240,13 +241,15 @@ func (s *SDK) getJobResult(ctx context.Context, jobID string) (*OCRResult, error
 						result.Data = make(map[string]any)
 					}
 					// Merge page data into result data
-					for k, val := range v {
-						result.Data[k] = val
-					}
+					maps.Copy(result.Data, v)
 				}
 			}
 			if page.PageNumber != nil {
 				pageResult.PageNumber = int(*page.PageNumber)
+			}
+			if page.Confidence != nil {
+				confidence := float64(*page.Confidence)
+				pageResult.Confidence = &confidence
 			}
 
 			result.Pages[i] = pageResult

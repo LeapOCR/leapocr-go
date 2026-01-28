@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -23,119 +23,122 @@ import (
 type OnboardingAPI interface {
 
 	/*
-		OnboardingExternalIdDelete Delete onboarding status
+		CreateOnboarding Create onboarding status
 
-		Delete onboarding status for an entity
+		Create onboarding status for an entity
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@return OnboardingAPICreateOnboardingRequest
+	*/
+	CreateOnboarding(ctx context.Context) OnboardingAPICreateOnboardingRequest
+
+	// CreateOnboardingExecute executes the request
+	//  @return OnboardingOnboardingStatus
+	CreateOnboardingExecute(r OnboardingAPICreateOnboardingRequest) (*OnboardingOnboardingStatus, *http.Response, error)
+
+	/*
+		DeleteOnboarding Delete onboarding status
+
+		Permanently delete onboarding status for an entity
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param externalId External ID
-		@return OnboardingAPIOnboardingExternalIdDeleteRequest
+		@return OnboardingAPIDeleteOnboardingRequest
 	*/
-	OnboardingExternalIdDelete(ctx context.Context, externalId string) OnboardingAPIOnboardingExternalIdDeleteRequest
+	DeleteOnboarding(ctx context.Context, externalId string) OnboardingAPIDeleteOnboardingRequest
 
-	// OnboardingExternalIdDeleteExecute executes the request
-	OnboardingExternalIdDeleteExecute(r OnboardingAPIOnboardingExternalIdDeleteRequest) (*http.Response, error)
+	// DeleteOnboardingExecute executes the request
+	DeleteOnboardingExecute(r OnboardingAPIDeleteOnboardingRequest) (*http.Response, error)
 
 	/*
-		OnboardingExternalIdGet Get onboarding status
+		GetOnboarding Get onboarding status
 
 		Get onboarding status for an entity by external ID
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param externalId External ID
-		@return OnboardingAPIOnboardingExternalIdGetRequest
+		@return OnboardingAPIGetOnboardingRequest
 	*/
-	OnboardingExternalIdGet(ctx context.Context, externalId string) OnboardingAPIOnboardingExternalIdGetRequest
+	GetOnboarding(ctx context.Context, externalId string) OnboardingAPIGetOnboardingRequest
 
-	// OnboardingExternalIdGetExecute executes the request
+	// GetOnboardingExecute executes the request
 	//  @return OnboardingOnboardingStatus
-	OnboardingExternalIdGetExecute(r OnboardingAPIOnboardingExternalIdGetRequest) (*OnboardingOnboardingStatus, *http.Response, error)
+	GetOnboardingExecute(r OnboardingAPIGetOnboardingRequest) (*OnboardingOnboardingStatus, *http.Response, error)
 
 	/*
-		OnboardingExternalIdPut Update onboarding status
+		UpdateOnboarding Update onboarding status
 
 		Update onboarding steps and metadata for an entity
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@param externalId External ID
-		@return OnboardingAPIOnboardingExternalIdPutRequest
+		@return OnboardingAPIUpdateOnboardingRequest
 	*/
-	OnboardingExternalIdPut(ctx context.Context, externalId string) OnboardingAPIOnboardingExternalIdPutRequest
+	UpdateOnboarding(ctx context.Context, externalId string) OnboardingAPIUpdateOnboardingRequest
 
-	// OnboardingExternalIdPutExecute executes the request
+	// UpdateOnboardingExecute executes the request
 	//  @return OnboardingOnboardingStatus
-	OnboardingExternalIdPutExecute(r OnboardingAPIOnboardingExternalIdPutRequest) (*OnboardingOnboardingStatus, *http.Response, error)
-
-	/*
-		OnboardingPost Create onboarding status
-
-		Create onboarding status for an entity
-
-		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return OnboardingAPIOnboardingPostRequest
-	*/
-	OnboardingPost(ctx context.Context) OnboardingAPIOnboardingPostRequest
-
-	// OnboardingPostExecute executes the request
-	//  @return OnboardingOnboardingStatus
-	OnboardingPostExecute(r OnboardingAPIOnboardingPostRequest) (*OnboardingOnboardingStatus, *http.Response, error)
+	UpdateOnboardingExecute(r OnboardingAPIUpdateOnboardingRequest) (*OnboardingOnboardingStatus, *http.Response, error)
 }
 
 // OnboardingAPIService OnboardingAPI service
 type OnboardingAPIService service
 
-type OnboardingAPIOnboardingExternalIdDeleteRequest struct {
-	ctx        context.Context
-	ApiService OnboardingAPI
-	externalId string
-	body       *map[string]interface{}
+type OnboardingAPICreateOnboardingRequest struct {
+	ctx                     context.Context
+	ApiService              OnboardingAPI
+	createOnboardingRequest *CreateOnboardingRequest
 }
 
-func (r OnboardingAPIOnboardingExternalIdDeleteRequest) Body(body map[string]interface{}) OnboardingAPIOnboardingExternalIdDeleteRequest {
-	r.body = &body
+// Onboarding request
+func (r OnboardingAPICreateOnboardingRequest) CreateOnboardingRequest(createOnboardingRequest CreateOnboardingRequest) OnboardingAPICreateOnboardingRequest {
+	r.createOnboardingRequest = &createOnboardingRequest
 	return r
 }
 
-func (r OnboardingAPIOnboardingExternalIdDeleteRequest) Execute() (*http.Response, error) {
-	return r.ApiService.OnboardingExternalIdDeleteExecute(r)
+func (r OnboardingAPICreateOnboardingRequest) Execute() (*OnboardingOnboardingStatus, *http.Response, error) {
+	return r.ApiService.CreateOnboardingExecute(r)
 }
 
 /*
-OnboardingExternalIdDelete Delete onboarding status
+CreateOnboarding Create onboarding status
 
-Delete onboarding status for an entity
+Create onboarding status for an entity
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param externalId External ID
-	@return OnboardingAPIOnboardingExternalIdDeleteRequest
+	@return OnboardingAPICreateOnboardingRequest
 */
-func (a *OnboardingAPIService) OnboardingExternalIdDelete(ctx context.Context, externalId string) OnboardingAPIOnboardingExternalIdDeleteRequest {
-	return OnboardingAPIOnboardingExternalIdDeleteRequest{
+func (a *OnboardingAPIService) CreateOnboarding(ctx context.Context) OnboardingAPICreateOnboardingRequest {
+	return OnboardingAPICreateOnboardingRequest{
 		ApiService: a,
 		ctx:        ctx,
-		externalId: externalId,
 	}
 }
 
 // Execute executes the request
-func (a *OnboardingAPIService) OnboardingExternalIdDeleteExecute(r OnboardingAPIOnboardingExternalIdDeleteRequest) (*http.Response, error) {
+//
+//	@return OnboardingOnboardingStatus
+func (a *OnboardingAPIService) CreateOnboardingExecute(r OnboardingAPICreateOnboardingRequest) (*OnboardingOnboardingStatus, *http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodDelete
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *OnboardingOnboardingStatus
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.OnboardingExternalIdDelete")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.CreateOnboarding")
 	if err != nil {
-		return nil, &GenericOpenAPIError{error: err.Error()}
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/onboarding/{external_id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"external_id"+"}", url.PathEscape(parameterValueToString(r.externalId, "externalId")), -1)
+	localVarPath := localBasePath + "/onboarding"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
+	if r.createOnboardingRequest == nil {
+		return localVarReturnValue, nil, reportError("createOnboardingRequest is required and must be specified")
+	}
 
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{"application/json"}
@@ -155,7 +158,168 @@ func (a *OnboardingAPIService) OnboardingExternalIdDeleteExecute(r OnboardingAPI
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.body
+	localVarPostBody = r.createOnboardingRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 409 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type OnboardingAPIDeleteOnboardingRequest struct {
+	ctx        context.Context
+	ApiService OnboardingAPI
+	externalId string
+}
+
+func (r OnboardingAPIDeleteOnboardingRequest) Execute() (*http.Response, error) {
+	return r.ApiService.DeleteOnboardingExecute(r)
+}
+
+/*
+DeleteOnboarding Delete onboarding status
+
+Permanently delete onboarding status for an entity
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param externalId External ID
+	@return OnboardingAPIDeleteOnboardingRequest
+*/
+func (a *OnboardingAPIService) DeleteOnboarding(ctx context.Context, externalId string) OnboardingAPIDeleteOnboardingRequest {
+	return OnboardingAPIDeleteOnboardingRequest{
+		ApiService: a,
+		ctx:        ctx,
+		externalId: externalId,
+	}
+}
+
+// Execute executes the request
+func (a *OnboardingAPIService) DeleteOnboardingExecute(r OnboardingAPIDeleteOnboardingRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.DeleteOnboarding")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/onboarding/{external_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"external_id"+"}", url.PathEscape(parameterValueToString(r.externalId, "externalId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return nil, err
@@ -205,33 +369,27 @@ func (a *OnboardingAPIService) OnboardingExternalIdDeleteExecute(r OnboardingAPI
 	return localVarHTTPResponse, nil
 }
 
-type OnboardingAPIOnboardingExternalIdGetRequest struct {
+type OnboardingAPIGetOnboardingRequest struct {
 	ctx        context.Context
 	ApiService OnboardingAPI
 	externalId string
-	body       *map[string]interface{}
 }
 
-func (r OnboardingAPIOnboardingExternalIdGetRequest) Body(body map[string]interface{}) OnboardingAPIOnboardingExternalIdGetRequest {
-	r.body = &body
-	return r
-}
-
-func (r OnboardingAPIOnboardingExternalIdGetRequest) Execute() (*OnboardingOnboardingStatus, *http.Response, error) {
-	return r.ApiService.OnboardingExternalIdGetExecute(r)
+func (r OnboardingAPIGetOnboardingRequest) Execute() (*OnboardingOnboardingStatus, *http.Response, error) {
+	return r.ApiService.GetOnboardingExecute(r)
 }
 
 /*
-OnboardingExternalIdGet Get onboarding status
+GetOnboarding Get onboarding status
 
 Get onboarding status for an entity by external ID
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param externalId External ID
-	@return OnboardingAPIOnboardingExternalIdGetRequest
+	@return OnboardingAPIGetOnboardingRequest
 */
-func (a *OnboardingAPIService) OnboardingExternalIdGet(ctx context.Context, externalId string) OnboardingAPIOnboardingExternalIdGetRequest {
-	return OnboardingAPIOnboardingExternalIdGetRequest{
+func (a *OnboardingAPIService) GetOnboarding(ctx context.Context, externalId string) OnboardingAPIGetOnboardingRequest {
+	return OnboardingAPIGetOnboardingRequest{
 		ApiService: a,
 		ctx:        ctx,
 		externalId: externalId,
@@ -241,7 +399,7 @@ func (a *OnboardingAPIService) OnboardingExternalIdGet(ctx context.Context, exte
 // Execute executes the request
 //
 //	@return OnboardingOnboardingStatus
-func (a *OnboardingAPIService) OnboardingExternalIdGetExecute(r OnboardingAPIOnboardingExternalIdGetRequest) (*OnboardingOnboardingStatus, *http.Response, error) {
+func (a *OnboardingAPIService) GetOnboardingExecute(r OnboardingAPIGetOnboardingRequest) (*OnboardingOnboardingStatus, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -249,7 +407,7 @@ func (a *OnboardingAPIService) OnboardingExternalIdGetExecute(r OnboardingAPIOnb
 		localVarReturnValue *OnboardingOnboardingStatus
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.OnboardingExternalIdGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.GetOnboarding")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -262,7 +420,7 @@ func (a *OnboardingAPIService) OnboardingExternalIdGetExecute(r OnboardingAPIOnb
 	localVarFormParams := url.Values{}
 
 	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
+	localVarHTTPContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
@@ -278,8 +436,20 @@ func (a *OnboardingAPIService) OnboardingExternalIdGetExecute(r OnboardingAPIOnb
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
-	// body params
-	localVarPostBody = r.body
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -338,34 +508,34 @@ func (a *OnboardingAPIService) OnboardingExternalIdGetExecute(r OnboardingAPIOnb
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type OnboardingAPIOnboardingExternalIdPutRequest struct {
-	ctx                               context.Context
-	ApiService                        OnboardingAPI
-	externalId                        string
-	onboardingUpdateOnboardingRequest *OnboardingUpdateOnboardingRequest
+type OnboardingAPIUpdateOnboardingRequest struct {
+	ctx                     context.Context
+	ApiService              OnboardingAPI
+	externalId              string
+	updateOnboardingRequest *UpdateOnboardingRequest
 }
 
 // Update request
-func (r OnboardingAPIOnboardingExternalIdPutRequest) OnboardingUpdateOnboardingRequest(onboardingUpdateOnboardingRequest OnboardingUpdateOnboardingRequest) OnboardingAPIOnboardingExternalIdPutRequest {
-	r.onboardingUpdateOnboardingRequest = &onboardingUpdateOnboardingRequest
+func (r OnboardingAPIUpdateOnboardingRequest) UpdateOnboardingRequest(updateOnboardingRequest UpdateOnboardingRequest) OnboardingAPIUpdateOnboardingRequest {
+	r.updateOnboardingRequest = &updateOnboardingRequest
 	return r
 }
 
-func (r OnboardingAPIOnboardingExternalIdPutRequest) Execute() (*OnboardingOnboardingStatus, *http.Response, error) {
-	return r.ApiService.OnboardingExternalIdPutExecute(r)
+func (r OnboardingAPIUpdateOnboardingRequest) Execute() (*OnboardingOnboardingStatus, *http.Response, error) {
+	return r.ApiService.UpdateOnboardingExecute(r)
 }
 
 /*
-OnboardingExternalIdPut Update onboarding status
+UpdateOnboarding Update onboarding status
 
 Update onboarding steps and metadata for an entity
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@param externalId External ID
-	@return OnboardingAPIOnboardingExternalIdPutRequest
+	@return OnboardingAPIUpdateOnboardingRequest
 */
-func (a *OnboardingAPIService) OnboardingExternalIdPut(ctx context.Context, externalId string) OnboardingAPIOnboardingExternalIdPutRequest {
-	return OnboardingAPIOnboardingExternalIdPutRequest{
+func (a *OnboardingAPIService) UpdateOnboarding(ctx context.Context, externalId string) OnboardingAPIUpdateOnboardingRequest {
+	return OnboardingAPIUpdateOnboardingRequest{
 		ApiService: a,
 		ctx:        ctx,
 		externalId: externalId,
@@ -375,7 +545,7 @@ func (a *OnboardingAPIService) OnboardingExternalIdPut(ctx context.Context, exte
 // Execute executes the request
 //
 //	@return OnboardingOnboardingStatus
-func (a *OnboardingAPIService) OnboardingExternalIdPutExecute(r OnboardingAPIOnboardingExternalIdPutRequest) (*OnboardingOnboardingStatus, *http.Response, error) {
+func (a *OnboardingAPIService) UpdateOnboardingExecute(r OnboardingAPIUpdateOnboardingRequest) (*OnboardingOnboardingStatus, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodPut
 		localVarPostBody    interface{}
@@ -383,7 +553,7 @@ func (a *OnboardingAPIService) OnboardingExternalIdPutExecute(r OnboardingAPIOnb
 		localVarReturnValue *OnboardingOnboardingStatus
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.OnboardingExternalIdPut")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.UpdateOnboarding")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -394,8 +564,8 @@ func (a *OnboardingAPIService) OnboardingExternalIdPutExecute(r OnboardingAPIOnb
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.onboardingUpdateOnboardingRequest == nil {
-		return localVarReturnValue, nil, reportError("onboardingUpdateOnboardingRequest is required and must be specified")
+	if r.updateOnboardingRequest == nil {
+		return localVarReturnValue, nil, reportError("updateOnboardingRequest is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -416,7 +586,21 @@ func (a *OnboardingAPIService) OnboardingExternalIdPutExecute(r OnboardingAPIOnb
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.onboardingUpdateOnboardingRequest
+	localVarPostBody = r.updateOnboardingRequest
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["ApiKeyAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-API-KEY"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -451,150 +635,6 @@ func (a *OnboardingAPIService) OnboardingExternalIdPutExecute(r OnboardingAPIOnb
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 404 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type OnboardingAPIOnboardingPostRequest struct {
-	ctx                               context.Context
-	ApiService                        OnboardingAPI
-	onboardingCreateOnboardingRequest *OnboardingCreateOnboardingRequest
-}
-
-// Onboarding request
-func (r OnboardingAPIOnboardingPostRequest) OnboardingCreateOnboardingRequest(onboardingCreateOnboardingRequest OnboardingCreateOnboardingRequest) OnboardingAPIOnboardingPostRequest {
-	r.onboardingCreateOnboardingRequest = &onboardingCreateOnboardingRequest
-	return r
-}
-
-func (r OnboardingAPIOnboardingPostRequest) Execute() (*OnboardingOnboardingStatus, *http.Response, error) {
-	return r.ApiService.OnboardingPostExecute(r)
-}
-
-/*
-OnboardingPost Create onboarding status
-
-Create onboarding status for an entity
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return OnboardingAPIOnboardingPostRequest
-*/
-func (a *OnboardingAPIService) OnboardingPost(ctx context.Context) OnboardingAPIOnboardingPostRequest {
-	return OnboardingAPIOnboardingPostRequest{
-		ApiService: a,
-		ctx:        ctx,
-	}
-}
-
-// Execute executes the request
-//
-//	@return OnboardingOnboardingStatus
-func (a *OnboardingAPIService) OnboardingPostExecute(r OnboardingAPIOnboardingPostRequest) (*OnboardingOnboardingStatus, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodPost
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *OnboardingOnboardingStatus
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OnboardingAPIService.OnboardingPost")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/onboarding"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-	if r.onboardingCreateOnboardingRequest == nil {
-		return localVarReturnValue, nil, reportError("onboardingCreateOnboardingRequest is required and must be specified")
-	}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	// body params
-	localVarPostBody = r.onboardingCreateOnboardingRequest
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 409 {
 			var v ResponseErrorResponse
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {

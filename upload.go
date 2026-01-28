@@ -112,13 +112,15 @@ func (s *SDK) completeDirectUpload(ctx context.Context, jobID string, completedP
 	}
 
 	// Create completion request
-	completeRequest := generated.UploadDirectUploadCompleteRequest{
+	completePayload := generated.UploadDirectUploadCompleteRequest{
 		Parts: completedParts,
 	}
 
 	// Make the API call to complete the upload
 	apiRequest := s.client.SDKAPI.CompleteDirectUpload(ctx, jobID)
-	apiRequest = apiRequest.UploadDirectUploadCompleteRequest(completeRequest)
+	apiRequest = apiRequest.CompleteDirectUploadRequest(
+		generated.UploadDirectUploadCompleteRequestAsCompleteDirectUploadRequest(&completePayload),
+	)
 
 	_, httpResp, err := apiRequest.Execute()
 	if err != nil {

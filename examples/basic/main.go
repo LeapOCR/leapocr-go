@@ -60,6 +60,16 @@ func processLocalFile(sdk *ocr.SDK) error {
 		ocr.WithFormat(ocr.FormatStructured),
 		ocr.WithModel(ocr.ModelStandardV1),
 		ocr.WithInstructions("Extract all invoice details including amounts, dates, and vendor information"),
+		ocr.WithSchema(map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"invoice_number": map[string]interface{}{"type": "string"},
+				"invoice_date":   map[string]interface{}{"type": "string"},
+				"total_amount":   map[string]interface{}{"type": "number"},
+				"vendor_name":    map[string]interface{}{"type": "string"},
+			},
+			"required": []interface{}{"invoice_number", "total_amount"},
+		}),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to start processing: %w", err)

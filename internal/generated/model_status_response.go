@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -33,9 +33,8 @@ type StatusResponse struct {
 	// Total processing time in seconds example: 156
 	ProcessingTime *int32 `json:"processing_time,omitempty"`
 	// The result format type of the job example: structured
-	ResultFormat *string `json:"result_format,omitempty"`
-	// The current status of the job example: completed
-	Status *string `json:"status,omitempty"`
+	ResultFormat *string          `json:"result_format,omitempty"`
+	Status       *ModelsJobStatus `json:"status,omitempty"`
 	// Total number of pages in the document example: 24
 	TotalPages *int32 `json:"total_pages,omitempty"`
 }
@@ -282,9 +281,9 @@ func (o *StatusResponse) SetResultFormat(v string) {
 }
 
 // GetStatus returns the Status field value if set, zero value otherwise.
-func (o *StatusResponse) GetStatus() string {
+func (o *StatusResponse) GetStatus() ModelsJobStatus {
 	if o == nil || IsNil(o.Status) {
-		var ret string
+		var ret ModelsJobStatus
 		return ret
 	}
 	return *o.Status
@@ -292,7 +291,7 @@ func (o *StatusResponse) GetStatus() string {
 
 // GetStatusOk returns a tuple with the Status field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *StatusResponse) GetStatusOk() (*string, bool) {
+func (o *StatusResponse) GetStatusOk() (*ModelsJobStatus, bool) {
 	if o == nil || IsNil(o.Status) {
 		return nil, false
 	}
@@ -308,8 +307,8 @@ func (o *StatusResponse) HasStatus() bool {
 	return false
 }
 
-// SetStatus gets a reference to the given string and assigns it to the Status field.
-func (o *StatusResponse) SetStatus(v string) {
+// SetStatus gets a reference to the given ModelsJobStatus and assigns it to the Status field.
+func (o *StatusResponse) SetStatus(v ModelsJobStatus) {
 	o.Status = &v
 }
 

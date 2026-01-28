@@ -58,6 +58,13 @@ func customConfigExample(apiKey string) error {
 		ocr.WithFormat(ocr.FormatStructured),
 		ocr.WithModel(ocr.ModelProV1),
 		ocr.WithInstructions("Extract all data with high accuracy"),
+		ocr.WithSchema(map[string]interface{}{
+			"type": "object",
+			"properties": map[string]interface{}{
+				"text": map[string]interface{}{"type": "string"},
+			},
+			"required": []interface{}{"text"},
+		}),
 	)
 	if err != nil {
 		// This is expected to fail with the example URL
@@ -103,6 +110,13 @@ func batchProcessingExample(apiKey string) error {
 				ocr.WithFormat(ocr.FormatStructured),
 				ocr.WithModel(ocr.ModelStandardV1),
 				ocr.WithInstructions(fmt.Sprintf("Process document %d", idx+1)),
+				ocr.WithSchema(map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"text": map[string]interface{}{"type": "string"},
+					},
+					"required": []interface{}{"text"},
+				}),
 			)
 			if err != nil {
 				errors <- fmt.Errorf("failed to start processing file %d: %w", idx+1, err)
@@ -221,7 +235,7 @@ func schemaExtractionExample(apiKey string) error {
 				},
 			},
 		},
-		"required": []string{"invoice_number", "total_amount", "vendor_name"},
+		"required": []interface{}{"invoice_number", "total_amount", "vendor_name"},
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)

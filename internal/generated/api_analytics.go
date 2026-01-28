@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -17,154 +17,668 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type AnalyticsAPI interface {
 
 	/*
-		AnalyticsCreditsUsageGet Get credit usage analytics
+		GetConfidenceMetrics Get confidence metrics analytics
+
+		Returns confidence score analytics including confidence distribution and summary statistics
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetConfidenceMetricsRequest
+	*/
+	GetConfidenceMetrics(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetConfidenceMetricsRequest
+
+	// GetConfidenceMetricsExecute executes the request
+	//  @return AnalyticsConfidenceMetricsResponse
+	GetConfidenceMetricsExecute(r AnalyticsAPIGetConfidenceMetricsRequest) (*AnalyticsConfidenceMetricsResponse, *http.Response, error)
+
+	/*
+		GetConfidenceTimeseries Get confidence metrics timeseries
+
+		Returns confidence score trends aggregated by time buckets
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetConfidenceTimeseriesRequest
+	*/
+	GetConfidenceTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetConfidenceTimeseriesRequest
+
+	// GetConfidenceTimeseriesExecute executes the request
+	//  @return AnalyticsConfidenceTimeseriesResponse
+	GetConfidenceTimeseriesExecute(r AnalyticsAPIGetConfidenceTimeseriesRequest) (*AnalyticsConfidenceTimeseriesResponse, *http.Response, error)
+
+	/*
+		GetCreditUsage Get credit usage analytics
 
 		Returns comprehensive credit analytics including snapshot data, timeseries trends, and model usage breakdown
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return AnalyticsAPIAnalyticsCreditsUsageGetRequest
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetCreditUsageRequest
 	*/
-	AnalyticsCreditsUsageGet(ctx context.Context) AnalyticsAPIAnalyticsCreditsUsageGetRequest
+	GetCreditUsage(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetCreditUsageRequest
 
-	// AnalyticsCreditsUsageGetExecute executes the request
+	// GetCreditUsageExecute executes the request
 	//  @return AnalyticsCreditsUsageResponse
-	AnalyticsCreditsUsageGetExecute(r AnalyticsAPIAnalyticsCreditsUsageGetRequest) (*AnalyticsCreditsUsageResponse, *http.Response, error)
+	GetCreditUsageExecute(r AnalyticsAPIGetCreditUsageRequest) (*AnalyticsCreditsUsageResponse, *http.Response, error)
 
 	/*
-		AnalyticsJobsTimeseriesGet Get job analytics timeseries
+		GetDocumentStats Get document analytics
+
+		Returns document-level analytics including file size statistics and page count distribution
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetDocumentStatsRequest
+	*/
+	GetDocumentStats(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetDocumentStatsRequest
+
+	// GetDocumentStatsExecute executes the request
+	//  @return AnalyticsDocumentStatsResponse
+	GetDocumentStatsExecute(r AnalyticsAPIGetDocumentStatsRequest) (*AnalyticsDocumentStatsResponse, *http.Response, error)
+
+	/*
+		GetErrorAnalysis Get error analytics
+
+		Returns error analysis including failure rates and error patterns
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetErrorAnalysisRequest
+	*/
+	GetErrorAnalysis(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetErrorAnalysisRequest
+
+	// GetErrorAnalysisExecute executes the request
+	//  @return AnalyticsErrorAnalysisResponse
+	GetErrorAnalysisExecute(r AnalyticsAPIGetErrorAnalysisRequest) (*AnalyticsErrorAnalysisResponse, *http.Response, error)
+
+	/*
+		GetErrorTimeseries Get error analytics timeseries
+
+		Returns error trends aggregated by time buckets including failure rates
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetErrorTimeseriesRequest
+	*/
+	GetErrorTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetErrorTimeseriesRequest
+
+	// GetErrorTimeseriesExecute executes the request
+	//  @return AnalyticsErrorTimeseriesResponse
+	GetErrorTimeseriesExecute(r AnalyticsAPIGetErrorTimeseriesRequest) (*AnalyticsErrorTimeseriesResponse, *http.Response, error)
+
+	/*
+		GetFileTypeBreakdown Get file type breakdown
+
+		Returns document type distribution by file extension
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetFileTypeBreakdownRequest
+	*/
+	GetFileTypeBreakdown(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetFileTypeBreakdownRequest
+
+	// GetFileTypeBreakdownExecute executes the request
+	//  @return AnalyticsFileTypeBreakdownResponse
+	GetFileTypeBreakdownExecute(r AnalyticsAPIGetFileTypeBreakdownRequest) (*AnalyticsFileTypeBreakdownResponse, *http.Response, error)
+
+	/*
+		GetJobTimeseries Get job analytics timeseries
 
 		Returns job metrics aggregated by time buckets including total jobs, completed jobs, failed jobs, active jobs, pages processed, and credits consumed
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return AnalyticsAPIAnalyticsJobsTimeseriesGetRequest
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetJobTimeseriesRequest
 	*/
-	AnalyticsJobsTimeseriesGet(ctx context.Context) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest
+	GetJobTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetJobTimeseriesRequest
 
-	// AnalyticsJobsTimeseriesGetExecute executes the request
-	//  @return AnalyticsJobsTimeseriesGet200Response
-	AnalyticsJobsTimeseriesGetExecute(r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) (*AnalyticsJobsTimeseriesGet200Response, *http.Response, error)
+	// GetJobTimeseriesExecute executes the request
+	//  @return GetJobTimeseries200Response
+	GetJobTimeseriesExecute(r AnalyticsAPIGetJobTimeseriesRequest) (*GetJobTimeseries200Response, *http.Response, error)
 
 	/*
-		AnalyticsOverviewGet Get analytics overview
+		GetOverview Get analytics overview
 
 		Returns high-level analytics insights including job statistics, page outcomes, credit usage, and webhook metrics for the specified time range
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return AnalyticsAPIAnalyticsOverviewGetRequest
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetOverviewRequest
 	*/
-	AnalyticsOverviewGet(ctx context.Context) AnalyticsAPIAnalyticsOverviewGetRequest
+	GetOverview(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetOverviewRequest
 
-	// AnalyticsOverviewGetExecute executes the request
+	// GetOverviewExecute executes the request
 	//  @return AnalyticsOverviewResponse
-	AnalyticsOverviewGetExecute(r AnalyticsAPIAnalyticsOverviewGetRequest) (*AnalyticsOverviewResponse, *http.Response, error)
+	GetOverviewExecute(r AnalyticsAPIGetOverviewRequest) (*AnalyticsOverviewResponse, *http.Response, error)
 
 	/*
-		AnalyticsPagesTimeseriesGet Get page analytics timeseries
+		GetPageTimeseries Get page analytics timeseries
 
 		Returns page outcomes aggregated by time buckets including totals, completion, failure, and token counts
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return AnalyticsAPIAnalyticsPagesTimeseriesGetRequest
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetPageTimeseriesRequest
 	*/
-	AnalyticsPagesTimeseriesGet(ctx context.Context) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest
+	GetPageTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetPageTimeseriesRequest
 
-	// AnalyticsPagesTimeseriesGetExecute executes the request
-	//  @return AnalyticsPagesTimeseriesGet200Response
-	AnalyticsPagesTimeseriesGetExecute(r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) (*AnalyticsPagesTimeseriesGet200Response, *http.Response, error)
+	// GetPageTimeseriesExecute executes the request
+	//  @return GetPageTimeseries200Response
+	GetPageTimeseriesExecute(r AnalyticsAPIGetPageTimeseriesRequest) (*GetPageTimeseries200Response, *http.Response, error)
 
 	/*
-		AnalyticsTemplatesTopGet Get top templates analytics
+		GetPeriodComparison Get period comparison analytics
+
+		Returns comparison between current period and previous period of equal duration with change percentages
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetPeriodComparisonRequest
+	*/
+	GetPeriodComparison(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetPeriodComparisonRequest
+
+	// GetPeriodComparisonExecute executes the request
+	//  @return AnalyticsPeriodComparisonResponse
+	GetPeriodComparisonExecute(r AnalyticsAPIGetPeriodComparisonRequest) (*AnalyticsPeriodComparisonResponse, *http.Response, error)
+
+	/*
+		GetTopTemplates Get top templates analytics
 
 		Returns the most frequently used templates ranked by job count, usage count, and credits consumed
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-		@return AnalyticsAPIAnalyticsTemplatesTopGetRequest
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetTopTemplatesRequest
 	*/
-	AnalyticsTemplatesTopGet(ctx context.Context) AnalyticsAPIAnalyticsTemplatesTopGetRequest
+	GetTopTemplates(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetTopTemplatesRequest
 
-	// AnalyticsTemplatesTopGetExecute executes the request
+	// GetTopTemplatesExecute executes the request
 	//  @return AnalyticsTopTemplatesResponse
-	AnalyticsTemplatesTopGetExecute(r AnalyticsAPIAnalyticsTemplatesTopGetRequest) (*AnalyticsTopTemplatesResponse, *http.Response, error)
+	GetTopTemplatesExecute(r AnalyticsAPIGetTopTemplatesRequest) (*AnalyticsTopTemplatesResponse, *http.Response, error)
+
+	/*
+		GetTopUsers Get top users analytics
+
+		Returns ranked users by job count and credits consumed
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetTopUsersRequest
+	*/
+	GetTopUsers(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetTopUsersRequest
+
+	// GetTopUsersExecute executes the request
+	//  @return AnalyticsTopUsersResponse
+	GetTopUsersExecute(r AnalyticsAPIGetTopUsersRequest) (*AnalyticsTopUsersResponse, *http.Response, error)
+
+	/*
+		GetUserActivity Get user activity analytics
+
+		Returns per-user usage patterns including jobs, pages, credits consumed, and activity metrics
+
+		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+		@param organizationId Organization ID
+		@param teamId Team ID
+		@return AnalyticsAPIGetUserActivityRequest
+	*/
+	GetUserActivity(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetUserActivityRequest
+
+	// GetUserActivityExecute executes the request
+	//  @return AnalyticsUserActivityResponse
+	GetUserActivityExecute(r AnalyticsAPIGetUserActivityRequest) (*AnalyticsUserActivityResponse, *http.Response, error)
 }
 
 // AnalyticsAPIService AnalyticsAPI service
 type AnalyticsAPIService service
 
-type AnalyticsAPIAnalyticsCreditsUsageGetRequest struct {
-	ctx         context.Context
-	ApiService  AnalyticsAPI
-	range_      *string
-	start       *string
-	end         *string
-	bucket      *string
-	granularity *string
-	teamId      *string
+type AnalyticsAPIGetConfidenceMetricsRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
 }
 
 // Time range preset
-func (r AnalyticsAPIAnalyticsCreditsUsageGetRequest) Range_(range_ string) AnalyticsAPIAnalyticsCreditsUsageGetRequest {
+func (r AnalyticsAPIGetConfidenceMetricsRequest) Range_(range_ string) AnalyticsAPIGetConfidenceMetricsRequest {
 	r.range_ = &range_
 	return r
 }
 
 // Start date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsCreditsUsageGetRequest) Start(start string) AnalyticsAPIAnalyticsCreditsUsageGetRequest {
+func (r AnalyticsAPIGetConfidenceMetricsRequest) Start(start string) AnalyticsAPIGetConfidenceMetricsRequest {
 	r.start = &start
 	return r
 }
 
 // End date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsCreditsUsageGetRequest) End(end string) AnalyticsAPIAnalyticsCreditsUsageGetRequest {
+func (r AnalyticsAPIGetConfidenceMetricsRequest) End(end string) AnalyticsAPIGetConfidenceMetricsRequest {
+	r.end = &end
+	return r
+}
+
+func (r AnalyticsAPIGetConfidenceMetricsRequest) Execute() (*AnalyticsConfidenceMetricsResponse, *http.Response, error) {
+	return r.ApiService.GetConfidenceMetricsExecute(r)
+}
+
+/*
+GetConfidenceMetrics Get confidence metrics analytics
+
+Returns confidence score analytics including confidence distribution and summary statistics
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetConfidenceMetricsRequest
+*/
+func (a *AnalyticsAPIService) GetConfidenceMetrics(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetConfidenceMetricsRequest {
+	return AnalyticsAPIGetConfidenceMetricsRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsConfidenceMetricsResponse
+func (a *AnalyticsAPIService) GetConfidenceMetricsExecute(r AnalyticsAPIGetConfidenceMetricsRequest) (*AnalyticsConfidenceMetricsResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsConfidenceMetricsResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetConfidenceMetrics")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/confidence"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetConfidenceTimeseriesRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	bucket         *string
+	granularity    *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetConfidenceTimeseriesRequest) Range_(range_ string) AnalyticsAPIGetConfidenceTimeseriesRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetConfidenceTimeseriesRequest) Start(start string) AnalyticsAPIGetConfidenceTimeseriesRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetConfidenceTimeseriesRequest) End(end string) AnalyticsAPIGetConfidenceTimeseriesRequest {
 	r.end = &end
 	return r
 }
 
 // Time bucket granularity
-func (r AnalyticsAPIAnalyticsCreditsUsageGetRequest) Bucket(bucket string) AnalyticsAPIAnalyticsCreditsUsageGetRequest {
+func (r AnalyticsAPIGetConfidenceTimeseriesRequest) Bucket(bucket string) AnalyticsAPIGetConfidenceTimeseriesRequest {
 	r.bucket = &bucket
 	return r
 }
 
 // Alias for bucket parameter
-func (r AnalyticsAPIAnalyticsCreditsUsageGetRequest) Granularity(granularity string) AnalyticsAPIAnalyticsCreditsUsageGetRequest {
+func (r AnalyticsAPIGetConfidenceTimeseriesRequest) Granularity(granularity string) AnalyticsAPIGetConfidenceTimeseriesRequest {
 	r.granularity = &granularity
 	return r
 }
 
-// Filter by team ID
-func (r AnalyticsAPIAnalyticsCreditsUsageGetRequest) TeamId(teamId string) AnalyticsAPIAnalyticsCreditsUsageGetRequest {
-	r.teamId = &teamId
-	return r
-}
-
-func (r AnalyticsAPIAnalyticsCreditsUsageGetRequest) Execute() (*AnalyticsCreditsUsageResponse, *http.Response, error) {
-	return r.ApiService.AnalyticsCreditsUsageGetExecute(r)
+func (r AnalyticsAPIGetConfidenceTimeseriesRequest) Execute() (*AnalyticsConfidenceTimeseriesResponse, *http.Response, error) {
+	return r.ApiService.GetConfidenceTimeseriesExecute(r)
 }
 
 /*
-AnalyticsCreditsUsageGet Get credit usage analytics
+GetConfidenceTimeseries Get confidence metrics timeseries
+
+Returns confidence score trends aggregated by time buckets
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetConfidenceTimeseriesRequest
+*/
+func (a *AnalyticsAPIService) GetConfidenceTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetConfidenceTimeseriesRequest {
+	return AnalyticsAPIGetConfidenceTimeseriesRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsConfidenceTimeseriesResponse
+func (a *AnalyticsAPIService) GetConfidenceTimeseriesExecute(r AnalyticsAPIGetConfidenceTimeseriesRequest) (*AnalyticsConfidenceTimeseriesResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsConfidenceTimeseriesResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetConfidenceTimeseries")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/confidence/timeseries"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	if r.bucket != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "bucket", r.bucket, "form", "")
+	}
+	if r.granularity != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "granularity", r.granularity, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetCreditUsageRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	bucket         *string
+	granularity    *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetCreditUsageRequest) Range_(range_ string) AnalyticsAPIGetCreditUsageRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetCreditUsageRequest) Start(start string) AnalyticsAPIGetCreditUsageRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetCreditUsageRequest) End(end string) AnalyticsAPIGetCreditUsageRequest {
+	r.end = &end
+	return r
+}
+
+// Time bucket granularity
+func (r AnalyticsAPIGetCreditUsageRequest) Bucket(bucket string) AnalyticsAPIGetCreditUsageRequest {
+	r.bucket = &bucket
+	return r
+}
+
+// Alias for bucket parameter
+func (r AnalyticsAPIGetCreditUsageRequest) Granularity(granularity string) AnalyticsAPIGetCreditUsageRequest {
+	r.granularity = &granularity
+	return r
+}
+
+func (r AnalyticsAPIGetCreditUsageRequest) Execute() (*AnalyticsCreditsUsageResponse, *http.Response, error) {
+	return r.ApiService.GetCreditUsageExecute(r)
+}
+
+/*
+GetCreditUsage Get credit usage analytics
 
 Returns comprehensive credit analytics including snapshot data, timeseries trends, and model usage breakdown
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return AnalyticsAPIAnalyticsCreditsUsageGetRequest
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetCreditUsageRequest
 */
-func (a *AnalyticsAPIService) AnalyticsCreditsUsageGet(ctx context.Context) AnalyticsAPIAnalyticsCreditsUsageGetRequest {
-	return AnalyticsAPIAnalyticsCreditsUsageGetRequest{
-		ApiService: a,
-		ctx:        ctx,
+func (a *AnalyticsAPIService) GetCreditUsage(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetCreditUsageRequest {
+	return AnalyticsAPIGetCreditUsageRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
 	}
 }
 
 // Execute executes the request
 //
 //	@return AnalyticsCreditsUsageResponse
-func (a *AnalyticsAPIService) AnalyticsCreditsUsageGetExecute(r AnalyticsAPIAnalyticsCreditsUsageGetRequest) (*AnalyticsCreditsUsageResponse, *http.Response, error) {
+func (a *AnalyticsAPIService) GetCreditUsageExecute(r AnalyticsAPIGetCreditUsageRequest) (*AnalyticsCreditsUsageResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
@@ -172,12 +686,14 @@ func (a *AnalyticsAPIService) AnalyticsCreditsUsageGetExecute(r AnalyticsAPIAnal
 		localVarReturnValue *AnalyticsCreditsUsageResponse
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.AnalyticsCreditsUsageGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetCreditUsage")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/analytics/credits/usage"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/credits/usage"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -197,9 +713,6 @@ func (a *AnalyticsAPIService) AnalyticsCreditsUsageGetExecute(r AnalyticsAPIAnal
 	}
 	if r.granularity != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "granularity", r.granularity, "form", "")
-	}
-	if r.teamId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "team_id", r.teamId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -287,89 +800,430 @@ func (a *AnalyticsAPIService) AnalyticsCreditsUsageGetExecute(r AnalyticsAPIAnal
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type AnalyticsAPIAnalyticsJobsTimeseriesGetRequest struct {
-	ctx         context.Context
-	ApiService  AnalyticsAPI
-	range_      *string
-	start       *string
-	end         *string
-	bucket      *string
-	granularity *string
-	teamId      *string
+type AnalyticsAPIGetDocumentStatsRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
 }
 
 // Time range preset
-func (r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) Range_(range_ string) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest {
+func (r AnalyticsAPIGetDocumentStatsRequest) Range_(range_ string) AnalyticsAPIGetDocumentStatsRequest {
 	r.range_ = &range_
 	return r
 }
 
 // Start date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) Start(start string) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest {
+func (r AnalyticsAPIGetDocumentStatsRequest) Start(start string) AnalyticsAPIGetDocumentStatsRequest {
 	r.start = &start
 	return r
 }
 
 // End date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) End(end string) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest {
+func (r AnalyticsAPIGetDocumentStatsRequest) End(end string) AnalyticsAPIGetDocumentStatsRequest {
+	r.end = &end
+	return r
+}
+
+func (r AnalyticsAPIGetDocumentStatsRequest) Execute() (*AnalyticsDocumentStatsResponse, *http.Response, error) {
+	return r.ApiService.GetDocumentStatsExecute(r)
+}
+
+/*
+GetDocumentStats Get document analytics
+
+Returns document-level analytics including file size statistics and page count distribution
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetDocumentStatsRequest
+*/
+func (a *AnalyticsAPIService) GetDocumentStats(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetDocumentStatsRequest {
+	return AnalyticsAPIGetDocumentStatsRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsDocumentStatsResponse
+func (a *AnalyticsAPIService) GetDocumentStatsExecute(r AnalyticsAPIGetDocumentStatsRequest) (*AnalyticsDocumentStatsResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsDocumentStatsResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetDocumentStats")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/documents"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetErrorAnalysisRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetErrorAnalysisRequest) Range_(range_ string) AnalyticsAPIGetErrorAnalysisRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetErrorAnalysisRequest) Start(start string) AnalyticsAPIGetErrorAnalysisRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetErrorAnalysisRequest) End(end string) AnalyticsAPIGetErrorAnalysisRequest {
+	r.end = &end
+	return r
+}
+
+func (r AnalyticsAPIGetErrorAnalysisRequest) Execute() (*AnalyticsErrorAnalysisResponse, *http.Response, error) {
+	return r.ApiService.GetErrorAnalysisExecute(r)
+}
+
+/*
+GetErrorAnalysis Get error analytics
+
+Returns error analysis including failure rates and error patterns
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetErrorAnalysisRequest
+*/
+func (a *AnalyticsAPIService) GetErrorAnalysis(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetErrorAnalysisRequest {
+	return AnalyticsAPIGetErrorAnalysisRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsErrorAnalysisResponse
+func (a *AnalyticsAPIService) GetErrorAnalysisExecute(r AnalyticsAPIGetErrorAnalysisRequest) (*AnalyticsErrorAnalysisResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsErrorAnalysisResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetErrorAnalysis")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/errors"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetErrorTimeseriesRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	bucket         *string
+	granularity    *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetErrorTimeseriesRequest) Range_(range_ string) AnalyticsAPIGetErrorTimeseriesRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetErrorTimeseriesRequest) Start(start string) AnalyticsAPIGetErrorTimeseriesRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetErrorTimeseriesRequest) End(end string) AnalyticsAPIGetErrorTimeseriesRequest {
 	r.end = &end
 	return r
 }
 
 // Time bucket granularity
-func (r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) Bucket(bucket string) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest {
+func (r AnalyticsAPIGetErrorTimeseriesRequest) Bucket(bucket string) AnalyticsAPIGetErrorTimeseriesRequest {
 	r.bucket = &bucket
 	return r
 }
 
 // Alias for bucket parameter
-func (r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) Granularity(granularity string) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest {
+func (r AnalyticsAPIGetErrorTimeseriesRequest) Granularity(granularity string) AnalyticsAPIGetErrorTimeseriesRequest {
 	r.granularity = &granularity
 	return r
 }
 
-// Filter by team ID
-func (r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) TeamId(teamId string) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest {
-	r.teamId = &teamId
-	return r
-}
-
-func (r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) Execute() (*AnalyticsJobsTimeseriesGet200Response, *http.Response, error) {
-	return r.ApiService.AnalyticsJobsTimeseriesGetExecute(r)
+func (r AnalyticsAPIGetErrorTimeseriesRequest) Execute() (*AnalyticsErrorTimeseriesResponse, *http.Response, error) {
+	return r.ApiService.GetErrorTimeseriesExecute(r)
 }
 
 /*
-AnalyticsJobsTimeseriesGet Get job analytics timeseries
+GetErrorTimeseries Get error analytics timeseries
 
-Returns job metrics aggregated by time buckets including total jobs, completed jobs, failed jobs, active jobs, pages processed, and credits consumed
+Returns error trends aggregated by time buckets including failure rates
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return AnalyticsAPIAnalyticsJobsTimeseriesGetRequest
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetErrorTimeseriesRequest
 */
-func (a *AnalyticsAPIService) AnalyticsJobsTimeseriesGet(ctx context.Context) AnalyticsAPIAnalyticsJobsTimeseriesGetRequest {
-	return AnalyticsAPIAnalyticsJobsTimeseriesGetRequest{
-		ApiService: a,
-		ctx:        ctx,
+func (a *AnalyticsAPIService) GetErrorTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetErrorTimeseriesRequest {
+	return AnalyticsAPIGetErrorTimeseriesRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
 	}
 }
 
 // Execute executes the request
 //
-//	@return AnalyticsJobsTimeseriesGet200Response
-func (a *AnalyticsAPIService) AnalyticsJobsTimeseriesGetExecute(r AnalyticsAPIAnalyticsJobsTimeseriesGetRequest) (*AnalyticsJobsTimeseriesGet200Response, *http.Response, error) {
+//	@return AnalyticsErrorTimeseriesResponse
+func (a *AnalyticsAPIService) GetErrorTimeseriesExecute(r AnalyticsAPIGetErrorTimeseriesRequest) (*AnalyticsErrorTimeseriesResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *AnalyticsJobsTimeseriesGet200Response
+		localVarReturnValue *AnalyticsErrorTimeseriesResponse
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.AnalyticsJobsTimeseriesGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetErrorTimeseries")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/analytics/jobs/timeseries"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/errors/timeseries"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -390,9 +1244,6 @@ func (a *AnalyticsAPIService) AnalyticsJobsTimeseriesGetExecute(r AnalyticsAPIAn
 	if r.granularity != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "granularity", r.granularity, "form", "")
 	}
-	if r.teamId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "team_id", r.teamId, "form", "")
-	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -479,446 +1330,83 @@ func (a *AnalyticsAPIService) AnalyticsJobsTimeseriesGetExecute(r AnalyticsAPIAn
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type AnalyticsAPIAnalyticsOverviewGetRequest struct {
-	ctx        context.Context
-	ApiService AnalyticsAPI
-	range_     *string
-	start      *string
-	end        *string
-	teamId     *string
+type AnalyticsAPIGetFileTypeBreakdownRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	limit          *int32
 }
 
 // Time range preset
-func (r AnalyticsAPIAnalyticsOverviewGetRequest) Range_(range_ string) AnalyticsAPIAnalyticsOverviewGetRequest {
+func (r AnalyticsAPIGetFileTypeBreakdownRequest) Range_(range_ string) AnalyticsAPIGetFileTypeBreakdownRequest {
 	r.range_ = &range_
 	return r
 }
 
 // Start date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsOverviewGetRequest) Start(start string) AnalyticsAPIAnalyticsOverviewGetRequest {
+func (r AnalyticsAPIGetFileTypeBreakdownRequest) Start(start string) AnalyticsAPIGetFileTypeBreakdownRequest {
 	r.start = &start
 	return r
 }
 
 // End date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsOverviewGetRequest) End(end string) AnalyticsAPIAnalyticsOverviewGetRequest {
+func (r AnalyticsAPIGetFileTypeBreakdownRequest) End(end string) AnalyticsAPIGetFileTypeBreakdownRequest {
 	r.end = &end
 	return r
 }
 
-// Filter by team ID
-func (r AnalyticsAPIAnalyticsOverviewGetRequest) TeamId(teamId string) AnalyticsAPIAnalyticsOverviewGetRequest {
-	r.teamId = &teamId
-	return r
-}
-
-func (r AnalyticsAPIAnalyticsOverviewGetRequest) Execute() (*AnalyticsOverviewResponse, *http.Response, error) {
-	return r.ApiService.AnalyticsOverviewGetExecute(r)
-}
-
-/*
-AnalyticsOverviewGet Get analytics overview
-
-Returns high-level analytics insights including job statistics, page outcomes, credit usage, and webhook metrics for the specified time range
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return AnalyticsAPIAnalyticsOverviewGetRequest
-*/
-func (a *AnalyticsAPIService) AnalyticsOverviewGet(ctx context.Context) AnalyticsAPIAnalyticsOverviewGetRequest {
-	return AnalyticsAPIAnalyticsOverviewGetRequest{
-		ApiService: a,
-		ctx:        ctx,
-	}
-}
-
-// Execute executes the request
-//
-//	@return AnalyticsOverviewResponse
-func (a *AnalyticsAPIService) AnalyticsOverviewGetExecute(r AnalyticsAPIAnalyticsOverviewGetRequest) (*AnalyticsOverviewResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *AnalyticsOverviewResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.AnalyticsOverviewGet")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/analytics/overview"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	if r.range_ != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
-	}
-	if r.start != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
-	}
-	if r.end != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
-	}
-	if r.teamId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "team_id", r.teamId, "form", "")
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 401 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type AnalyticsAPIAnalyticsPagesTimeseriesGetRequest struct {
-	ctx         context.Context
-	ApiService  AnalyticsAPI
-	range_      *string
-	start       *string
-	end         *string
-	bucket      *string
-	granularity *string
-	teamId      *string
-}
-
-// Time range preset
-func (r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) Range_(range_ string) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest {
-	r.range_ = &range_
-	return r
-}
-
-// Start date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) Start(start string) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest {
-	r.start = &start
-	return r
-}
-
-// End date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) End(end string) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest {
-	r.end = &end
-	return r
-}
-
-// Time bucket granularity
-func (r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) Bucket(bucket string) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest {
-	r.bucket = &bucket
-	return r
-}
-
-// Alias for bucket parameter
-func (r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) Granularity(granularity string) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest {
-	r.granularity = &granularity
-	return r
-}
-
-// Filter by team ID
-func (r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) TeamId(teamId string) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest {
-	r.teamId = &teamId
-	return r
-}
-
-func (r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) Execute() (*AnalyticsPagesTimeseriesGet200Response, *http.Response, error) {
-	return r.ApiService.AnalyticsPagesTimeseriesGetExecute(r)
-}
-
-/*
-AnalyticsPagesTimeseriesGet Get page analytics timeseries
-
-Returns page outcomes aggregated by time buckets including totals, completion, failure, and token counts
-
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return AnalyticsAPIAnalyticsPagesTimeseriesGetRequest
-*/
-func (a *AnalyticsAPIService) AnalyticsPagesTimeseriesGet(ctx context.Context) AnalyticsAPIAnalyticsPagesTimeseriesGetRequest {
-	return AnalyticsAPIAnalyticsPagesTimeseriesGetRequest{
-		ApiService: a,
-		ctx:        ctx,
-	}
-}
-
-// Execute executes the request
-//
-//	@return AnalyticsPagesTimeseriesGet200Response
-func (a *AnalyticsAPIService) AnalyticsPagesTimeseriesGetExecute(r AnalyticsAPIAnalyticsPagesTimeseriesGetRequest) (*AnalyticsPagesTimeseriesGet200Response, *http.Response, error) {
-	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *AnalyticsPagesTimeseriesGet200Response
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.AnalyticsPagesTimeseriesGet")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/analytics/pages/timeseries"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	if r.range_ != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
-	}
-	if r.start != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
-	}
-	if r.end != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
-	}
-	if r.bucket != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "bucket", r.bucket, "form", "")
-	}
-	if r.granularity != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "granularity", r.granularity, "form", "")
-	}
-	if r.teamId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "team_id", r.teamId, "form", "")
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 400 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 401 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 500 {
-			var v ResponseErrorResponse
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-			newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type AnalyticsAPIAnalyticsTemplatesTopGetRequest struct {
-	ctx        context.Context
-	ApiService AnalyticsAPI
-	range_     *string
-	start      *string
-	end        *string
-	limit      *int32
-	teamId     *string
-}
-
-// Time range preset
-func (r AnalyticsAPIAnalyticsTemplatesTopGetRequest) Range_(range_ string) AnalyticsAPIAnalyticsTemplatesTopGetRequest {
-	r.range_ = &range_
-	return r
-}
-
-// Start date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsTemplatesTopGetRequest) Start(start string) AnalyticsAPIAnalyticsTemplatesTopGetRequest {
-	r.start = &start
-	return r
-}
-
-// End date (RFC3339 or YYYY-MM-DD format)
-func (r AnalyticsAPIAnalyticsTemplatesTopGetRequest) End(end string) AnalyticsAPIAnalyticsTemplatesTopGetRequest {
-	r.end = &end
-	return r
-}
-
-// Maximum number of templates to return (default: 10, max: 100)
-func (r AnalyticsAPIAnalyticsTemplatesTopGetRequest) Limit(limit int32) AnalyticsAPIAnalyticsTemplatesTopGetRequest {
+// Maximum number of file types to return (default: 50, max: 100)
+func (r AnalyticsAPIGetFileTypeBreakdownRequest) Limit(limit int32) AnalyticsAPIGetFileTypeBreakdownRequest {
 	r.limit = &limit
 	return r
 }
 
-// Filter by team ID
-func (r AnalyticsAPIAnalyticsTemplatesTopGetRequest) TeamId(teamId string) AnalyticsAPIAnalyticsTemplatesTopGetRequest {
-	r.teamId = &teamId
-	return r
-}
-
-func (r AnalyticsAPIAnalyticsTemplatesTopGetRequest) Execute() (*AnalyticsTopTemplatesResponse, *http.Response, error) {
-	return r.ApiService.AnalyticsTemplatesTopGetExecute(r)
+func (r AnalyticsAPIGetFileTypeBreakdownRequest) Execute() (*AnalyticsFileTypeBreakdownResponse, *http.Response, error) {
+	return r.ApiService.GetFileTypeBreakdownExecute(r)
 }
 
 /*
-AnalyticsTemplatesTopGet Get top templates analytics
+GetFileTypeBreakdown Get file type breakdown
 
-Returns the most frequently used templates ranked by job count, usage count, and credits consumed
+Returns document type distribution by file extension
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return AnalyticsAPIAnalyticsTemplatesTopGetRequest
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetFileTypeBreakdownRequest
 */
-func (a *AnalyticsAPIService) AnalyticsTemplatesTopGet(ctx context.Context) AnalyticsAPIAnalyticsTemplatesTopGetRequest {
-	return AnalyticsAPIAnalyticsTemplatesTopGetRequest{
-		ApiService: a,
-		ctx:        ctx,
+func (a *AnalyticsAPIService) GetFileTypeBreakdown(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetFileTypeBreakdownRequest {
+	return AnalyticsAPIGetFileTypeBreakdownRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
 	}
 }
 
 // Execute executes the request
 //
-//	@return AnalyticsTopTemplatesResponse
-func (a *AnalyticsAPIService) AnalyticsTemplatesTopGetExecute(r AnalyticsAPIAnalyticsTemplatesTopGetRequest) (*AnalyticsTopTemplatesResponse, *http.Response, error) {
+//	@return AnalyticsFileTypeBreakdownResponse
+func (a *AnalyticsAPIService) GetFileTypeBreakdownExecute(r AnalyticsAPIGetFileTypeBreakdownRequest) (*AnalyticsFileTypeBreakdownResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod  = http.MethodGet
 		localVarPostBody    interface{}
 		formFiles           []formFile
-		localVarReturnValue *AnalyticsTopTemplatesResponse
+		localVarReturnValue *AnalyticsFileTypeBreakdownResponse
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.AnalyticsTemplatesTopGet")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetFileTypeBreakdown")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/analytics/templates/top"
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/documents/filetypes"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -936,8 +1424,1255 @@ func (a *AnalyticsAPIService) AnalyticsTemplatesTopGetExecute(r AnalyticsAPIAnal
 	if r.limit != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
 	}
-	if r.teamId != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "team_id", r.teamId, "form", "")
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetJobTimeseriesRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	bucket         *string
+	granularity    *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetJobTimeseriesRequest) Range_(range_ string) AnalyticsAPIGetJobTimeseriesRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetJobTimeseriesRequest) Start(start string) AnalyticsAPIGetJobTimeseriesRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetJobTimeseriesRequest) End(end string) AnalyticsAPIGetJobTimeseriesRequest {
+	r.end = &end
+	return r
+}
+
+// Time bucket granularity
+func (r AnalyticsAPIGetJobTimeseriesRequest) Bucket(bucket string) AnalyticsAPIGetJobTimeseriesRequest {
+	r.bucket = &bucket
+	return r
+}
+
+// Alias for bucket parameter
+func (r AnalyticsAPIGetJobTimeseriesRequest) Granularity(granularity string) AnalyticsAPIGetJobTimeseriesRequest {
+	r.granularity = &granularity
+	return r
+}
+
+func (r AnalyticsAPIGetJobTimeseriesRequest) Execute() (*GetJobTimeseries200Response, *http.Response, error) {
+	return r.ApiService.GetJobTimeseriesExecute(r)
+}
+
+/*
+GetJobTimeseries Get job analytics timeseries
+
+Returns job metrics aggregated by time buckets including total jobs, completed jobs, failed jobs, active jobs, pages processed, and credits consumed
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetJobTimeseriesRequest
+*/
+func (a *AnalyticsAPIService) GetJobTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetJobTimeseriesRequest {
+	return AnalyticsAPIGetJobTimeseriesRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return GetJobTimeseries200Response
+func (a *AnalyticsAPIService) GetJobTimeseriesExecute(r AnalyticsAPIGetJobTimeseriesRequest) (*GetJobTimeseries200Response, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *GetJobTimeseries200Response
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetJobTimeseries")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/jobs/timeseries"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	if r.bucket != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "bucket", r.bucket, "form", "")
+	}
+	if r.granularity != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "granularity", r.granularity, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetOverviewRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetOverviewRequest) Range_(range_ string) AnalyticsAPIGetOverviewRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetOverviewRequest) Start(start string) AnalyticsAPIGetOverviewRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetOverviewRequest) End(end string) AnalyticsAPIGetOverviewRequest {
+	r.end = &end
+	return r
+}
+
+func (r AnalyticsAPIGetOverviewRequest) Execute() (*AnalyticsOverviewResponse, *http.Response, error) {
+	return r.ApiService.GetOverviewExecute(r)
+}
+
+/*
+GetOverview Get analytics overview
+
+Returns high-level analytics insights including job statistics, page outcomes, credit usage, and webhook metrics for the specified time range
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetOverviewRequest
+*/
+func (a *AnalyticsAPIService) GetOverview(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetOverviewRequest {
+	return AnalyticsAPIGetOverviewRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsOverviewResponse
+func (a *AnalyticsAPIService) GetOverviewExecute(r AnalyticsAPIGetOverviewRequest) (*AnalyticsOverviewResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsOverviewResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetOverview")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/overview"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetPageTimeseriesRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	bucket         *string
+	granularity    *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetPageTimeseriesRequest) Range_(range_ string) AnalyticsAPIGetPageTimeseriesRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetPageTimeseriesRequest) Start(start string) AnalyticsAPIGetPageTimeseriesRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetPageTimeseriesRequest) End(end string) AnalyticsAPIGetPageTimeseriesRequest {
+	r.end = &end
+	return r
+}
+
+// Time bucket granularity
+func (r AnalyticsAPIGetPageTimeseriesRequest) Bucket(bucket string) AnalyticsAPIGetPageTimeseriesRequest {
+	r.bucket = &bucket
+	return r
+}
+
+// Alias for bucket parameter
+func (r AnalyticsAPIGetPageTimeseriesRequest) Granularity(granularity string) AnalyticsAPIGetPageTimeseriesRequest {
+	r.granularity = &granularity
+	return r
+}
+
+func (r AnalyticsAPIGetPageTimeseriesRequest) Execute() (*GetPageTimeseries200Response, *http.Response, error) {
+	return r.ApiService.GetPageTimeseriesExecute(r)
+}
+
+/*
+GetPageTimeseries Get page analytics timeseries
+
+Returns page outcomes aggregated by time buckets including totals, completion, failure, and token counts
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetPageTimeseriesRequest
+*/
+func (a *AnalyticsAPIService) GetPageTimeseries(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetPageTimeseriesRequest {
+	return AnalyticsAPIGetPageTimeseriesRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return GetPageTimeseries200Response
+func (a *AnalyticsAPIService) GetPageTimeseriesExecute(r AnalyticsAPIGetPageTimeseriesRequest) (*GetPageTimeseries200Response, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *GetPageTimeseries200Response
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetPageTimeseries")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/pages/timeseries"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	if r.bucket != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "bucket", r.bucket, "form", "")
+	}
+	if r.granularity != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "granularity", r.granularity, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetPeriodComparisonRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetPeriodComparisonRequest) Range_(range_ string) AnalyticsAPIGetPeriodComparisonRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetPeriodComparisonRequest) Start(start string) AnalyticsAPIGetPeriodComparisonRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetPeriodComparisonRequest) End(end string) AnalyticsAPIGetPeriodComparisonRequest {
+	r.end = &end
+	return r
+}
+
+func (r AnalyticsAPIGetPeriodComparisonRequest) Execute() (*AnalyticsPeriodComparisonResponse, *http.Response, error) {
+	return r.ApiService.GetPeriodComparisonExecute(r)
+}
+
+/*
+GetPeriodComparison Get period comparison analytics
+
+Returns comparison between current period and previous period of equal duration with change percentages
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetPeriodComparisonRequest
+*/
+func (a *AnalyticsAPIService) GetPeriodComparison(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetPeriodComparisonRequest {
+	return AnalyticsAPIGetPeriodComparisonRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsPeriodComparisonResponse
+func (a *AnalyticsAPIService) GetPeriodComparisonExecute(r AnalyticsAPIGetPeriodComparisonRequest) (*AnalyticsPeriodComparisonResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsPeriodComparisonResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetPeriodComparison")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/compare"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetTopTemplatesRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	limit          *int32
+}
+
+// Time range preset
+func (r AnalyticsAPIGetTopTemplatesRequest) Range_(range_ string) AnalyticsAPIGetTopTemplatesRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetTopTemplatesRequest) Start(start string) AnalyticsAPIGetTopTemplatesRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetTopTemplatesRequest) End(end string) AnalyticsAPIGetTopTemplatesRequest {
+	r.end = &end
+	return r
+}
+
+// Maximum number of templates to return (default: 10, max: 100)
+func (r AnalyticsAPIGetTopTemplatesRequest) Limit(limit int32) AnalyticsAPIGetTopTemplatesRequest {
+	r.limit = &limit
+	return r
+}
+
+func (r AnalyticsAPIGetTopTemplatesRequest) Execute() (*AnalyticsTopTemplatesResponse, *http.Response, error) {
+	return r.ApiService.GetTopTemplatesExecute(r)
+}
+
+/*
+GetTopTemplates Get top templates analytics
+
+Returns the most frequently used templates ranked by job count, usage count, and credits consumed
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetTopTemplatesRequest
+*/
+func (a *AnalyticsAPIService) GetTopTemplates(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetTopTemplatesRequest {
+	return AnalyticsAPIGetTopTemplatesRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsTopTemplatesResponse
+func (a *AnalyticsAPIService) GetTopTemplatesExecute(r AnalyticsAPIGetTopTemplatesRequest) (*AnalyticsTopTemplatesResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsTopTemplatesResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetTopTemplates")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/templates/top"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetTopUsersRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+	limit          *int32
+}
+
+// Time range preset
+func (r AnalyticsAPIGetTopUsersRequest) Range_(range_ string) AnalyticsAPIGetTopUsersRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetTopUsersRequest) Start(start string) AnalyticsAPIGetTopUsersRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetTopUsersRequest) End(end string) AnalyticsAPIGetTopUsersRequest {
+	r.end = &end
+	return r
+}
+
+// Maximum number of users to return (default: 10, max: 100)
+func (r AnalyticsAPIGetTopUsersRequest) Limit(limit int32) AnalyticsAPIGetTopUsersRequest {
+	r.limit = &limit
+	return r
+}
+
+func (r AnalyticsAPIGetTopUsersRequest) Execute() (*AnalyticsTopUsersResponse, *http.Response, error) {
+	return r.ApiService.GetTopUsersExecute(r)
+}
+
+/*
+GetTopUsers Get top users analytics
+
+Returns ranked users by job count and credits consumed
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetTopUsersRequest
+*/
+func (a *AnalyticsAPIService) GetTopUsers(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetTopUsersRequest {
+	return AnalyticsAPIGetTopUsersRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsTopUsersResponse
+func (a *AnalyticsAPIService) GetTopUsersExecute(r AnalyticsAPIGetTopUsersRequest) (*AnalyticsTopUsersResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsTopUsersResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetTopUsers")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/users/top"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
+	}
+	if r.limit != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "limit", r.limit, "form", "")
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v ResponseErrorResponse
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type AnalyticsAPIGetUserActivityRequest struct {
+	ctx            context.Context
+	ApiService     AnalyticsAPI
+	organizationId string
+	teamId         string
+	range_         *string
+	start          *string
+	end            *string
+}
+
+// Time range preset
+func (r AnalyticsAPIGetUserActivityRequest) Range_(range_ string) AnalyticsAPIGetUserActivityRequest {
+	r.range_ = &range_
+	return r
+}
+
+// Start date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetUserActivityRequest) Start(start string) AnalyticsAPIGetUserActivityRequest {
+	r.start = &start
+	return r
+}
+
+// End date (RFC3339 or YYYY-MM-DD format)
+func (r AnalyticsAPIGetUserActivityRequest) End(end string) AnalyticsAPIGetUserActivityRequest {
+	r.end = &end
+	return r
+}
+
+func (r AnalyticsAPIGetUserActivityRequest) Execute() (*AnalyticsUserActivityResponse, *http.Response, error) {
+	return r.ApiService.GetUserActivityExecute(r)
+}
+
+/*
+GetUserActivity Get user activity analytics
+
+Returns per-user usage patterns including jobs, pages, credits consumed, and activity metrics
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId Organization ID
+	@param teamId Team ID
+	@return AnalyticsAPIGetUserActivityRequest
+*/
+func (a *AnalyticsAPIService) GetUserActivity(ctx context.Context, organizationId string, teamId string) AnalyticsAPIGetUserActivityRequest {
+	return AnalyticsAPIGetUserActivityRequest{
+		ApiService:     a,
+		ctx:            ctx,
+		organizationId: organizationId,
+		teamId:         teamId,
+	}
+}
+
+// Execute executes the request
+//
+//	@return AnalyticsUserActivityResponse
+func (a *AnalyticsAPIService) GetUserActivityExecute(r AnalyticsAPIGetUserActivityRequest) (*AnalyticsUserActivityResponse, *http.Response, error) {
+	var (
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *AnalyticsUserActivityResponse
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AnalyticsAPIService.GetUserActivity")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organization_id}/teams/{team_id}/analytics/users/activity"
+	localVarPath = strings.Replace(localVarPath, "{"+"organization_id"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team_id"+"}", url.PathEscape(parameterValueToString(r.teamId, "teamId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.range_ != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "range", r.range_, "form", "")
+	}
+	if r.start != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "start", r.start, "form", "")
+	}
+	if r.end != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "end", r.end, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

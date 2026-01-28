@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -20,9 +20,11 @@ var _ MappedNullable = &JobsJobListItem{}
 
 // JobsJobListItem struct for JobsJobListItem
 type JobsJobListItem struct {
-	BaseCredits     *int32   `json:"base_credits,omitempty"`
-	Category        *string  `json:"category,omitempty"`
-	CompletedAt     *string  `json:"completed_at,omitempty"`
+	BaseCredits *int32  `json:"base_credits,omitempty"`
+	Category    *string `json:"category,omitempty"`
+	CompletedAt *string `json:"completed_at,omitempty"`
+	// Average confidence score across all pages (0.0-1.0)
+	Confidence      *float32 `json:"confidence,omitempty"`
 	CreatedAt       *string  `json:"created_at,omitempty"`
 	CreditsUsed     *int32   `json:"credits_used,omitempty"`
 	DeletedAt       *string  `json:"deleted_at,omitempty"`
@@ -154,6 +156,38 @@ func (o *JobsJobListItem) HasCompletedAt() bool {
 // SetCompletedAt gets a reference to the given string and assigns it to the CompletedAt field.
 func (o *JobsJobListItem) SetCompletedAt(v string) {
 	o.CompletedAt = &v
+}
+
+// GetConfidence returns the Confidence field value if set, zero value otherwise.
+func (o *JobsJobListItem) GetConfidence() float32 {
+	if o == nil || IsNil(o.Confidence) {
+		var ret float32
+		return ret
+	}
+	return *o.Confidence
+}
+
+// GetConfidenceOk returns a tuple with the Confidence field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *JobsJobListItem) GetConfidenceOk() (*float32, bool) {
+	if o == nil || IsNil(o.Confidence) {
+		return nil, false
+	}
+	return o.Confidence, true
+}
+
+// HasConfidence returns a boolean if a field has been set.
+func (o *JobsJobListItem) HasConfidence() bool {
+	if o != nil && !IsNil(o.Confidence) {
+		return true
+	}
+
+	return false
+}
+
+// SetConfidence gets a reference to the given float32 and assigns it to the Confidence field.
+func (o *JobsJobListItem) SetConfidence(v float32) {
+	o.Confidence = &v
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
@@ -718,6 +752,9 @@ func (o JobsJobListItem) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.CompletedAt) {
 		toSerialize["completed_at"] = o.CompletedAt
+	}
+	if !IsNil(o.Confidence) {
+		toSerialize["confidence"] = o.Confidence
 	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt

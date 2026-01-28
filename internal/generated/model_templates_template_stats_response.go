@@ -1,7 +1,7 @@
 /*
 LeapOCR API
 
-Provide your JWT token via the `Authorization` header. Example: Authorization: Bearer <token>
+Advanced OCR API for processing PDF documents with AI-powered text extraction using Gemini LLM integration. Supports structured data extraction, template-based processing, and real-time job management.
 
 API version: v1
 Contact: support@leapocr.com
@@ -20,15 +20,14 @@ var _ MappedNullable = &TemplatesTemplateStatsResponse{}
 
 // TemplatesTemplateStatsResponse struct for TemplatesTemplateStatsResponse
 type TemplatesTemplateStatsResponse struct {
-	AverageUsagePerTemplate    *float32 `json:"average_usage_per_template,omitempty"`
-	FavoriteTemplates          *int32   `json:"favorite_templates,omitempty"`
-	MarkdownTemplates          *int32   `json:"markdown_templates,omitempty"`
-	MaxUsage                   *int32   `json:"max_usage,omitempty"`
-	MinUsage                   *int32   `json:"min_usage,omitempty"`
-	PerPageStructuredTemplates *int32   `json:"per_page_structured_templates,omitempty"`
-	StructuredTemplates        *int32   `json:"structured_templates,omitempty"`
-	TotalTemplates             *int32   `json:"total_templates,omitempty"`
-	TotalUsage                 *int32   `json:"total_usage,omitempty"`
+	AverageUsagePerTemplate *float32 `json:"average_usage_per_template,omitempty"`
+	FavoriteTemplates       *int32   `json:"favorite_templates,omitempty"`
+	MarkdownTemplates       *int32   `json:"markdown_templates,omitempty"`
+	MaxUsage                *int32   `json:"max_usage,omitempty"`
+	MinUsage                *int32   `json:"min_usage,omitempty"`
+	StructuredTemplates     *int32   `json:"structured_templates,omitempty"`
+	TotalTemplates          *int32   `json:"total_templates,omitempty"`
+	TotalUsage              *int32   `json:"total_usage,omitempty"`
 }
 
 // NewTemplatesTemplateStatsResponse instantiates a new TemplatesTemplateStatsResponse object
@@ -208,38 +207,6 @@ func (o *TemplatesTemplateStatsResponse) SetMinUsage(v int32) {
 	o.MinUsage = &v
 }
 
-// GetPerPageStructuredTemplates returns the PerPageStructuredTemplates field value if set, zero value otherwise.
-func (o *TemplatesTemplateStatsResponse) GetPerPageStructuredTemplates() int32 {
-	if o == nil || IsNil(o.PerPageStructuredTemplates) {
-		var ret int32
-		return ret
-	}
-	return *o.PerPageStructuredTemplates
-}
-
-// GetPerPageStructuredTemplatesOk returns a tuple with the PerPageStructuredTemplates field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *TemplatesTemplateStatsResponse) GetPerPageStructuredTemplatesOk() (*int32, bool) {
-	if o == nil || IsNil(o.PerPageStructuredTemplates) {
-		return nil, false
-	}
-	return o.PerPageStructuredTemplates, true
-}
-
-// HasPerPageStructuredTemplates returns a boolean if a field has been set.
-func (o *TemplatesTemplateStatsResponse) HasPerPageStructuredTemplates() bool {
-	if o != nil && !IsNil(o.PerPageStructuredTemplates) {
-		return true
-	}
-
-	return false
-}
-
-// SetPerPageStructuredTemplates gets a reference to the given int32 and assigns it to the PerPageStructuredTemplates field.
-func (o *TemplatesTemplateStatsResponse) SetPerPageStructuredTemplates(v int32) {
-	o.PerPageStructuredTemplates = &v
-}
-
 // GetStructuredTemplates returns the StructuredTemplates field value if set, zero value otherwise.
 func (o *TemplatesTemplateStatsResponse) GetStructuredTemplates() int32 {
 	if o == nil || IsNil(o.StructuredTemplates) {
@@ -360,9 +327,6 @@ func (o TemplatesTemplateStatsResponse) ToMap() (map[string]interface{}, error) 
 	}
 	if !IsNil(o.MinUsage) {
 		toSerialize["min_usage"] = o.MinUsage
-	}
-	if !IsNil(o.PerPageStructuredTemplates) {
-		toSerialize["per_page_structured_templates"] = o.PerPageStructuredTemplates
 	}
 	if !IsNil(o.StructuredTemplates) {
 		toSerialize["structured_templates"] = o.StructuredTemplates
