@@ -102,9 +102,8 @@ func TestValidateModel(t *testing.T) {
 		model       string
 		expectError bool
 	}{
-		{"valid standard-v1", "standard-v1", false},
-		{"valid english-pro-v1", "english-pro-v1", false},
-		{"valid pro-v1", "pro-v1", false},
+		{"valid standard-v2", "standard-v2", false},
+		{"valid pro-v2", "pro-v2", false},
 		{"valid custom model", "custom-model-v2", false},
 		{"empty model (optional)", "", false},
 		{"model too long", strings.Repeat("a", 101), true},
@@ -271,7 +270,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			config: &processingConfig{
 				format:          FormatStructured,
 				formatSet:       true,
-				model:           string(ModelStandardV1),
+				model:           string(ModelStandardV2),
 				modelSet:        true,
 				schema:          map[string]interface{}{"title": "string"},
 				schemaSet:       true,
@@ -285,7 +284,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			config: &processingConfig{
 				format:    FormatMarkdown,
 				formatSet: true,
-				model:     string(ModelStandardV1),
+				model:     string(ModelStandardV2),
 				modelSet:  true,
 			},
 			expectError: false,
@@ -323,7 +322,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			config: &processingConfig{
 				format:    FormatMarkdown,
 				formatSet: true,
-				model:     string(ModelStandardV1),
+				model:     string(ModelStandardV2),
 				modelSet:  true,
 				schema:    map[string]interface{}{"title": "string"},
 				schemaSet: true,
@@ -335,7 +334,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			config: &processingConfig{
 				format:    Format("invalid"),
 				formatSet: true,
-				model:     string(ModelStandardV1),
+				model:     string(ModelStandardV2),
 				modelSet:  true,
 			},
 			expectError: true,
@@ -355,7 +354,7 @@ func TestValidateProcessingConfig(t *testing.T) {
 			config: &processingConfig{
 				format:          FormatStructured,
 				formatSet:       true,
-				model:           string(ModelStandardV1),
+				model:           string(ModelStandardV2),
 				modelSet:        true,
 				instructions:    strings.Repeat("a", MaxInstructionsLength+1),
 				instructionsSet: true,

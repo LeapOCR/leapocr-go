@@ -55,7 +55,7 @@ type DemoAPI interface {
 	/*
 		InitiateDemoUpload Initiate demo upload with presigned URL
 
-		Public demo endpoint to get presigned URL for file upload. Supports PDF, images, and office documents. Process top 5 pages with standard-v1 model. Requires captcha verification. Supports custom instructions and schema.
+		Public demo endpoint to get presigned URL for file upload. Supports PDF, images, and office documents. Process top 5 pages with standard-v2 model. Requires captcha verification. Supports custom instructions and schema.
 
 		@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 		@return DemoAPIInitiateDemoUploadRequest
@@ -412,7 +412,7 @@ func (r DemoAPIInitiateDemoUploadRequest) Execute() (*DemoInitiateDemoUploadResp
 /*
 InitiateDemoUpload Initiate demo upload with presigned URL
 
-Public demo endpoint to get presigned URL for file upload. Supports PDF, images, and office documents. Process top 5 pages with standard-v1 model. Requires captcha verification. Supports custom instructions and schema.
+Public demo endpoint to get presigned URL for file upload. Supports PDF, images, and office documents. Process top 5 pages with standard-v2 model. Requires captcha verification. Supports custom instructions and schema.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return DemoAPIInitiateDemoUploadRequest

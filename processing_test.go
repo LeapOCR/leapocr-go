@@ -202,7 +202,7 @@ func TestProcessingOptions_Validation(t *testing.T) {
 			name: "valid structured with schema",
 			opts: []ProcessingOption{
 				WithFormat(FormatStructured),
-				WithModel(ModelStandardV1),
+				WithModel(ModelStandardV2),
 				WithSchema(map[string]interface{}{
 					"title":  "string",
 					"amount": "number",
@@ -222,7 +222,7 @@ func TestProcessingOptions_Validation(t *testing.T) {
 			name: "valid markdown without schema",
 			opts: []ProcessingOption{
 				WithFormat(FormatMarkdown),
-				WithModel(ModelStandardV1),
+				WithModel(ModelStandardV2),
 			},
 			expectError: "",
 		},

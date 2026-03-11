@@ -12,7 +12,9 @@ Contact: support@leapocr.com
 package generated
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // checks if the SubscriptionsUpdateWebhookSubscriptionRequest type satisfies the MappedNullable interface at compile time
@@ -22,16 +24,19 @@ var _ MappedNullable = &SubscriptionsUpdateWebhookSubscriptionRequest{}
 type SubscriptionsUpdateWebhookSubscriptionRequest struct {
 	Description *string  `json:"description,omitempty"`
 	Enabled     *bool    `json:"enabled,omitempty"`
-	Events      []string `json:"events,omitempty"`
+	Events      []string `json:"events"`
 	Url         *string  `json:"url,omitempty"`
 }
+
+type _SubscriptionsUpdateWebhookSubscriptionRequest SubscriptionsUpdateWebhookSubscriptionRequest
 
 // NewSubscriptionsUpdateWebhookSubscriptionRequest instantiates a new SubscriptionsUpdateWebhookSubscriptionRequest object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSubscriptionsUpdateWebhookSubscriptionRequest() *SubscriptionsUpdateWebhookSubscriptionRequest {
+func NewSubscriptionsUpdateWebhookSubscriptionRequest(events []string) *SubscriptionsUpdateWebhookSubscriptionRequest {
 	this := SubscriptionsUpdateWebhookSubscriptionRequest{}
+	this.Events = events
 	return &this
 }
 
@@ -107,34 +112,26 @@ func (o *SubscriptionsUpdateWebhookSubscriptionRequest) SetEnabled(v bool) {
 	o.Enabled = &v
 }
 
-// GetEvents returns the Events field value if set, zero value otherwise.
+// GetEvents returns the Events field value
 func (o *SubscriptionsUpdateWebhookSubscriptionRequest) GetEvents() []string {
-	if o == nil || IsNil(o.Events) {
+	if o == nil {
 		var ret []string
 		return ret
 	}
+
 	return o.Events
 }
 
-// GetEventsOk returns a tuple with the Events field value if set, nil otherwise
+// GetEventsOk returns a tuple with the Events field value
 // and a boolean to check if the value has been set.
 func (o *SubscriptionsUpdateWebhookSubscriptionRequest) GetEventsOk() ([]string, bool) {
-	if o == nil || IsNil(o.Events) {
+	if o == nil {
 		return nil, false
 	}
 	return o.Events, true
 }
 
-// HasEvents returns a boolean if a field has been set.
-func (o *SubscriptionsUpdateWebhookSubscriptionRequest) HasEvents() bool {
-	if o != nil && !IsNil(o.Events) {
-		return true
-	}
-
-	return false
-}
-
-// SetEvents gets a reference to the given []string and assigns it to the Events field.
+// SetEvents sets field value
 func (o *SubscriptionsUpdateWebhookSubscriptionRequest) SetEvents(v []string) {
 	o.Events = v
 }
@@ -187,13 +184,48 @@ func (o SubscriptionsUpdateWebhookSubscriptionRequest) ToMap() (map[string]inter
 	if !IsNil(o.Enabled) {
 		toSerialize["enabled"] = o.Enabled
 	}
-	if !IsNil(o.Events) {
-		toSerialize["events"] = o.Events
-	}
+	toSerialize["events"] = o.Events
 	if !IsNil(o.Url) {
 		toSerialize["url"] = o.Url
 	}
 	return toSerialize, nil
+}
+
+func (o *SubscriptionsUpdateWebhookSubscriptionRequest) UnmarshalJSON(data []byte) (err error) {
+	// This validates that all required properties are included in the JSON object
+	// by unmarshalling the object into a generic map with string keys and checking
+	// that every required field exists as a key in the generic map.
+	requiredProperties := []string{
+		"events",
+	}
+
+	allProperties := make(map[string]interface{})
+
+	err = json.Unmarshal(data, &allProperties)
+
+	if err != nil {
+		return err
+	}
+
+	for _, requiredProperty := range requiredProperties {
+		if _, exists := allProperties[requiredProperty]; !exists {
+			return fmt.Errorf("no value given for required property %v", requiredProperty)
+		}
+	}
+
+	varSubscriptionsUpdateWebhookSubscriptionRequest := _SubscriptionsUpdateWebhookSubscriptionRequest{}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&varSubscriptionsUpdateWebhookSubscriptionRequest)
+
+	if err != nil {
+		return err
+	}
+
+	*o = SubscriptionsUpdateWebhookSubscriptionRequest(varSubscriptionsUpdateWebhookSubscriptionRequest)
+
+	return err
 }
 
 type NullableSubscriptionsUpdateWebhookSubscriptionRequest struct {

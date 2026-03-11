@@ -1118,180 +1118,6 @@
                 },
                 "type": "object"
             },
-            "demo.CompleteDemoUploadRequest": {
-                "properties": {
-                    "parts": {
-                        "description": "Always 1 part for demo",
-                        "items": {
-                            "$ref": "#/components/schemas/demo.CompletedDemoPart"
-                        },
-                        "maxItems": 1,
-                        "minItems": 1,
-                        "type": "array",
-                        "uniqueItems": false
-                    }
-                },
-                "required": [
-                    "parts"
-                ],
-                "type": "object"
-            },
-            "demo.CompleteDemoUploadResponse": {
-                "properties": {
-                    "created_at": {
-                        "example": "2023-12-25T10:30:00Z",
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "credits_used": {
-                        "example": true,
-                        "type": "boolean"
-                    },
-                    "job_id": {
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "message": {
-                        "example": "Demo upload completed successfully, processing started",
-                        "type": "string"
-                    },
-                    "status": {
-                        "example": "pending",
-                        "type": "string"
-                    },
-                    "tier": {
-                        "example": "authenticated",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "demo.CompletedDemoPart": {
-                "properties": {
-                    "etag": {
-                        "example": "\"9bb58f26192e4ba00f01e2e7b136bbd8\"",
-                        "minLength": 1,
-                        "type": "string"
-                    },
-                    "part_number": {
-                        "example": 1,
-                        "maximum": 1,
-                        "minimum": 1,
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "etag",
-                    "part_number"
-                ],
-                "type": "object"
-            },
-            "demo.DemoPartInfo": {
-                "properties": {
-                    "end_byte": {
-                        "example": 10485759,
-                        "type": "integer"
-                    },
-                    "part_number": {
-                        "example": 1,
-                        "type": "integer"
-                    },
-                    "start_byte": {
-                        "example": 0,
-                        "type": "integer"
-                    },
-                    "upload_url": {
-                        "example": "https://r2.example.com/bucket/file.pdf?partNumber=1\u0026uploadId=abc123",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "demo.InitiateDemoUploadRequest": {
-                "properties": {
-                    "file_name": {
-                        "example": "document.pdf",
-                        "maxLength": 255,
-                        "minLength": 1,
-                        "type": "string"
-                    },
-                    "file_size": {
-                        "example": 1048576,
-                        "maximum": 10485760,
-                        "minimum": 1,
-                        "type": "integer"
-                    },
-                    "format": {
-                        "enum": [
-                            "markdown",
-                            "structured"
-                        ],
-                        "example": "markdown",
-                        "type": "string"
-                    },
-                    "instructions": {
-                        "example": "Extract key info",
-                        "maxLength": 100,
-                        "type": "string"
-                    },
-                    "schema": {
-                        "additionalProperties": {},
-                        "type": "object"
-                    }
-                },
-                "required": [
-                    "file_name",
-                    "format"
-                ],
-                "type": "object"
-            },
-            "demo.InitiateDemoUploadResponse": {
-                "properties": {
-                    "chunk_size": {
-                        "example": 5242880,
-                        "type": "integer"
-                    },
-                    "complete_url": {
-                        "example": "/api/v1/ocr/demo/123e4567-e89b-12d3-a456-426614174000/complete",
-                        "type": "string"
-                    },
-                    "expires_at": {
-                        "example": "2023-12-25T10:45:00Z",
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "job_id": {
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "parts": {
-                        "items": {
-                            "$ref": "#/components/schemas/demo.DemoPartInfo"
-                        },
-                        "type": "array",
-                        "uniqueItems": false
-                    },
-                    "tier": {
-                        "example": "authenticated",
-                        "type": "string"
-                    },
-                    "total_chunks": {
-                        "example": 1,
-                        "type": "integer"
-                    },
-                    "upload_id": {
-                        "example": "550e8400-e29b-41d4-a716-446655440000",
-                        "type": "string"
-                    },
-                    "upload_type": {
-                        "example": "multipart",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "events.WebhookEventPayloadResponse": {
                 "properties": {
                     "enriched": {
@@ -1406,6 +1232,10 @@
                             "$ref": "#/components/schemas/health.HealthCheck"
                         },
                         "type": "object"
+                    },
+                    "service": {
+                        "example": "api",
+                        "type": "string"
                     },
                     "status": {
                         "example": "healthy",
@@ -2165,6 +1995,9 @@
                         "type": "string"
                     }
                 },
+                "required": [
+                    "events"
+                ],
                 "type": "object"
             },
             "subscriptions.WebhookEventTypesResponse": {
@@ -2337,7 +2170,7 @@
                         "type": "string"
                     },
                     "model": {
-                        "example": "standard-v1",
+                        "example": "standard-v2",
                         "type": "string"
                     },
                     "name": {
@@ -2424,7 +2257,7 @@
                     },
                     "model": {
                         "description": "NEW",
-                        "example": "standard-v1",
+                        "example": "standard-v2",
                         "type": "string"
                     },
                     "name": {
@@ -2695,23 +2528,6 @@
                 },
                 "type": "object"
             },
-            "upload.ErrorResponse": {
-                "properties": {
-                    "code": {
-                        "example": "FILE_TOO_LARGE",
-                        "type": "string"
-                    },
-                    "error": {
-                        "example": "File too large",
-                        "type": "string"
-                    },
-                    "message": {
-                        "example": "File size exceeds your plan's limit",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "upload.InitiateDirectUploadRequest": {
                 "properties": {
                     "content_type": {
@@ -2749,7 +2565,7 @@
                         "type": "string"
                     },
                     "model": {
-                        "example": "standard-v1",
+                        "example": "standard-v2",
                         "type": "string"
                     },
                     "save_as_template": {
@@ -2820,7 +2636,7 @@
                         "type": "string"
                     },
                     "model": {
-                        "example": "standard-v1",
+                        "example": "standard-v2",
                         "type": "string"
                     },
                     "save_as_template": {
@@ -3064,255 +2880,6 @@
                 "summary": "Get system health status",
                 "tags": [
                     "Health"
-                ]
-            }
-        },
-        "/ocr/demo/initiate": {
-            "post": {
-                "description": "Public demo endpoint to get presigned URL for file upload. Supports PDF, images, and office documents. Process top 5 pages with standard-v1 model. Requires captcha verification. Supports custom instructions and schema.",
-                "operationId": "initiateDemoUpload",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/demo.InitiateDemoUploadRequest",
-                                        "summary": "request",
-                                        "description": "Demo upload initiation request"
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "description": "Demo upload initiation request",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/demo.InitiateDemoUploadResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/upload.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/upload.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Captcha verification failed"
-                    },
-                    "429": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/upload.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Rate limit exceeded"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/upload.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "summary": "Initiate demo upload with presigned URL",
-                "tags": [
-                    "Demo"
-                ]
-            }
-        },
-        "/ocr/demo/result/{job_id}": {
-            "get": {
-                "description": "Retrieve OCR processing results for a completed demo job with extracted text and structured data. Returns job status if processing is still in progress. No authentication required.",
-                "operationId": "getDemoJobResult",
-                "parameters": [
-                    {
-                        "description": "Demo OCR job ID",
-                        "in": "path",
-                        "name": "job_id",
-                        "required": true,
-                        "schema": {
-                            "format": "uuid",
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/models.OCRResultResponse"
-                                }
-                            }
-                        },
-                        "description": "OCR processing completed, results available"
-                    },
-                    "202": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/models.OCRStatusResponse"
-                                }
-                            }
-                        },
-                        "description": "OCR processing in progress, status returned"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad request - invalid job ID"
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Forbidden - job is not a demo job"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Not found - job does not exist"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal server error"
-                    }
-                },
-                "summary": "Get demo OCR job result",
-                "tags": [
-                    "Demo"
-                ]
-            }
-        },
-        "/ocr/demo/{job_id}/complete": {
-            "post": {
-                "description": "Complete the multipart upload for a demo job and start processing. Public endpoint with optional auth.",
-                "operationId": "completeDemoUpload",
-                "parameters": [
-                    {
-                        "description": "Job ID",
-                        "in": "path",
-                        "name": "job_id",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/demo.CompleteDemoUploadRequest",
-                                        "summary": "request",
-                                        "description": "Upload completion request"
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "description": "Upload completion request",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/demo.CompleteDemoUploadResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/response.ErrorResponse"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "summary": "Complete demo upload",
-                "tags": [
-                    "Demo"
                 ]
             }
         },

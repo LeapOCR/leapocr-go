@@ -55,8 +55,6 @@ type APIClient struct {
 
 	CreditsAPI CreditsAPI
 
-	DemoAPI DemoAPI
-
 	HealthAPI HealthAPI
 
 	JobsAPI JobsAPI
@@ -97,7 +95,6 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.AnalyticsAPI = (*AnalyticsAPIService)(&c.common)
 	c.AuthenticationAPI = (*AuthenticationAPIService)(&c.common)
 	c.CreditsAPI = (*CreditsAPIService)(&c.common)
-	c.DemoAPI = (*DemoAPIService)(&c.common)
 	c.HealthAPI = (*HealthAPIService)(&c.common)
 	c.JobsAPI = (*JobsAPIService)(&c.common)
 	c.ModelsAPI = (*ModelsAPIService)(&c.common)

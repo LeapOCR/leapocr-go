@@ -22,6 +22,7 @@ var _ MappedNullable = &HealthHealthStatus{}
 // HealthHealthStatus struct for HealthHealthStatus
 type HealthHealthStatus struct {
 	Checks    map[string]HealthHealthCheck `json:"checks,omitempty"`
+	Service   *string                      `json:"service,omitempty"`
 	Status    *string                      `json:"status,omitempty"`
 	Summary   *HealthHealthSummary         `json:"summary,omitempty"`
 	Timestamp *time.Time                   `json:"timestamp,omitempty"`
@@ -75,6 +76,38 @@ func (o *HealthHealthStatus) HasChecks() bool {
 // SetChecks gets a reference to the given map[string]HealthHealthCheck and assigns it to the Checks field.
 func (o *HealthHealthStatus) SetChecks(v map[string]HealthHealthCheck) {
 	o.Checks = v
+}
+
+// GetService returns the Service field value if set, zero value otherwise.
+func (o *HealthHealthStatus) GetService() string {
+	if o == nil || IsNil(o.Service) {
+		var ret string
+		return ret
+	}
+	return *o.Service
+}
+
+// GetServiceOk returns a tuple with the Service field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *HealthHealthStatus) GetServiceOk() (*string, bool) {
+	if o == nil || IsNil(o.Service) {
+		return nil, false
+	}
+	return o.Service, true
+}
+
+// HasService returns a boolean if a field has been set.
+func (o *HealthHealthStatus) HasService() bool {
+	if o != nil && !IsNil(o.Service) {
+		return true
+	}
+
+	return false
+}
+
+// SetService gets a reference to the given string and assigns it to the Service field.
+func (o *HealthHealthStatus) SetService(v string) {
+	o.Service = &v
 }
 
 // GetStatus returns the Status field value if set, zero value otherwise.
@@ -217,6 +250,9 @@ func (o HealthHealthStatus) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	if !IsNil(o.Checks) {
 		toSerialize["checks"] = o.Checks
+	}
+	if !IsNil(o.Service) {
+		toSerialize["service"] = o.Service
 	}
 	if !IsNil(o.Status) {
 		toSerialize["status"] = o.Status

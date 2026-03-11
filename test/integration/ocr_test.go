@@ -74,7 +74,7 @@ func TestIntegration_ProcessFile(t *testing.T) {
 		structuredOptions = append(
 			structuredOptions,
 			ocr.WithFormat(ocr.FormatStructured),
-			ocr.WithModel(ocr.ModelStandardV1),
+			ocr.WithModel(ocr.ModelStandardV2),
 			ocr.WithInstructions("Extract all text and identify key information"),
 			ocr.WithSchema(map[string]interface{}{
 				"type": "object",
@@ -162,7 +162,7 @@ func TestIntegration_ProcessURL(t *testing.T) {
 	t.Logf("Processing URL: %s", testURL)
 	job, err := sdk.ProcessURL(ctx, testURL,
 		ocr.WithFormat(ocr.FormatMarkdown),
-		ocr.WithModel(ocr.ModelStandardV1),
+		ocr.WithModel(ocr.ModelStandardV2),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, job)
@@ -299,7 +299,7 @@ func TestIntegration_DeleteJob(t *testing.T) {
 		structuredOptions = append(
 			structuredOptions,
 			ocr.WithFormat(ocr.FormatStructured),
-			ocr.WithModel(ocr.ModelStandardV1),
+			ocr.WithModel(ocr.ModelStandardV2),
 			ocr.WithSchema(map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{

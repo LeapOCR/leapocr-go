@@ -98,9 +98,6 @@ Class | Method | HTTP request | Description
 *CreditsAPI* | [**GetPolarProductsCatalog**](docs/CreditsAPI.md#getpolarproductscatalog) | **Get** /credits/polar/products/catalog | Get Polar products catalog
 *CreditsAPI* | [**ListCreditTransactionsCursor**](docs/CreditsAPI.md#listcredittransactionscursor) | **Get** /organizations/{organization_id}/teams/{team_id}/credits/transactions | List credit transactions with cursor pagination
 *CreditsAPI* | [**ListOrgCreditTransactionsCursor**](docs/CreditsAPI.md#listorgcredittransactionscursor) | **Get** /organizations/{organization_id}/credits/transactions | List organization credit transactions with cursor pagination
-*DemoAPI* | [**CompleteDemoUpload**](docs/DemoAPI.md#completedemoupload) | **Post** /ocr/demo/{job_id}/complete | Complete demo upload
-*DemoAPI* | [**GetDemoJobResult**](docs/DemoAPI.md#getdemojobresult) | **Get** /ocr/demo/result/{job_id} | Get demo OCR job result
-*DemoAPI* | [**InitiateDemoUpload**](docs/DemoAPI.md#initiatedemoupload) | **Post** /ocr/demo/initiate | Initiate demo upload with presigned URL
 *HealthAPI* | [**GetHealthStatus**](docs/HealthAPI.md#gethealthstatus) | **Get** /health | Get system health status
 *JobsAPI* | [**DeleteJob**](docs/JobsAPI.md#deletejob) | **Delete** /organizations/{organization_id}/teams/{team_id}/jobs/{job_id} | Delete OCR job
 *JobsAPI* | [**GetTeamJobStatus**](docs/JobsAPI.md#getteamjobstatus) | **Get** /organizations/{organization_id}/teams/{team_id}/jobs/{job_id}/status | Get job status with workflow details
@@ -188,7 +185,6 @@ Class | Method | HTTP request | Description
  - [AnalyticsUserStats](docs/AnalyticsUserStats.md)
  - [AnalyticsWebhookSummary](docs/AnalyticsWebhookSummary.md)
  - [AuthAuthResponse](docs/AuthAuthResponse.md)
- - [CompleteDemoUploadRequest](docs/CompleteDemoUploadRequest.md)
  - [CompleteDirectUploadRequest](docs/CompleteDirectUploadRequest.md)
  - [CreateOnboardingRequest](docs/CreateOnboardingRequest.md)
  - [CreateTemplateRequest](docs/CreateTemplateRequest.md)
@@ -201,12 +197,6 @@ Class | Method | HTTP request | Description
  - [CreditsCreditTransactionProjectResponse](docs/CreditsCreditTransactionProjectResponse.md)
  - [CreditsCreditTransactionsListCursorResponse](docs/CreditsCreditTransactionsListCursorResponse.md)
  - [CreditsOrgCreditTransactionsListCursorResponse](docs/CreditsOrgCreditTransactionsListCursorResponse.md)
- - [DemoCompleteDemoUploadRequest](docs/DemoCompleteDemoUploadRequest.md)
- - [DemoCompleteDemoUploadResponse](docs/DemoCompleteDemoUploadResponse.md)
- - [DemoCompletedDemoPart](docs/DemoCompletedDemoPart.md)
- - [DemoDemoPartInfo](docs/DemoDemoPartInfo.md)
- - [DemoInitiateDemoUploadRequest](docs/DemoInitiateDemoUploadRequest.md)
- - [DemoInitiateDemoUploadResponse](docs/DemoInitiateDemoUploadResponse.md)
  - [DirectUploadRequest](docs/DirectUploadRequest.md)
  - [EventsWebhookEventPayloadResponse](docs/EventsWebhookEventPayloadResponse.md)
  - [EventsWebhookEventResponse](docs/EventsWebhookEventResponse.md)
@@ -217,7 +207,6 @@ Class | Method | HTTP request | Description
  - [HealthHealthCheck](docs/HealthHealthCheck.md)
  - [HealthHealthStatus](docs/HealthHealthStatus.md)
  - [HealthHealthSummary](docs/HealthHealthSummary.md)
- - [InitiateDemoUploadRequest](docs/InitiateDemoUploadRequest.md)
  - [JobsJobListItem](docs/JobsJobListItem.md)
  - [JobsJobManagementResponse](docs/JobsJobManagementResponse.md)
  - [JobsJobResponse](docs/JobsJobResponse.md)
@@ -266,7 +255,6 @@ Class | Method | HTTP request | Description
  - [UploadDirectUploadCompleteRequest](docs/UploadDirectUploadCompleteRequest.md)
  - [UploadDirectUploadCompleteResponse](docs/UploadDirectUploadCompleteResponse.md)
  - [UploadDirectUploadResponse](docs/UploadDirectUploadResponse.md)
- - [UploadErrorResponse](docs/UploadErrorResponse.md)
  - [UploadFromRemoteURLRequest](docs/UploadFromRemoteURLRequest.md)
  - [UploadInitiateDirectUploadRequest](docs/UploadInitiateDirectUploadRequest.md)
  - [UploadMultipartPart](docs/UploadMultipartPart.md)

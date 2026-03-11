@@ -50,7 +50,7 @@ func main() {
     job, err := client.ProcessURL(ctx,
         "https://example.com/document.pdf",
         ocr.WithFormat(ocr.FormatStructured),
-        ocr.WithModel(ocr.ModelStandardV1),
+        ocr.WithModel(ocr.ModelStandardV2),
         ocr.WithSchema(map[string]interface{}{
             "type": "object",
             "properties": map[string]interface{}{
@@ -82,7 +82,7 @@ func main() {
 
 - **Idiomatic Go API** - Clean, type-safe interface following Go best practices
 - **Multiple Processing Formats** - Structured data extraction or markdown output
-- **Flexible Model Selection** - Choose from standard, english pro, or custom AI models
+- **Flexible Model Selection** - Choose from standard, pro, or custom AI models
 - **Custom Schema Support** - Define extraction schemas for your specific use case
 - **Built-in Retry Logic** - Automatic handling of transient failures
 - **Context Support** - Full context.Context integration for timeouts and cancellation
@@ -90,7 +90,7 @@ func main() {
 
 ## Processing Models
 
-Use `WithModel()` to specify a model, or `WithModelString()` for custom models. Defaults to `ModelStandardV1`.
+Use `WithModel()` to specify a model, or `WithModelString()` for custom models. Defaults to `ModelStandardV2`.
 
 ## Usage Examples
 
@@ -102,7 +102,7 @@ ctx := context.Background()
 job, err := client.ProcessURL(ctx,
     "https://example.com/invoice.pdf",
     ocr.WithFormat(ocr.FormatStructured),
-    ocr.WithModel(ocr.ModelStandardV1),
+    ocr.WithModel(ocr.ModelStandardV2),
     ocr.WithSchema(map[string]interface{}{
         "type": "object",
         "properties": map[string]interface{}{
@@ -138,7 +138,7 @@ defer file.Close()
 
 job, err := client.ProcessFile(ctx, file, "invoice.pdf",
     ocr.WithFormat(ocr.FormatStructured),
-    ocr.WithModel(ocr.ModelProV1),
+    ocr.WithModel(ocr.ModelProV2),
     ocr.WithSchema(map[string]interface{}{
         "invoice_number": "string",
         "total_amount":   "number",

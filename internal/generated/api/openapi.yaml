@@ -152,158 +152,6 @@ paths:
       summary: Get system health status
       tags:
       - Health
-  /ocr/demo/initiate:
-    post:
-      description: "Public demo endpoint to get presigned URL for file upload. Supports\
-        \ PDF, images, and office documents. Process top 5 pages with standard-v1\
-        \ model. Requires captcha verification. Supports custom instructions and schema."
-      operationId: initiateDemoUpload
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/initiateDemoUpload_request"
-        description: Demo upload initiation request
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/demo.InitiateDemoUploadResponse"
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/upload.ErrorResponse"
-          description: Bad Request
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/upload.ErrorResponse"
-          description: Captcha verification failed
-        "429":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/upload.ErrorResponse"
-          description: Rate limit exceeded
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/upload.ErrorResponse"
-          description: Internal Server Error
-      summary: Initiate demo upload with presigned URL
-      tags:
-      - Demo
-  /ocr/demo/result/{job_id}:
-    get:
-      description: Retrieve OCR processing results for a completed demo job with extracted
-        text and structured data. Returns job status if processing is still in progress.
-        No authentication required.
-      operationId: getDemoJobResult
-      parameters:
-      - description: Demo OCR job ID
-        explode: false
-        in: path
-        name: job_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/models.OCRResultResponse"
-          description: "OCR processing completed, results available"
-        "202":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/models.OCRStatusResponse"
-          description: "OCR processing in progress, status returned"
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Bad request - invalid job ID
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Forbidden - job is not a demo job
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Not found - job does not exist
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Internal server error
-      summary: Get demo OCR job result
-      tags:
-      - Demo
-  /ocr/demo/{job_id}/complete:
-    post:
-      description: Complete the multipart upload for a demo job and start processing.
-        Public endpoint with optional auth.
-      operationId: completeDemoUpload
-      parameters:
-      - description: Job ID
-        explode: false
-        in: path
-        name: job_id
-        required: true
-        schema:
-          type: string
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/completeDemoUpload_request"
-        description: Upload completion request
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/demo.CompleteDemoUploadResponse"
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Bad Request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response.ErrorResponse"
-          description: Internal Server Error
-      summary: Complete demo upload
-      tags:
-      - Demo
   /ocr/models:
     get:
       description: "Retrieve a list of all enabled OCR models with their configurations,\
@@ -5619,158 +5467,6 @@ components:
           type: integer
         total_pages:
           type: integer
-    demo.CompleteDemoUploadRequest:
-      properties:
-        parts:
-          description: Always 1 part for demo
-          items:
-            $ref: "#/components/schemas/demo.CompletedDemoPart"
-          maxItems: 1
-          minItems: 1
-          type: array
-          uniqueItems: false
-      required:
-      - parts
-    demo.CompleteDemoUploadResponse:
-      example:
-        tier: authenticated
-        job_id: 123e4567-e89b-12d3-a456-426614174000
-        created_at: 2023-12-25T10:30:00Z
-        message: "Demo upload completed successfully, processing started"
-        credits_used: true
-        status: pending
-      properties:
-        created_at:
-          example: 2023-12-25T10:30:00Z
-          format: date-time
-          type: string
-        credits_used:
-          example: true
-          type: boolean
-        job_id:
-          example: 123e4567-e89b-12d3-a456-426614174000
-          format: uuid
-          type: string
-        message:
-          example: "Demo upload completed successfully, processing started"
-          type: string
-        status:
-          example: pending
-          type: string
-        tier:
-          example: authenticated
-          type: string
-    demo.CompletedDemoPart:
-      properties:
-        etag:
-          example: '"9bb58f26192e4ba00f01e2e7b136bbd8"'
-          minLength: 1
-          type: string
-        part_number:
-          example: 1
-          maximum: 1
-          minimum: 1
-          type: integer
-      required:
-      - etag
-      - part_number
-    demo.DemoPartInfo:
-      example:
-        start_byte: 0
-        part_number: 1
-        upload_url: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
-        end_byte: 10485759
-      properties:
-        end_byte:
-          example: 10485759
-          type: integer
-        part_number:
-          example: 1
-          type: integer
-        start_byte:
-          example: 0
-          type: integer
-        upload_url:
-          example: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
-          type: string
-    demo.InitiateDemoUploadRequest:
-      properties:
-        file_name:
-          example: document.pdf
-          maxLength: 255
-          minLength: 1
-          type: string
-        file_size:
-          example: 1048576
-          maximum: 10485760
-          minimum: 1
-          type: integer
-        format:
-          enum:
-          - markdown
-          - structured
-          example: markdown
-          type: string
-        instructions:
-          example: Extract key info
-          maxLength: 100
-          type: string
-        schema:
-          additionalProperties: {}
-      required:
-      - file_name
-      - format
-    demo.InitiateDemoUploadResponse:
-      example:
-        chunk_size: 5242880
-        upload_id: 550e8400-e29b-41d4-a716-446655440000
-        upload_type: multipart
-        expires_at: 2023-12-25T10:45:00Z
-        tier: authenticated
-        job_id: 123e4567-e89b-12d3-a456-426614174000
-        parts:
-        - start_byte: 0
-          part_number: 1
-          upload_url: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
-          end_byte: 10485759
-        - start_byte: 0
-          part_number: 1
-          upload_url: https://r2.example.com/bucket/file.pdf?partNumber=1&uploadId=abc123
-          end_byte: 10485759
-        complete_url: /api/v1/ocr/demo/123e4567-e89b-12d3-a456-426614174000/complete
-        total_chunks: 1
-      properties:
-        chunk_size:
-          example: 5242880
-          type: integer
-        complete_url:
-          example: /api/v1/ocr/demo/123e4567-e89b-12d3-a456-426614174000/complete
-          type: string
-        expires_at:
-          example: 2023-12-25T10:45:00Z
-          format: date-time
-          type: string
-        job_id:
-          example: 123e4567-e89b-12d3-a456-426614174000
-          format: uuid
-          type: string
-        parts:
-          items:
-            $ref: "#/components/schemas/demo.DemoPartInfo"
-          type: array
-          uniqueItems: false
-        tier:
-          example: authenticated
-          type: string
-        total_chunks:
-          example: 1
-          type: integer
-        upload_id:
-          example: 550e8400-e29b-41d4-a716-446655440000
-          type: string
-        upload_type:
-          example: multipart
-          type: string
     events.WebhookEventPayloadResponse:
       example:
         note: note
@@ -5906,6 +5602,7 @@ components:
             response_time: 5ms
             message: Database connection successful
             status: healthy
+        service: api
         version: 1.0.0
         status: healthy
         timestamp: 2023-12-25T10:30:00Z
@@ -5913,6 +5610,9 @@ components:
         checks:
           additionalProperties:
             $ref: "#/components/schemas/health.HealthCheck"
+        service:
+          example: api
+          type: string
         status:
           example: healthy
           type: string
@@ -6805,6 +6505,8 @@ components:
           uniqueItems: false
         url:
           type: string
+      required:
+      - events
     subscriptions.WebhookEventTypesResponse:
       example:
         event_types:
@@ -6986,7 +6688,7 @@ components:
           maxLength: 2000
           type: string
         model:
-          example: standard-v1
+          example: standard-v2
           type: string
         name:
           example: Invoice Template
@@ -7030,7 +6732,7 @@ components:
         user_id: 123e4567-e89b-12d3-a456-426614174001
         checksum: abc123def456
         name: Invoice Template
-        model: standard-v1
+        model: standard-v2
         id: 123e4567-e89b-12d3-a456-426614174000
         favorite: true
         slug: invoice-template
@@ -7076,7 +6778,7 @@ components:
           type: string
         model:
           description: NEW
-          example: standard-v1
+          example: standard-v2
           type: string
         name:
           example: Invoice Template
@@ -7171,7 +6873,7 @@ components:
           user_id: 123e4567-e89b-12d3-a456-426614174001
           checksum: abc123def456
           name: Invoice Template
-          model: standard-v1
+          model: standard-v2
           id: 123e4567-e89b-12d3-a456-426614174000
           favorite: true
           slug: invoice-template
@@ -7195,7 +6897,7 @@ components:
           user_id: 123e4567-e89b-12d3-a456-426614174001
           checksum: abc123def456
           name: Invoice Template
-          model: standard-v1
+          model: standard-v2
           id: 123e4567-e89b-12d3-a456-426614174000
           favorite: true
           slug: invoice-template
@@ -7351,21 +7053,6 @@ components:
         upload_type:
           example: multipart
           type: string
-    upload.ErrorResponse:
-      example:
-        code: FILE_TOO_LARGE
-        error: File too large
-        message: File size exceeds your plan's limit
-      properties:
-        code:
-          example: FILE_TOO_LARGE
-          type: string
-        error:
-          example: File too large
-          type: string
-        message:
-          example: File size exceeds your plan's limit
-          type: string
     upload.InitiateDirectUploadRequest:
       properties:
         content_type:
@@ -7396,7 +7083,7 @@ components:
           maxLength: 100
           type: string
         model:
-          example: standard-v1
+          example: standard-v2
           type: string
         save_as_template:
           example: false
@@ -7451,7 +7138,7 @@ components:
           maxLength: 100
           type: string
         model:
-          example: standard-v1
+          example: standard-v2
           type: string
         save_as_template:
           example: false
@@ -7506,14 +7193,6 @@ components:
       - object_key
       - size
       - timestamp
-    initiateDemoUpload_request:
-      oneOf:
-      - type: object
-      - $ref: "#/components/schemas/demo.InitiateDemoUploadRequest"
-    completeDemoUpload_request:
-      oneOf:
-      - type: object
-      - $ref: "#/components/schemas/demo.CompleteDemoUploadRequest"
     directUpload_request:
       oneOf:
       - type: object

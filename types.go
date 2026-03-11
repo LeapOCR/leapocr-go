@@ -18,15 +18,12 @@ const (
 type Model string
 
 const (
-	// ModelStandardV1 is the baseline model that handles all cases
-	// Credits per page: 1, Priority: 1
-	ModelStandardV1 Model = "standard-v1"
-	// ModelEnglishProV1 is premium quality for English documents only
-	// Credits per page: 2, Priority: 4
-	ModelEnglishProV1 Model = "english-pro-v1"
-	// ModelProV1 is the highest quality model that handles all cases
-	// Credits per page: 5, Priority: 5
-	ModelProV1 Model = "pro-v1"
+	// ModelStandardV2 is the baseline model that handles all cases
+	// Credits per page: 1, Priority: 2
+	ModelStandardV2 Model = "standard-v2"
+	// ModelProV2 is the highest quality model that handles all cases
+	// Credits per page: 3, Priority: 6
+	ModelProV2 Model = "pro-v2"
 )
 
 // OCRResult represents the final result of OCR processing
@@ -74,7 +71,7 @@ func WithFormat(format Format) ProcessingOption {
 }
 
 // WithModel sets the OCR model to use for processing
-// You can use one of the predefined constants (ModelStandardV1, ModelEnglishProV1, ModelProV1)
+// You can use one of the predefined constants (ModelStandardV2, ModelProV2)
 // or pass any custom model name as a string
 func WithModel(model Model) ProcessingOption {
 	return func(c *processingConfig) {
@@ -120,7 +117,7 @@ func WithTemplateSlug(templateSlug string) ProcessingOption {
 func applyProcessingOptions(opts []ProcessingOption) *processingConfig {
 	config := &processingConfig{
 		format: FormatStructured,        // default format
-		model:  string(ModelStandardV1), // default model
+		model:  string(ModelStandardV2), // default model
 	}
 
 	for _, opt := range opts {

@@ -58,7 +58,7 @@ func processLocalFile(sdk *ocr.SDK) error {
 	fmt.Printf("Starting OCR processing for %s...\n", filePath)
 	job, err := sdk.ProcessFile(ctx, file, "sample-document.pdf",
 		ocr.WithFormat(ocr.FormatStructured),
-		ocr.WithModel(ocr.ModelStandardV1),
+		ocr.WithModel(ocr.ModelStandardV2),
 		ocr.WithInstructions("Extract all invoice details including amounts, dates, and vendor information"),
 		ocr.WithSchema(map[string]interface{}{
 			"type": "object",
@@ -127,7 +127,7 @@ func processFileFromURL(sdk *ocr.SDK) error {
 	fmt.Printf("Starting OCR processing for URL: %s...\n", fileURL)
 	job, err := sdk.ProcessURL(ctx, fileURL,
 		ocr.WithFormat(ocr.FormatMarkdown),
-		ocr.WithModel(ocr.ModelStandardV1),
+		ocr.WithModel(ocr.ModelStandardV2),
 		ocr.WithInstructions("Extract key financial information"),
 	)
 	if err != nil {

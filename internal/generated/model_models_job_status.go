@@ -22,7 +22,6 @@ type ModelsJobStatus string
 // List of models.JobStatus
 const (
 	MODELSJOBSTATUS_JobStatusPending       ModelsJobStatus = "pending"
-	MODELSJOBSTATUS_JobStatusUploading     ModelsJobStatus = "uploading"
 	MODELSJOBSTATUS_JobStatusProcessing    ModelsJobStatus = "processing"
 	MODELSJOBSTATUS_JobStatusCompleted     ModelsJobStatus = "completed"
 	MODELSJOBSTATUS_JobStatusPartiallyDone ModelsJobStatus = "partially_done"
@@ -32,7 +31,6 @@ const (
 // All allowed values of ModelsJobStatus enum
 var AllowedModelsJobStatusEnumValues = []ModelsJobStatus{
 	"pending",
-	"uploading",
 	"processing",
 	"completed",
 	"partially_done",

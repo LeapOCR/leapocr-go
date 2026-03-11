@@ -26,10 +26,10 @@ type ModelsPageResponse struct {
 	Confidence *float32        `json:"confidence,omitempty"`
 	Dimensions *ModelsPageDims `json:"dimensions,omitempty"`
 	// Whether bounding box data is available. True if bbox extraction was performed.
-	HasBoundingBoxesFlag *bool       `json:"has_bounding_boxes,omitempty"`
-	Id                   *string     `json:"id,omitempty"`
-	PageNumber           *int32      `json:"page_number,omitempty"`
-	Result               interface{} `json:"result,omitempty"`
+	HasBoundingBoxes *bool       `json:"has_bounding_boxes,omitempty"`
+	Id               *string     `json:"id,omitempty"`
+	PageNumber       *int32      `json:"page_number,omitempty"`
+	Result           interface{} `json:"result,omitempty"`
 }
 
 // NewModelsPageResponse instantiates a new ModelsPageResponse object
@@ -67,8 +67,9 @@ func (o *ModelsPageResponse) GetBoundingBoxesOk() ([]ModelsBoundingBox, bool) {
 	return o.BoundingBoxes, true
 }
 
-// HasBoundingBoxes returns a boolean if a field has been set.
-func (o *ModelsPageResponse) HasBoundingBoxes() bool {
+// HasBoundingBoxesSet returns true when BoundingBoxes has been populated.
+// The name avoids colliding with the HasBoundingBoxes field accessor below.
+func (o *ModelsPageResponse) HasBoundingBoxesSet() bool {
 	if o != nil && !IsNil(o.BoundingBoxes) {
 		return true
 	}
@@ -147,25 +148,25 @@ func (o *ModelsPageResponse) SetDimensions(v ModelsPageDims) {
 
 // GetHasBoundingBoxes returns the HasBoundingBoxes field value if set, zero value otherwise.
 func (o *ModelsPageResponse) GetHasBoundingBoxes() bool {
-	if o == nil || IsNil(o.HasBoundingBoxesFlag) {
+	if o == nil || IsNil(o.HasBoundingBoxes) {
 		var ret bool
 		return ret
 	}
-	return *o.HasBoundingBoxesFlag
+	return *o.HasBoundingBoxes
 }
 
 // GetHasBoundingBoxesOk returns a tuple with the HasBoundingBoxes field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ModelsPageResponse) GetHasBoundingBoxesOk() (*bool, bool) {
-	if o == nil || IsNil(o.HasBoundingBoxesFlag) {
+	if o == nil || IsNil(o.HasBoundingBoxes) {
 		return nil, false
 	}
-	return o.HasBoundingBoxesFlag, true
+	return o.HasBoundingBoxes, true
 }
 
 // HasHasBoundingBoxes returns a boolean if a field has been set.
 func (o *ModelsPageResponse) HasHasBoundingBoxes() bool {
-	if o != nil && !IsNil(o.HasBoundingBoxesFlag) {
+	if o != nil && !IsNil(o.HasBoundingBoxes) {
 		return true
 	}
 
@@ -174,7 +175,7 @@ func (o *ModelsPageResponse) HasHasBoundingBoxes() bool {
 
 // SetHasBoundingBoxes gets a reference to the given bool and assigns it to the HasBoundingBoxes field.
 func (o *ModelsPageResponse) SetHasBoundingBoxes(v bool) {
-	o.HasBoundingBoxesFlag = &v
+	o.HasBoundingBoxes = &v
 }
 
 // GetId returns the Id field value if set, zero value otherwise.
@@ -293,8 +294,8 @@ func (o ModelsPageResponse) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Dimensions) {
 		toSerialize["dimensions"] = o.Dimensions
 	}
-	if !IsNil(o.HasBoundingBoxesFlag) {
-		toSerialize["has_bounding_boxes"] = o.HasBoundingBoxesFlag
+	if !IsNil(o.HasBoundingBoxes) {
+		toSerialize["has_bounding_boxes"] = o.HasBoundingBoxes
 	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
